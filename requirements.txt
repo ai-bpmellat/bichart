@@ -1,0 +1,6 @@
+fastapi==0.138.0
+uvicorn==0.49.0
+sqlalchemy==2.0.51
+pandas
+requests
+python-multipart

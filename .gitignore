@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Local data & runtime
+*.db
+history.json
+.env
+.env.*
+
+# Archives & backups
+*.tar.gz
+* copy.py
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
