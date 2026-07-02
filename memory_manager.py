@@ -44,6 +44,20 @@ class MemoryManager:
         with self._lock:
             return self.messages[-n:]
 
+    def update_last_analysis(self, analysis: str, user_question: str | None = None) -> None:
+        """Attach analysis to the most recent turn (optionally matching question)."""
+        with self._lock:
+            if not self.messages:
+                return
+            target = self.messages[-1]
+            if user_question is not None:
+                for entry in reversed(self.messages):
+                    if entry.get("user_question") == user_question:
+                        target = entry
+                        break
+            target["analysis"] = analysis
+            self.save_to_disk()
+
     def save_to_disk(self):
         """Write the full in-memory history out to history.json (overwrite)."""
         try:

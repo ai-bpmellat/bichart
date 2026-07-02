@@ -3,16 +3,16 @@ app.py
 ------
 FastAPI application exposing:
     GET  /              -> serves the chat UI (static/index.html)
-    POST /api/chat       -> the full pipeline (text-to-SQL -> execute -> analyze)
+    POST /api/chat       -> text-to-SQL, safety check, execute (results shown first)
+    POST /api/analyze    -> optional Ollama analysis on demand (after results)
     GET  /api/health     -> health check (DB + Ollama reachability)
 
 Pipeline executed by /api/chat, in order:
     1. Call Gemma (ollama_client.generate_sql) with a strict JSON system prompt.
     2. Validate the SQL is read-only SELECT only (sql_safety.validate_select_only).
     3. Execute against SQLite (swappable engine via database.py), capped at sql_safety.MAX_ROWS.
-    4. Call Gemma again (ollama_client.generate_analysis) with the first 20 rows + question.
-    5. Store the full turn in memory (memory_manager) and persist to history.json.
-    6. Return {sql, explanation, data, analysis} to the frontend.
+    4. Store the turn in memory (memory_manager) and persist to history.json.
+    5. Return {sql, explanation, data} to the frontend (no analysis — user triggers /api/analyze).
 
 Why FastAPI instead of Flask:
     The brief asked for Flask but allowed swapping frameworks if something fits
@@ -24,6 +24,7 @@ Why FastAPI instead of Flask:
 """
 
 import os
+import time
 import traceback
 from typing import Optional
 
@@ -36,7 +37,7 @@ from sqlalchemy import text
 
 from database import engine, SessionLocal
 import ollama_client
-from sql_safety import validate_select_only, UnsafeSQLError, strip_unrequested_limit
+from sql_safety import validate_select_only, UnsafeSQLError, strip_unrequested_limit, normalize_generated_sql
 from memory_manager import memory
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -83,16 +84,30 @@ dim_merchant(merchant_id INTEGER PK, merchant_name TEXT, merchant_code TEXT,
 
 dim_terminal(terminal_id INTEGER PK, terminal_serial TEXT, merchant_id INTEGER FK -> dim_merchant,
              terminal_type TEXT, install_date DATE, status TEXT)
+  -- status values: 'active' or 'inactive' (lowercase)
 
 fact_transactions(transaction_id INTEGER PK, date_key INTEGER FK -> dim_date,
                    terminal_id INTEGER FK -> dim_terminal, merchant_id INTEGER FK -> dim_merchant,
                    transaction_time DATETIME, amount REAL, currency TEXT, status TEXT
                    (approved/declined/reversed), card_pan_masked TEXT, response_code TEXT,
                    settlement_date DATE, channel TEXT (POS/ONLINE/MOBILE))
+  -- date_key is INTEGER YYYYMMDD (e.g. 20260319), NOT a SQL date.
+  -- NEVER use date(), strftime(), or compare date_key to date('now', ...).
+  -- ALWAYS join dim_date and use dim_date.full_date for any date filter or month/year logic.
 
 Notes:
-- "yesterday" / "دیروز" means full_date = date('now','-1 day') joined via date_key, or you
-  can filter transaction_time directly using date() function.
+- CRITICAL date rules:
+  * Join: JOIN dim_date d ON f.date_key = d.date_key
+  * Filter: WHERE d.full_date >= date('now','-6 months')  — NOT f.date_key >= date(...)
+  * Month/year: strftime('%Y-%m', d.full_date)  — NOT strftime(..., f.date_key)
+  * "yesterday" / "دیروز": WHERE d.full_date = date('now','-1 day')
+  * "last month" / "ماه گذشته": WHERE d.full_date >= date('now','start of month','-1 month')
+    AND d.full_date < date('now','start of month')
+  * Use SQLite modifier 'start of month' — NEVER 'first day of month' (returns NULL in SQLite).
+  * Mock data spans full_date 2026-01-01 through 2026-06-22 (about six months).
+- Status rules:
+  * dim_terminal.status: 'active' / 'inactive' (lowercase) — do not use 'Active'
+  * fact_transactions.status: approved / declined / reversed
 - merchant_name, customer_name, category, and category_name are in Persian (Farsi).
 - For category breakdowns, join dim_merchant to dim_category on category_id,
   or use dim_merchant.category directly (same Persian labels).
@@ -107,6 +122,12 @@ Notes:
 class ChatRequest(BaseModel):
     message: str
     language: Optional[str] = None  # "fa" or "en"; defaults to ollama_client.RESPONSE_LANGUAGE
+
+
+class AnalyzeRequest(BaseModel):
+    message: str
+    data: list
+    language: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------
@@ -146,29 +167,50 @@ def chat(req: ChatRequest):
         return JSONResponse(status_code=400, content={"error": "Empty message."})
 
     language = req.language or ollama_client.RESPONSE_LANGUAGE
+    timings: dict[str, float] = {}
+    t0 = time.perf_counter()
+
+    def _mark(step: str, started: float) -> None:
+        timings[step] = round((time.perf_counter() - started) * 1000, 1)
 
     # ---- Step 1: Text-to-SQL via Gemma ----
+    t = time.perf_counter()
     try:
         sql_result = ollama_client.generate_sql(user_question, SCHEMA_DESCRIPTION, language=language)
-        raw_sql = strip_unrequested_limit(sql_result["sql"], user_question)
         explanation = sql_result.get("explanation", "")
     except ollama_client.OllamaError as e:
-        return JSONResponse(status_code=502, content={"error": f"SQL generation failed: {e}"})
+        _mark("sql_generation", t)
+        timings["total"] = round((time.perf_counter() - t0) * 1000, 1)
+        return JSONResponse(
+            status_code=502,
+            content={"error": f"SQL generation failed: {e}", "timings": timings},
+        )
+    _mark("sql_generation", t)
+
+    t = time.perf_counter()
+    raw_sql = normalize_generated_sql(strip_unrequested_limit(sql_result["sql"], user_question))
+    _mark("sql_normalize", t)
 
     # ---- Step 2: Safety check (read-only SELECT, no destructive statements) ----
+    t = time.perf_counter()
     try:
         safe_sql = validate_select_only(raw_sql)
     except UnsafeSQLError as e:
+        _mark("sql_safety", t)
+        timings["total"] = round((time.perf_counter() - t0) * 1000, 1)
         return JSONResponse(
             status_code=400,
             content={
                 "error": f"Generated SQL was rejected for safety reasons: {e}",
                 "sql": raw_sql,
                 "explanation": explanation,
+                "timings": timings,
             },
         )
+    _mark("sql_safety", t)
 
     # ---- Step 3: Execute against the DB ----
+    t = time.perf_counter()
     try:
         db = SessionLocal()
         try:
@@ -177,35 +219,75 @@ def chat(req: ChatRequest):
             db.close()
         records = df.to_dict(orient="records")
     except Exception as e:
+        _mark("sql_execution", t)
+        timings["total"] = round((time.perf_counter() - t0) * 1000, 1)
         return JSONResponse(
             status_code=400,
             content={
                 "error": f"SQL execution failed: {e}",
                 "sql": safe_sql,
                 "explanation": explanation,
+                "timings": timings,
             },
         )
+    _mark("sql_execution", t)
 
-    # ---- Step 4: Analysis / prediction via Gemma (second call) ----
-    sample_for_analysis = records[:20]
-    analysis = ollama_client.generate_analysis(sample_for_analysis, user_question, language=language)
-
-    # ---- Step 5: Persist to memory (in-process + history.json) ----
+    # ---- Step 4: Persist to memory (analysis added later via /api/analyze) ----
+    t = time.perf_counter()
     memory.add_message(
         user_question=user_question,
         sql=safe_sql,
         explanation=explanation,
         row_count=len(records),
-        analysis=analysis,
+        analysis=None,
     )
+    _mark("memory_save", t)
+
+    timings["total"] = round((time.perf_counter() - t0) * 1000, 1)
 
     return {
         "sql": safe_sql,
         "explanation": explanation,
         "data": records,
         "row_count": len(records),
+        "language": language,
+        "timings": timings,
+    }
+
+
+@app.post("/api/analyze")
+def analyze(req: AnalyzeRequest):
+    """On-demand Ollama analysis after results are already shown."""
+    user_question = req.message.strip()
+    if not user_question:
+        return JSONResponse(status_code=400, content={"error": "Empty message."})
+    if not req.data:
+        return JSONResponse(status_code=400, content={"error": "No data to analyze."})
+
+    language = req.language or ollama_client.RESPONSE_LANGUAGE
+    timings: dict[str, float] = {}
+    t0 = time.perf_counter()
+
+    t = time.perf_counter()
+    try:
+        sample = req.data[:20]
+        analysis = ollama_client.generate_analysis(sample, user_question, language=language)
+    except ollama_client.OllamaError as e:
+        timings["analysis"] = round((time.perf_counter() - t) * 1000, 1)
+        timings["total"] = round((time.perf_counter() - t0) * 1000, 1)
+        return JSONResponse(
+            status_code=502,
+            content={"error": f"Analysis failed: {e}", "timings": timings},
+        )
+    timings["analysis"] = round((time.perf_counter() - t) * 1000, 1)
+    timings["total"] = timings["analysis"]
+
+    memory.update_last_analysis(analysis, user_question=user_question)
+
+    return {
         "analysis": analysis,
         "language": language,
+        "timings": timings,
     }
 
 

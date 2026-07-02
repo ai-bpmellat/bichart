@@ -12,19 +12,29 @@ adds a stray sentence before/after the JSON, or uses single quotes. The
 """
 
 import json
+import os
 import re
 import requests
 
 OLLAMA_HOST = "http://127.0.0.1:11434"   # use 127.0.0.1, not "localhost" (Windows httpx/requests
                                           # can hit IPv6/proxy resolution issues with "localhost")
+#MODEL_NAME = "gemma4:e4b-it-qat"
+#MODEL_NAME = "qwen3.6:latest"
 MODEL_NAME = "gemma4:latest"
+
 REQUEST_TIMEOUT = 60
+
+# Set DEBUG_SQL=1 as an environment variable to print the raw model output
+# and the parsed SQL to the console for every chat request. Off by default
+# to keep the server log quiet during normal use.
+#   Windows (cmd):        set DEBUG_SQL=1
+#   Windows (PowerShell):  $env:DEBUG_SQL="1"
+#   macOS/Linux:           export DEBUG_SQL=1
+DEBUG_SQL = os.environ.get("DEBUG_SQL", "0") == "1"
 
 SQL_SYSTEM_PROMPT = (
     "You are a BI SQL expert. Return ONLY a valid JSON object with keys: "
     "'sql' (the SQL query), and 'explanation' (brief description). "
-    "Never add LIMIT to the SQL unless the user explicitly asks for a specific "
-    "number of rows (e.g. 'top 10', 'first 5'). "
     "Do not use markdown, do not add extra text."
 )
 
@@ -76,43 +86,88 @@ def _post(prompt: str, system: str = "", temperature: float = 0.1) -> str:
         raise OllamaError(f"Ollama returned an HTTP error: {e}")
 
 
+def _escape_literal_control_chars_in_strings(text: str) -> str:
+    """
+    Gemma sometimes writes multi-line SQL (e.g. a CTE) using REAL newline
+    characters inside the JSON string value, instead of the escaped \\n
+    sequence JSON requires. That produces "Invalid control character" errors
+    from json.loads. This walks the text tracking whether we're currently
+    inside a string (toggled by unescaped double quotes) and escapes any
+    literal \n, \r, or \t found ONLY while inside a string — structural
+    whitespace between JSON tokens (e.g. pretty-printed indentation) is left
+    untouched since it's outside any string and already valid JSON syntax.
+    """
+    out = []
+    in_string = False
+    for i, ch in enumerate(text):
+        if ch == '"' and (i == 0 or text[i - 1] != "\\"):
+            in_string = not in_string
+            out.append(ch)
+        elif in_string and ch == "\n":
+            out.append("\\n")
+        elif in_string and ch == "\r":
+            out.append("\\r")
+        elif in_string and ch == "\t":
+            out.append("\\t")
+        else:
+            out.append(ch)
+    return "".join(out)
+
+
+def _try_parse(candidate: str):
+    """Attempts json.loads, then retries once with literal newlines/tabs
+    inside string values escaped. Returns the parsed dict or None."""
+    try:
+        return json.loads(candidate)
+    except json.JSONDecodeError:
+        pass
+    try:
+        return json.loads(_escape_literal_control_chars_in_strings(candidate))
+    except json.JSONDecodeError:
+        return None
+
+
 def _extract_json(raw: str) -> dict:
     """
     Best-effort extraction of a JSON object from model output that may be
-    wrapped in markdown fences, prefixed with chatter, or use minor
-    formatting quirks.
+    wrapped in markdown fences, prefixed with chatter, contain literal
+    newlines inside string values (common with multi-line SQL), or use
+    minor formatting quirks.
     """
     text = raw.strip()
 
-    # 1) Direct parse
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        pass
+    # 1) Direct parse (with literal-newline repair retry)
+    result = _try_parse(text)
+    if result is not None:
+        return result
 
     # 2) Strip ```json ... ``` or ``` ... ``` fences
-    fence_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
+    fence_match = re.search(r"```(?:json)?\s*(\{.*\})\s*```", text, re.DOTALL)
     if fence_match:
-        try:
-            return json.loads(fence_match.group(1))
-        except json.JSONDecodeError:
-            pass
+        result = _try_parse(fence_match.group(1))
+        if result is not None:
+            return result
 
     # 3) Grab the first {...} block greedily (handles leading/trailing chatter)
     brace_match = re.search(r"\{.*\}", text, re.DOTALL)
     if brace_match:
         candidate = brace_match.group(0)
-        try:
-            return json.loads(candidate)
-        except json.JSONDecodeError:
-            # 4) Common fixups: single quotes -> double quotes, trailing commas
-            fixed = candidate.replace("'", '"')
-            fixed = re.sub(r",\s*}", "}", fixed)
-            fixed = re.sub(r",\s*]", "]", fixed)
+        result = _try_parse(candidate)
+        if result is not None:
+            return result
+
+        # 4) Common fixups: single quotes -> double quotes, trailing commas.
+        #    Quote replacement must happen BEFORE the newline-escape walk,
+        #    since that walk only recognizes " as a string delimiter — on
+        #    single-quoted input it would never detect it's inside a string.
+        fixed = candidate.replace("'", '"')
+        fixed = re.sub(r",\s*}", "}", fixed)
+        fixed = re.sub(r",\s*]", "]", fixed)
+        for variant in (fixed, _escape_literal_control_chars_in_strings(fixed)):
             try:
-                return json.loads(fixed)
+                return json.loads(variant)
             except json.JSONDecodeError:
-                pass
+                continue
 
     raise OllamaError(f"Could not parse JSON from model output: {raw[:300]}")
 
@@ -129,14 +184,31 @@ def generate_sql(user_question: str, schema_description: str, language: str = RE
         f"Database schema:\n{schema_description}\n\n"
         f"User question (may be in Persian or English): {user_question}\n\n"
         f"Write a single SELECT query (SQLite syntax) that answers this question. "
-        f"Do NOT add LIMIT unless the user explicitly asked for a specific row count "
-        f"(e.g. 'top 10', 'اول ۵'). For 'all rows' / 'همه' / full-table questions, "
-        f"return every matching row with no LIMIT clause. "
+        f"Only add a LIMIT clause if the user explicitly asked for a specific number of "
+        f"results (e.g. 'top 10'); otherwise return all matching rows, up to 10000. "
+        f"Date handling: fact_transactions.date_key is INTEGER YYYYMMDD (e.g. 20260319), "
+        f"not a SQL date. Always JOIN dim_date ON fact_transactions.date_key = dim_date.date_key "
+        f"and use dim_date.full_date for date filters, strftime month/year, and relative dates "
+        f"like date('now','-6 months'). Never compare date_key to date() or call strftime on date_key. "
+        f"For calendar months use SQLite modifier 'start of month' (not 'first day of month'). "
+        f"Last month / ماه گذشته: full_date >= date('now','start of month','-1 month') "
+        f"AND full_date < date('now','start of month'). "
+        f"Join dim_merchant directly on fact_transactions.merchant_id (do not route via dim_terminal unless needed). "
+        f"Do NOT add status filters unless the user explicitly asked (e.g. 'فعال فقط', 'موفق', 'ناموفق'). "
+        f"If filtering terminal status, use lowercase: dim_terminal.status IN ('active','inactive'). "
+        f"If filtering transaction status, use fact_transactions.status IN ('approved','declined','reversed'). "
         f"{lang_instruction} The 'sql' value must remain valid SQL syntax regardless of language. "
         f"Respond with ONLY the JSON object, no other text."
     )
     raw = _post(prompt, system=SQL_SYSTEM_PROMPT, temperature=0.1)
+
+    if DEBUG_SQL:
+        print(f"\n--- [ollama_client] RAW model output for SQL generation ---\n{raw}\n")
+
     parsed = _extract_json(raw)
+
+    if DEBUG_SQL:
+        print(f"--- [ollama_client] Parsed SQL ---\n{parsed.get('sql')}\n")
 
     if "sql" not in parsed:
         raise OllamaError(f"Model JSON missing 'sql' key: {parsed}")
