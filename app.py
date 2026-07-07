@@ -29,21 +29,58 @@ import traceback
 from typing import Optional
 
 from fastapi import FastAPI, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from starlette.middleware.sessions import SessionMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 import pandas as pd
 from sqlalchemy import text
 
 from database import engine, SessionLocal
 import ollama_client
+import avalai_client
 from sql_safety import validate_select_only, UnsafeSQLError, strip_unrequested_limit, normalize_generated_sql
 from memory_manager import memory
+from auth import (
+    AUTH_USERNAME,
+    SESSION_SECRET,
+    SESSION_USER_KEY,
+    is_authenticated,
+    verify_credentials,
+)
+
+VALID_PROVIDERS = frozenset({"ollama", "avalai"})
+
+
+def get_llm_client(provider: str):
+    if provider == "avalai":
+        return avalai_client
+    return ollama_client
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 
+PUBLIC_PATHS = frozenset({"/login", "/api/login", "/favicon.ico"})
+PUBLIC_PREFIXES = ("/static/",)
+
+
+class RequireLoginMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        path = request.url.path
+        if path in PUBLIC_PATHS or any(path.startswith(p) for p in PUBLIC_PREFIXES):
+            return await call_next(request)
+        if is_authenticated(request.session):
+            return await call_next(request)
+        if path.startswith("/api/"):
+            return JSONResponse(status_code=401, content={"error": "Authentication required."})
+        return RedirectResponse(url="/login", status_code=302)
+
+
 app = FastAPI(title="PSP BI Conversational Report Builder")
+# SessionMiddleware must be outermost so request.session is available in RequireLoginMiddleware.
+app.add_middleware(RequireLoginMiddleware)
+app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET, same_site="lax")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
@@ -122,25 +159,60 @@ Notes:
 class ChatRequest(BaseModel):
     message: str
     language: Optional[str] = None  # "fa" or "en"; defaults to ollama_client.RESPONSE_LANGUAGE
+    provider: Optional[str] = "ollama"  # "ollama" or "avalai"
 
 
 class AnalyzeRequest(BaseModel):
     message: str
     data: list
     language: Optional[str] = None
+    provider: Optional[str] = "ollama"
+
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
 
 
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
+@app.get("/login")
+def login_page(request: Request):
+    if is_authenticated(request.session):
+        return RedirectResponse(url="/", status_code=302)
+    return FileResponse(os.path.join(STATIC_DIR, "login.html"))
+
+
+@app.post("/api/login")
+def login(req: LoginRequest, request: Request):
+    if not verify_credentials(req.username, req.password):
+        return JSONResponse(status_code=401, content={"error": "Invalid username or password."})
+    request.session[SESSION_USER_KEY] = AUTH_USERNAME
+    return {"ok": True, "username": AUTH_USERNAME}
+
+
+@app.post("/api/logout")
+def logout(request: Request):
+    request.session.clear()
+    return {"ok": True}
+
+
+@app.get("/api/me")
+def me(request: Request):
+    if not is_authenticated(request.session):
+        return JSONResponse(status_code=401, content={"error": "Not authenticated."})
+    return {"username": request.session.get(SESSION_USER_KEY)}
 @app.get("/")
-def index():
+def index(request: Request):
+    if not is_authenticated(request.session):
+        return RedirectResponse(url="/login", status_code=302)
     return FileResponse(os.path.join(STATIC_DIR, "index.html"))
 
 
 @app.get("/api/health")
 def health():
-    status = {"db": "unknown", "ollama": "unknown"}
+    status = {"db": "unknown", "ollama": "unknown", "avalai": "unknown"}
 
     try:
         db = SessionLocal()
@@ -156,8 +228,23 @@ def health():
     except ollama_client.OllamaError as e:
         status["ollama"] = f"error: {e}"
 
-    overall_ok = status["db"] == "ok" and status["ollama"] == "ok"
+    try:
+        avalai_client.check_credit()
+        status["avalai"] = "ok"
+    except avalai_client.AvalAIError as e:
+        status["avalai"] = f"error: {e}"
+
+    overall_ok = status["db"] == "ok"
     return JSONResponse(status_code=200 if overall_ok else 503, content=status)
+
+
+@app.get("/api/avalai/credit")
+def avalai_credit():
+    """Server-side proxy for AvalAI credit balance (API key never sent to browser)."""
+    try:
+        return avalai_client.check_credit()
+    except avalai_client.AvalAIError as e:
+        return JSONResponse(status_code=502, content={"error": str(e)})
 
 
 @app.post("/api/chat")
@@ -167,18 +254,20 @@ def chat(req: ChatRequest):
         return JSONResponse(status_code=400, content={"error": "Empty message."})
 
     language = req.language or ollama_client.RESPONSE_LANGUAGE
+    provider = req.provider if req.provider in VALID_PROVIDERS else "ollama"
+    llm = get_llm_client(provider)
     timings: dict[str, float] = {}
     t0 = time.perf_counter()
 
     def _mark(step: str, started: float) -> None:
         timings[step] = round((time.perf_counter() - started) * 1000, 1)
 
-    # ---- Step 1: Text-to-SQL via Gemma ----
+    # ---- Step 1: Text-to-SQL via selected LLM provider ----
     t = time.perf_counter()
     try:
-        sql_result = ollama_client.generate_sql(user_question, SCHEMA_DESCRIPTION, language=language)
+        sql_result = llm.generate_sql(user_question, SCHEMA_DESCRIPTION, language=language)
         explanation = sql_result.get("explanation", "")
-    except ollama_client.OllamaError as e:
+    except Exception as e:
         _mark("sql_generation", t)
         timings["total"] = round((time.perf_counter() - t0) * 1000, 1)
         return JSONResponse(
@@ -251,6 +340,7 @@ def chat(req: ChatRequest):
         "data": records,
         "row_count": len(records),
         "language": language,
+        "provider": provider,
         "timings": timings,
     }
 
@@ -265,14 +355,16 @@ def analyze(req: AnalyzeRequest):
         return JSONResponse(status_code=400, content={"error": "No data to analyze."})
 
     language = req.language or ollama_client.RESPONSE_LANGUAGE
+    provider = req.provider if req.provider in VALID_PROVIDERS else "ollama"
+    llm = get_llm_client(provider)
     timings: dict[str, float] = {}
     t0 = time.perf_counter()
 
     t = time.perf_counter()
     try:
         sample = req.data[:20]
-        analysis = ollama_client.generate_analysis(sample, user_question, language=language)
-    except ollama_client.OllamaError as e:
+        analysis = llm.generate_analysis(sample, user_question, language=language)
+    except Exception as e:
         timings["analysis"] = round((time.perf_counter() - t) * 1000, 1)
         timings["total"] = round((time.perf_counter() - t0) * 1000, 1)
         return JSONResponse(
@@ -287,6 +379,7 @@ def analyze(req: AnalyzeRequest):
     return {
         "analysis": analysis,
         "language": language,
+        "provider": provider,
         "timings": timings,
     }
 

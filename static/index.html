@@ -13,7 +13,12 @@
 
   <header class="topbar app-header">
     <h1 class="app-header-title">دستیار هوشمند هوش تجاری به پرداخت ملت</h1>
+    <div class="provider-switch app-header-provider">
+      <button id="provider-ollama-btn" class="ghost-btn provider-btn is-active" type="button" title="Use local Ollama">Ollama</button>
+      <button id="provider-avalai-btn" class="ghost-btn provider-btn" type="button" title="Use AvalAI cloud API">AvalAI</button>
+    </div>
     <button id="lang-toggle-btn" class="ghost-btn app-header-lang" title="Toggle AI response language">FA</button>
+    <button id="logout-btn" class="ghost-btn app-header-logout" type="button" title="Sign out">خروج</button>
   </header>
 
   <main class="chat-area" id="chat-area">

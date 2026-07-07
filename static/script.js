@@ -2,9 +2,13 @@
 
 const state = {
   language: 'fa',  // 'fa' (Persian) or 'en' — controls AI response language
+  provider: 'ollama',  // 'ollama' | 'avalai'
 };
 
 const langToggleBtn = document.getElementById('lang-toggle-btn');
+const logoutBtn = document.getElementById('logout-btn');
+const providerOllamaBtn = document.getElementById('provider-ollama-btn');
+const providerAvalaiBtn = document.getElementById('provider-avalai-btn');
 const chatArea = document.getElementById('chat-area');
 const welcomeBlock = document.getElementById('welcome-block');
 const messageInput = document.getElementById('message-input');
@@ -12,6 +16,7 @@ const sendBtn = document.getElementById('send-btn');
 
 window.addEventListener('DOMContentLoaded', () => {
   langToggleBtn.textContent = state.language.toUpperCase();
+  setProvider(state.provider);
   messageInput.focus();
   if (typeof Chart !== 'undefined') {
     Chart.defaults.font.family = chartFontFamily();
@@ -20,6 +25,9 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 langToggleBtn.addEventListener('click', toggleLanguage);
+logoutBtn.addEventListener('click', logout);
+providerOllamaBtn.addEventListener('click', () => setProvider('ollama'));
+providerAvalaiBtn.addEventListener('click', () => setProvider('avalai'));
 
 sendBtn.addEventListener('click', sendMessage);
 messageInput.addEventListener('keydown', (e) => {
@@ -42,20 +50,70 @@ function toggleLanguage() {
   }
 }
 
+async function apiFetch(url, options) {
+  const res = await fetch(url, options);
+  if (res.status === 401) {
+    window.location.href = '/login';
+    throw new Error('unauthorized');
+  }
+  return res;
+}
+
+async function logout() {
+  try {
+    await fetch('/api/logout', { method: 'POST' });
+  } catch (_) {
+    /* redirect anyway */
+  }
+  window.location.href = '/login';
+}
+
+function setProvider(provider) {
+  state.provider = provider;
+  providerOllamaBtn.classList.toggle('is-active', provider === 'ollama');
+  providerAvalaiBtn.classList.toggle('is-active', provider === 'avalai');
+  refreshAvalaiCredit();
+}
+
+function providerLabel() {
+  return state.provider === 'avalai' ? 'AvalAI' : 'Ollama';
+}
+
+async function refreshAvalaiCredit() {
+  const existing = document.getElementById('provider-credit-label');
+  if (existing) existing.remove();
+  if (state.provider !== 'avalai') return;
+  try {
+    const res = await apiFetch('/api/avalai/credit');
+    const json = await res.json();
+    if (!res.ok) return;
+    const label = document.createElement('span');
+    label.id = 'provider-credit-label';
+    label.className = 'provider-credit';
+    const balance = json.credit ?? json.balance ?? json.remaining ?? JSON.stringify(json);
+    label.textContent = state.language === 'fa' ? `اعتبار: ${balance}` : `Credit: ${balance}`;
+    label.title = typeof balance === 'object' ? JSON.stringify(json) : String(balance);
+    providerAvalaiBtn.parentElement.appendChild(label);
+  } catch (_) {
+    /* credit display is optional */
+  }
+}
+
 function chatUiText(key) {
+  const provider = providerLabel();
   const fa = {
-    loadingReport: 'در حال تولید SQL و اجرای گزارش…',
+    loadingReport: `در حال تولید SQL و اجرای گزارش با ${provider}…`,
     analysisTitle: 'تحلیل و پیش\u200cبینی',
     analyzeBtn: 'تحلیل نتایج',
-    analyzing: 'در حال تحلیل با Ollama…',
+    analyzing: `در حال تحلیل با ${provider}…`,
     analyzePrompt: 'برای تحلیل هوشمند نتایج، روی دکمه زیر کلیک کنید.',
     analyzeAgain: 'تحلیل مجدد',
   };
   const en = {
-    loadingReport: 'Generating SQL and running your report…',
+    loadingReport: `Generating SQL and running your report with ${provider}…`,
     analysisTitle: 'Analysis & prediction',
     analyzeBtn: 'Analyze results',
-    analyzing: 'Analyzing with Ollama…',
+    analyzing: `Analyzing with ${provider}…`,
     analyzePrompt: 'Click the button below for AI analysis of these results.',
     analyzeAgain: 'Re-analyze',
   };
@@ -95,12 +153,18 @@ async function sendMessage() {
   chatArea.scrollTop = chatArea.scrollHeight;
 
   try {
-    const res = await fetch('/api/chat', {
+    const res = await apiFetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, language: state.language }),
+      body: JSON.stringify({ message: text, language: state.language, provider: state.provider }),
     });
-    const json = await res.json();
+    let json;
+    try {
+      json = await res.json();
+    } catch (_) {
+      renderError(loadingHolder, { error: `Server error (${res.status}). Check server logs.` }, text);
+      return;
+    }
 
     if (!res.ok) {
       renderError(loadingHolder, json, text);
@@ -133,12 +197,12 @@ function renderError(container, json, originalQuestion) {
 }
 
 const TIMING_STEPS = [
-  { key: 'sql_generation', labelFa: 'تولید SQL (Ollama)', labelEn: 'SQL generation (Ollama)' },
+  { key: 'sql_generation', labelFa: 'تولید SQL', labelEn: 'SQL generation' },
   { key: 'sql_normalize', labelFa: 'نرمال\u200cسازی SQL', labelEn: 'SQL normalization' },
   { key: 'sql_safety', labelFa: 'بررسی امنیت SQL', labelEn: 'SQL safety check' },
   { key: 'sql_execution', labelFa: 'اجرای پایگاه\u200cداده', labelEn: 'Database execution' },
   { key: 'memory_save', labelFa: 'ذخیره حافظه', labelEn: 'Memory save' },
-  { key: 'analysis', labelFa: 'تحلیل (Ollama)', labelEn: 'Analysis (Ollama)' },
+  { key: 'analysis', labelFa: 'تحلیل', labelEn: 'Analysis' },
   { key: 'total', labelFa: 'مجموع', labelEn: 'Total' },
 ];
 
@@ -235,12 +299,13 @@ function renderResult(container, json, originalQuestion) {
   maybeRenderChart(chartWrap, data);
 
   const analyzeBtn = stripEl.querySelector('.analyze-btn');
+  const resultProvider = json.provider || state.provider;
   analyzeBtn.addEventListener('click', () => {
-    requestAnalysis(stripEl, originalQuestion, data || [], language, analyzeBtn);
+    requestAnalysis(stripEl, originalQuestion, data || [], language, analyzeBtn, resultProvider);
   });
 }
 
-async function requestAnalysis(stripEl, question, data, language, btn) {
+async function requestAnalysis(stripEl, question, data, language, btn, provider) {
   const placeholder = stripEl.querySelector('.analysis-placeholder');
   const textEl = stripEl.querySelector('.analysis-text');
   const timingsEl = stripEl.querySelector('.analysis-timings');
@@ -254,13 +319,14 @@ async function requestAnalysis(stripEl, question, data, language, btn) {
   textEl.hidden = true;
 
   try {
-    const res = await fetch('/api/analyze', {
+    const res = await apiFetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: question,
         data: data.slice(0, 20),
         language,
+        provider: provider || state.provider,
       }),
     });
     const json = await res.json();

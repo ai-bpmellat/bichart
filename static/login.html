@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ورود — دستیار هوش تجاری به پرداخت ملت</title>
+<link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+<div class="login-gate">
+  <div class="login-card">
+    <div class="brand-mark">MELLAT PSP · BI</div>
+    <h1>ورود به دستیار هوش تجاری</h1>
+    <p class="login-sub">برای دسترسی به گزارش‌های گفتگویی، نام کاربری و رمز عبور خود را وارد کنید.</p>
+
+    <form id="login-form" novalidate>
+      <label class="field-label" for="username-input">نام کاربری</label>
+      <input id="username-input" class="login-input" type="text" name="username" autocomplete="username" required />
+
+      <label class="field-label" for="password-input">رمز عبور</label>
+      <input id="password-input" class="login-input" type="password" name="password" autocomplete="current-password" required />
+
+      <button type="submit" class="primary-btn" id="login-btn">ورود</button>
+    </form>
+
+    <div id="login-error" class="login-error" hidden></div>
+  </div>
+</div>
+
+<script src="/static/login.js"></script>
+</body>
+</html>

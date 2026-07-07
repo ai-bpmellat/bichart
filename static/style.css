@@ -107,7 +107,8 @@ textarea, input { font-family: inherit; }
   margin-bottom: 6px;
 }
 
-#access-key-input {
+#access-key-input,
+.login-input {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--ledger-line);
@@ -118,7 +119,8 @@ textarea, input { font-family: inherit; }
   background: var(--paper);
   color: var(--ink);
 }
-#access-key-input:focus {
+#access-key-input:focus,
+.login-input:focus {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
@@ -234,9 +236,53 @@ textarea, input { font-family: inherit; }
   transform: translateY(-50%);
 }
 
+.app-header-logout {
+  position: absolute;
+  top: 50%;
+  left: 72px;
+  transform: translateY(-50%);
+  font-family: var(--font-rtl);
+  font-size: 12px;
+}
+
+.app-header-provider {
+  position: absolute;
+  top: 50%;
+  right: 24px;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.provider-btn.is-active {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  border-color: var(--accent);
+}
+
+.provider-credit {
+  font-size: 11px;
+  color: var(--ink-soft);
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 [dir="rtl"] .app-header-lang {
   left: auto;
   right: 24px;
+}
+
+[dir="rtl"] .app-header-logout {
+  left: auto;
+  right: 72px;
+}
+
+[dir="rtl"] .app-header-provider {
+  right: auto;
+  left: 24px;
 }
 
 .session-info {
