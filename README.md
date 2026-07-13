@@ -1,3 +1,13 @@
+---
+title: PSP BI Conversational Report Builder
+emoji: 📊
+colorFrom: green
+colorTo: blue
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # PSP BI — Conversational Report Builder
 
 A chat-based BI tool for a Payment Service Provider. Ask questions in

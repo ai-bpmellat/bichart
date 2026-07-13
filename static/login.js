@@ -31,7 +31,7 @@ loginForm.addEventListener('submit', async (e) => {
       return;
     }
 
-    window.location.href = '/';
+    window.location.href = '/app';
   } catch (_) {
     showError('خطا در ارتباط با سرور.');
   } finally {

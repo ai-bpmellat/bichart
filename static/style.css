@@ -74,6 +74,91 @@ textarea, input { font-family: inherit; }
   box-shadow: 0 1px 0 var(--ledger-line);
 }
 
+.theme-dark .login-gate {
+  background:
+    radial-gradient(1000px 520px at 15% 10%, rgba(31, 111, 84, 0.35), transparent 60%),
+    radial-gradient(920px 520px at 90% 15%, rgba(88, 80, 236, 0.22), transparent 60%),
+    radial-gradient(1100px 600px at 50% 100%, rgba(31, 111, 84, 0.18), transparent 60%),
+    linear-gradient(180deg, #0b1020 0%, #070a12 100%);
+  background-image:
+    radial-gradient(1000px 520px at 15% 10%, rgba(31, 111, 84, 0.35), transparent 60%),
+    radial-gradient(920px 520px at 90% 15%, rgba(88, 80, 236, 0.22), transparent 60%),
+    radial-gradient(1100px 600px at 50% 100%, rgba(31, 111, 84, 0.18), transparent 60%),
+    linear-gradient(180deg, #0b1020 0%, #070a12 100%),
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: auto, auto, auto, auto, 100% 28px;
+}
+
+.theme-dark .login-card {
+  width: min(440px, 92vw);
+  background: rgba(12, 16, 28, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 18px;
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.55),
+    0 1px 0 rgba(255, 255, 255, 0.08) inset;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-dark .login-card::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  background: radial-gradient(650px 220px at 20% 0%, rgba(31, 111, 84, 0.22), transparent 60%);
+  pointer-events: none;
+}
+
+.theme-dark .login-card h1 {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.theme-dark .login-sub,
+.theme-dark .field-label {
+  color: rgba(226, 232, 240, 0.72);
+}
+
+.theme-dark .brand-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: rgba(31, 111, 84, 0.14);
+  border: 1px solid rgba(31, 111, 84, 0.28);
+  color: rgba(232, 255, 246, 0.92);
+}
+
+.theme-dark .login-input {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.theme-dark .login-input::placeholder {
+  color: rgba(226, 232, 240, 0.55);
+}
+
+.theme-dark .login-input:focus {
+  outline: 2px solid rgba(52, 211, 153, 0.75);
+  outline-offset: 2px;
+  border-color: rgba(52, 211, 153, 0.35);
+}
+
+.theme-dark .primary-btn {
+  border-radius: 12px;
+  box-shadow: 0 16px 30px rgba(31, 111, 84, 0.28);
+}
+
+.theme-dark .login-error {
+  background: rgba(161, 61, 47, 0.16);
+  border: 1px solid rgba(161, 61, 47, 0.35);
+  color: rgba(255, 215, 210, 0.92);
+}
+
 .brand-mark {
   font-family: var(--font-mono);
   font-weight: 600;

@@ -61,7 +61,7 @@ def get_llm_client(provider: str):
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 
-PUBLIC_PATHS = frozenset({"/login", "/api/login", "/favicon.ico"})
+PUBLIC_PATHS = frozenset({"/", "/login", "/api/login", "/favicon.ico"})
 PUBLIC_PREFIXES = ("/static/",)
 
 
@@ -180,7 +180,7 @@ class LoginRequest(BaseModel):
 @app.get("/login")
 def login_page(request: Request):
     if is_authenticated(request.session):
-        return RedirectResponse(url="/", status_code=302)
+        return RedirectResponse(url="/app", status_code=302)
     return FileResponse(os.path.join(STATIC_DIR, "login.html"))
 
 
@@ -204,7 +204,14 @@ def me(request: Request):
         return JSONResponse(status_code=401, content={"error": "Not authenticated."})
     return {"username": request.session.get(SESSION_USER_KEY)}
 @app.get("/")
-def index(request: Request):
+def landing():
+    """Public marketing / landing page (first.html)."""
+    return FileResponse(os.path.join(STATIC_DIR, "first.html"))
+
+
+@app.get("/app")
+def chat_app(request: Request):
+    """Authenticated BI chat UI."""
     if not is_authenticated(request.session):
         return RedirectResponse(url="/login", status_code=302)
     return FileResponse(os.path.join(STATIC_DIR, "index.html"))
