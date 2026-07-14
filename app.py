@@ -182,8 +182,7 @@ class LoginRequest(BaseModel):
 def login_page(request: Request):
     if is_authenticated(request.session):
         return RedirectResponse(url="/app", status_code=302)
-    # Same welcome+login template as the first page
-    return FileResponse(os.path.join(STATIC_DIR, "first.html"))
+    return FileResponse(os.path.join(STATIC_DIR, "login.html"))
 
 
 @app.post("/api/login")
@@ -210,10 +209,8 @@ def me(request: Request):
 
 
 @app.get("/")
-def landing(request: Request):
-    """First page: welcome + login template."""
-    if is_authenticated(request.session):
-        return RedirectResponse(url="/app", status_code=302)
+def landing():
+    """Marketing first page (no login required)."""
     return FileResponse(os.path.join(STATIC_DIR, "first.html"))
 
 
