@@ -172,6 +172,7 @@ class AnalyzeRequest(BaseModel):
 class LoginRequest(BaseModel):
     username: str
     password: str
+    captcha: Optional[bool] = False
 
 
 # ---------------------------------------------------------------------------
@@ -181,11 +182,14 @@ class LoginRequest(BaseModel):
 def login_page(request: Request):
     if is_authenticated(request.session):
         return RedirectResponse(url="/app", status_code=302)
-    return FileResponse(os.path.join(STATIC_DIR, "login.html"))
+    # Same welcome+login template as the first page
+    return FileResponse(os.path.join(STATIC_DIR, "first.html"))
 
 
 @app.post("/api/login")
 def login(req: LoginRequest, request: Request):
+    if not req.captcha:
+        return JSONResponse(status_code=400, content={"error": "Please confirm you are not a robot."})
     if not verify_credentials(req.username, req.password):
         return JSONResponse(status_code=401, content={"error": "Invalid username or password."})
     request.session[SESSION_USER_KEY] = AUTH_USERNAME
@@ -203,9 +207,13 @@ def me(request: Request):
     if not is_authenticated(request.session):
         return JSONResponse(status_code=401, content={"error": "Not authenticated."})
     return {"username": request.session.get(SESSION_USER_KEY)}
+
+
 @app.get("/")
-def landing():
-    """Public marketing / landing page (first.html)."""
+def landing(request: Request):
+    """First page: welcome + login template."""
+    if is_authenticated(request.session):
+        return RedirectResponse(url="/app", status_code=302)
     return FileResponse(os.path.join(STATIC_DIR, "first.html"))
 
 

@@ -74,89 +74,220 @@ textarea, input { font-family: inherit; }
   box-shadow: 0 1px 0 var(--ledger-line);
 }
 
-.theme-dark .login-gate {
-  background:
-    radial-gradient(1000px 520px at 15% 10%, rgba(31, 111, 84, 0.35), transparent 60%),
-    radial-gradient(920px 520px at 90% 15%, rgba(88, 80, 236, 0.22), transparent 60%),
-    radial-gradient(1100px 600px at 50% 100%, rgba(31, 111, 84, 0.18), transparent 60%),
-    linear-gradient(180deg, #0b1020 0%, #070a12 100%);
-  background-image:
-    radial-gradient(1000px 520px at 15% 10%, rgba(31, 111, 84, 0.35), transparent 60%),
-    radial-gradient(920px 520px at 90% 15%, rgba(88, 80, 236, 0.22), transparent 60%),
-    radial-gradient(1100px 600px at 50% 100%, rgba(31, 111, 84, 0.18), transparent 60%),
-    linear-gradient(180deg, #0b1020 0%, #070a12 100%),
-    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
-  background-size: auto, auto, auto, auto, 100% 28px;
+/* ---- Rayamate green login theme (matches first.html) ---- */
+.theme-rayamate {
+  font-family: 'Vazirmatn', var(--font-rtl), sans-serif;
 }
 
-.theme-dark .login-card {
+.theme-rayamate .login-gate {
+  min-height: 100vh;
+  padding: 24px;
+  background:
+    radial-gradient(ellipse 600px 450px at 80% 5%, rgba(5, 150, 105, 0.10), transparent 70%),
+    radial-gradient(ellipse 500px 400px at 10% 85%, rgba(217, 119, 6, 0.06), transparent 70%),
+    radial-gradient(ellipse 450px 450px at 50% 50%, rgba(52, 211, 153, 0.07), transparent 70%),
+    linear-gradient(180deg, #f4f8f6 0%, #eef6f2 55%, #f7faf8 100%);
+  background-image:
+    radial-gradient(ellipse 600px 450px at 80% 5%, rgba(5, 150, 105, 0.10), transparent 70%),
+    radial-gradient(ellipse 500px 400px at 10% 85%, rgba(217, 119, 6, 0.06), transparent 70%),
+    radial-gradient(ellipse 450px 450px at 50% 50%, rgba(52, 211, 153, 0.07), transparent 70%),
+    linear-gradient(180deg, #f4f8f6 0%, #eef6f2 55%, #f7faf8 100%),
+    linear-gradient(rgba(5, 150, 105, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(5, 150, 105, 0.04) 1px, transparent 1px);
+  background-size: auto, auto, auto, auto, 60px 60px, 60px 60px;
+}
+
+.theme-rayamate .login-card {
   width: min(440px, 92vw);
-  background: rgba(12, 16, 28, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  border-radius: 18px;
-  box-shadow:
-    0 24px 70px rgba(0, 0, 0, 0.55),
-    0 1px 0 rgba(255, 255, 255, 0.08) inset;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   position: relative;
   overflow: hidden;
+  border-radius: 22px;
+  border: 1px solid rgba(5, 150, 105, 0.16);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    0 24px 60px rgba(5, 150, 105, 0.12),
+    0 2px 0 rgba(255, 255, 255, 0.9) inset;
+  padding: 40px 32px;
 }
 
-.theme-dark .login-card::before {
-  content: "";
+.theme-rayamate .login-watermark {
   position: absolute;
-  inset: -2px;
-  background: radial-gradient(650px 220px at 20% 0%, rgba(31, 111, 84, 0.22), transparent 60%);
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   pointer-events: none;
+  z-index: 0;
+  user-select: none;
+  transform: rotate(-18deg);
+  opacity: 0.08;
 }
 
-.theme-dark .login-card h1 {
-  color: rgba(255, 255, 255, 0.92);
+.theme-rayamate .login-watermark span:first-child {
+  font-family: 'Oswald', 'Vazirmatn', sans-serif;
+  font-size: clamp(2.8rem, 9vw, 4.2rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #047857;
+  line-height: 1;
 }
 
-.theme-dark .login-sub,
-.theme-dark .field-label {
-  color: rgba(226, 232, 240, 0.72);
+.theme-rayamate .login-watermark span:last-child {
+  font-family: 'Vazirmatn', sans-serif;
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  font-weight: 700;
+  color: #059669;
+  line-height: 1;
 }
 
-.theme-dark .brand-mark {
+.theme-rayamate .login-card-content {
+  position: relative;
+  z-index: 1;
+}
+
+.theme-rayamate .brand-mark {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
+  padding: 8px 12px;
   border-radius: 999px;
-  background: rgba(31, 111, 84, 0.14);
-  border: 1px solid rgba(31, 111, 84, 0.28);
-  color: rgba(232, 255, 246, 0.92);
+  background: rgba(5, 150, 105, 0.08);
+  border: 1px solid rgba(5, 150, 105, 0.18);
+  color: #047857;
+  font-family: 'Vazirmatn', var(--font-mono), sans-serif;
+  letter-spacing: 0.06em;
 }
 
-.theme-dark .login-input {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+.theme-rayamate .login-card h1 {
+  color: #0f2a1f;
+  font-family: 'Vazirmatn', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.theme-rayamate .login-sub,
+.theme-rayamate .field-label {
+  color: #5a7a6d;
+}
+
+.theme-rayamate .field-label {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.theme-rayamate .login-input {
+  background: rgba(244, 248, 246, 0.9);
+  border: 1px solid rgba(5, 150, 105, 0.16);
+  border-radius: 14px;
+  color: #0f2a1f;
+  font-family: 'Vazirmatn', sans-serif;
+  margin-bottom: 14px;
+}
+
+.theme-rayamate .login-input::placeholder {
+  color: #8ba89c;
+}
+
+.theme-rayamate .login-input:focus {
+  outline: 2px solid rgba(5, 150, 105, 0.45);
+  outline-offset: 1px;
+  border-color: rgba(5, 150, 105, 0.45);
+  background: #fff;
+}
+
+.theme-rayamate .primary-btn {
+  border-radius: 14px;
+  background: #059669;
+  box-shadow: 0 12px 28px rgba(5, 150, 105, 0.28);
+  margin-top: 4px;
+}
+
+.theme-rayamate .primary-btn:hover {
+  background: #047857;
+}
+
+.theme-rayamate .login-error {
+  background: rgba(161, 61, 47, 0.08);
+  border: 1px solid rgba(161, 61, 47, 0.22);
+  color: #a13d2f;
   border-radius: 12px;
-  color: rgba(255, 255, 255, 0.92);
 }
 
-.theme-dark .login-input::placeholder {
-  color: rgba(226, 232, 240, 0.55);
+.theme-rayamate .captcha-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 6px 0 16px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(5, 150, 105, 0.18);
+  background: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.theme-dark .login-input:focus {
-  outline: 2px solid rgba(52, 211, 153, 0.75);
-  outline-offset: 2px;
-  border-color: rgba(52, 211, 153, 0.35);
+.theme-rayamate .captcha-box:hover {
+  border-color: rgba(5, 150, 105, 0.35);
+  box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.08);
 }
 
-.theme-dark .primary-btn {
-  border-radius: 12px;
-  box-shadow: 0 16px 30px rgba(31, 111, 84, 0.28);
+.theme-rayamate .captcha-box input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
 
-.theme-dark .login-error {
-  background: rgba(161, 61, 47, 0.16);
-  border: 1px solid rgba(161, 61, 47, 0.35);
-  color: rgba(255, 215, 210, 0.92);
+.theme-rayamate .captcha-tick {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  border: 2px solid rgba(5, 150, 105, 0.45);
+  background: #fff;
+  position: relative;
+  transition: all 0.15s ease;
+}
+
+.theme-rayamate .captcha-box input:checked + .captcha-tick {
+  background: #059669;
+  border-color: #059669;
+}
+
+.theme-rayamate .captcha-box input:checked + .captcha-tick::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 6px;
+  height: 11px;
+  border: solid #fff;
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg);
+}
+
+.theme-rayamate .captcha-text {
+  flex: 1;
+  color: #0f2a1f;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.theme-rayamate .captcha-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #047857;
+  background: rgba(5, 150, 105, 0.1);
+  border: 1px solid rgba(5, 150, 105, 0.16);
+  border-radius: 999px;
+  padding: 4px 8px;
 }
 
 .brand-mark {
