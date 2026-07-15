@@ -1292,16 +1292,22 @@ table.data-table tr:hover td { background: #fbfaf6; }
 
 .sidebar-collapse-btn {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  width: 30px;
-  height: 30px;
+  top: 72px;
+  right: 304px;
+  width: 32px;
+  height: 32px;
   border-radius: 10px;
   border: 1px solid rgba(5, 150, 105, 0.18);
   background: #fff;
   color: #047857;
   cursor: pointer;
-  z-index: 2;
+  z-index: 5;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.12);
+  transition: right 0.2s ease;
+}
+
+.dashboard-body {
+  position: relative;
 }
 
 .dashboard-body.sidebar-collapsed {
@@ -1309,7 +1315,13 @@ table.data-table tr:hover td { background: #fbfaf6; }
 }
 
 .dashboard-body.sidebar-collapsed .dash-sidebar {
-  display: none;
+  visibility: hidden;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.dashboard-body.sidebar-collapsed .sidebar-collapse-btn {
+  right: 12px;
 }
 
 .dash-card {

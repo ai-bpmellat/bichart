@@ -72,8 +72,10 @@ if (historyRefreshBtn) {
 }
 if (sidebarCollapseBtn && dashboardBody) {
   sidebarCollapseBtn.addEventListener('click', () => {
-    dashboardBody.classList.toggle('sidebar-collapsed');
-    sidebarCollapseBtn.textContent = dashboardBody.classList.contains('sidebar-collapsed') ? '»' : '«';
+    const collapsed = dashboardBody.classList.toggle('sidebar-collapsed');
+    sidebarCollapseBtn.textContent = collapsed ? '»' : '«';
+    sidebarCollapseBtn.title = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+    sidebarCollapseBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
   });
 }
 
