@@ -3,35 +3,91 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>دستیار هوشمند هوش تجاری به پرداخت ملت</title>
+<title>دستیار هوشمند هوش تجاری</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/style.css" />
 <script src="/static/vendor/chart.umd.min.js"></script>
 </head>
 <body>
 
-<div class="app-shell">
+<div class="app-shell dashboard-layout">
 
   <header class="topbar app-header">
     <h1 class="app-header-title">دستیار هوشمند هوش تجاری به پرداخت ملت</h1>
     <div class="provider-switch app-header-provider">
-      <button id="provider-ollama-btn" class="ghost-btn provider-btn is-active" type="button" title="Use local Ollama">Ollama</button>
-      <button id="provider-avalai-btn" class="ghost-btn provider-btn" type="button" title="Use AvalAI cloud API">AvalAI</button>
+      <button id="provider-avalai-btn" class="ghost-btn provider-btn is-active" type="button" title="Use AvalAI cloud API">AvalAI</button>
+      <button id="provider-ollama-btn" class="ghost-btn provider-btn" type="button" title="Use local Ollama">Ollama</button>
     </div>
     <button id="lang-toggle-btn" class="ghost-btn app-header-lang" title="Toggle AI response language">FA</button>
+    <a id="users-mgmt-btn" class="ghost-btn app-header-users" href="/users" hidden title="User management">کاربران</a>
     <button id="logout-btn" class="ghost-btn app-header-logout" type="button" title="Sign out">خروج</button>
   </header>
 
-  <main class="chat-area" id="chat-area">
-    <div class="welcome-block" id="welcome-block">
-      <h2>Ask about your transactions</h2>
-      <p>Try: <em>"Show top 10 merchants by volume"</em> or <em>"نمایش تراکنش های دیروز"</em></p>
-    </div>
-  </main>
+  <div class="dashboard-body">
+    <section class="chat-column">
+      <main class="chat-area" id="chat-area">
+        <div class="welcome-block" id="welcome-block">
+          <div class="welcome-bot" aria-hidden="true">🤖</div>
+          <h2>Ask about your transactions</h2>
+          <p class="welcome-hint">برای شروع، سؤال خود را بپرسید یا از پیشنهادهای زیر استفاده کنید.</p>
+          <p>Try: <em>"Show top 10 merchants by volume"</em> یا <em>"نمایش تراکنش های دیروز"</em></p>
+        </div>
+      </main>
 
-  <footer class="composer">
-    <textarea id="message-input" placeholder="Ask a question about your transactions… (Persian or English)" rows="1"></textarea>
-    <button id="send-btn" class="primary-btn">Send</button>
-  </footer>
+      <footer class="composer">
+        <textarea id="message-input" placeholder="Ask a question about your transactions… (Persian or English)" rows="1"></textarea>
+        <button id="send-btn" class="primary-btn">Send</button>
+      </footer>
+    </section>
+
+    <aside class="dash-sidebar" id="dash-sidebar">
+      <button type="button" class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="Collapse sidebar">«</button>
+
+      <div class="dash-card">
+        <div class="dash-card-title">
+          <span>🕘</span>
+          <span data-i18n="historyTitle">تاریخچه گفتگو</span>
+        </div>
+        <div class="history-list" id="history-list">
+          <div class="history-empty" id="history-empty">هنوز گفتگویی ثبت نشده است.</div>
+        </div>
+        <button type="button" class="dash-link-btn" id="history-refresh-btn">به‌روزرسانی تاریخچه</button>
+      </div>
+
+      <div class="dash-card">
+        <div class="dash-card-title">
+          <span>⚡</span>
+          <span>اقدامات سریع</span>
+        </div>
+        <div class="quick-grid">
+          <button type="button" class="quick-tile qt-green" data-q="۱۰ فروشنده برتر از نظر حجم تراکنش را نشان بده">Top Merchants</button>
+          <button type="button" class="quick-tile qt-blue" data-q="خلاصه تراکنش‌های امروز را بده">Today Summary</button>
+          <button type="button" class="quick-tile qt-purple" data-q="نمودار حجم تراکنش ماهانه">Transaction Chart</button>
+          <button type="button" class="quick-tile qt-orange" data-q="تراکنش‌های ناموفق دیروز را نشان بده">Advanced Search</button>
+        </div>
+      </div>
+
+      <div class="dash-card">
+        <div class="dash-card-title">
+          <span>⚙</span>
+          <span>تنظیمات</span>
+        </div>
+        <button type="button" class="settings-row" id="settings-model-btn">
+          <span>مدل</span>
+          <span class="settings-value" id="settings-model-value">AvalAI ›</span>
+        </button>
+        <button type="button" class="settings-row" id="settings-lang-btn">
+          <span>زبان</span>
+          <span class="settings-value" id="settings-lang-value">FA ›</span>
+        </button>
+      </div>
+
+      <div class="dash-card about-card">
+        <div class="dash-card-title">درباره این دستیار</div>
+        <p>دستیار هوشمند هوش تجاری به شما کمک می‌کند داده‌های تراکنشی را تحلیل و درک کنید.</p>
+      </div>
+    </aside>
+  </div>
 
 </div>
 

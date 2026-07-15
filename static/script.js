@@ -2,32 +2,90 @@
 
 const state = {
   language: 'fa',  // 'fa' (Persian) or 'en' — controls AI response language
-  provider: 'ollama',  // 'ollama' | 'avalai'
+  provider: 'avalai',  // default AvalAI; persisted per user on server
+  username: null,
 };
 
 const langToggleBtn = document.getElementById('lang-toggle-btn');
 const logoutBtn = document.getElementById('logout-btn');
+const usersMgmtBtn = document.getElementById('users-mgmt-btn');
 const providerOllamaBtn = document.getElementById('provider-ollama-btn');
 const providerAvalaiBtn = document.getElementById('provider-avalai-btn');
 const chatArea = document.getElementById('chat-area');
 const welcomeBlock = document.getElementById('welcome-block');
 const messageInput = document.getElementById('message-input');
 const sendBtn = document.getElementById('send-btn');
+const historyList = document.getElementById('history-list');
+const historyEmpty = document.getElementById('history-empty');
+const historyRefreshBtn = document.getElementById('history-refresh-btn');
+const settingsModelBtn = document.getElementById('settings-model-btn');
+const settingsLangBtn = document.getElementById('settings-lang-btn');
+const settingsModelValue = document.getElementById('settings-model-value');
+const settingsLangValue = document.getElementById('settings-lang-value');
+const sidebarCollapseBtn = document.getElementById('sidebar-collapse-btn');
+const dashboardBody = document.querySelector('.dashboard-body');
 
-window.addEventListener('DOMContentLoaded', () => {
-  langToggleBtn.textContent = state.language.toUpperCase();
-  setProvider(state.provider);
-  messageInput.focus();
+window.addEventListener('DOMContentLoaded', async () => {
   if (typeof Chart !== 'undefined') {
     Chart.defaults.font.family = chartFontFamily();
     Chart.defaults.color = '#1c2024';
   }
+  messageInput.focus();
+
+  try {
+    const res = await apiFetch('/api/me');
+    const me = await res.json();
+    state.username = me.username || null;
+    if (me.role === 'admin' && usersMgmtBtn) {
+      usersMgmtBtn.hidden = false;
+    }
+    const prefs = me.preferences || {};
+    if (prefs.provider === 'ollama' || prefs.provider === 'avalai') {
+      state.provider = prefs.provider;
+    }
+    if (prefs.language === 'fa' || prefs.language === 'en') {
+      state.language = prefs.language;
+    }
+  } catch (_) {
+    /* redirected on 401 */
+  }
+
+  applyProviderUI(state.provider);
+  applyLanguageUI(state.language);
+  await loadHistorySidebar();
 });
 
-langToggleBtn.addEventListener('click', toggleLanguage);
+langToggleBtn.addEventListener('click', () => toggleLanguage(true));
 logoutBtn.addEventListener('click', logout);
-providerOllamaBtn.addEventListener('click', () => setProvider('ollama'));
-providerAvalaiBtn.addEventListener('click', () => setProvider('avalai'));
+providerOllamaBtn.addEventListener('click', () => setProvider('ollama', true));
+providerAvalaiBtn.addEventListener('click', () => setProvider('avalai', true));
+if (settingsModelBtn) {
+  settingsModelBtn.addEventListener('click', () => {
+    setProvider(state.provider === 'avalai' ? 'ollama' : 'avalai', true);
+  });
+}
+if (settingsLangBtn) {
+  settingsLangBtn.addEventListener('click', () => toggleLanguage(true));
+}
+if (historyRefreshBtn) {
+  historyRefreshBtn.addEventListener('click', () => loadHistorySidebar());
+}
+if (sidebarCollapseBtn && dashboardBody) {
+  sidebarCollapseBtn.addEventListener('click', () => {
+    dashboardBody.classList.toggle('sidebar-collapsed');
+    sidebarCollapseBtn.textContent = dashboardBody.classList.contains('sidebar-collapsed') ? '»' : '«';
+  });
+}
+
+document.querySelectorAll('.quick-tile').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const q = btn.getAttribute('data-q');
+    if (!q) return;
+    messageInput.value = q;
+    messageInput.dir = isRtlText(q) ? 'rtl' : 'ltr';
+    sendMessage();
+  });
+});
 
 sendBtn.addEventListener('click', sendMessage);
 messageInput.addEventListener('keydown', (e) => {
@@ -42,12 +100,30 @@ messageInput.addEventListener('input', () => {
   messageInput.dir = isRtlText(messageInput.value) ? 'rtl' : 'ltr';
 });
 
-function toggleLanguage() {
-  state.language = state.language === 'fa' ? 'en' : 'fa';
+function applyLanguageUI(language) {
+  state.language = language;
   langToggleBtn.textContent = state.language.toUpperCase();
+  if (settingsLangValue) {
+    settingsLangValue.textContent = `${state.language.toUpperCase()} ›`;
+  }
   if (typeof Chart !== 'undefined') {
     Chart.defaults.font.family = chartFontFamily();
   }
+}
+
+function applyProviderUI(provider) {
+  state.provider = provider;
+  providerOllamaBtn.classList.toggle('is-active', provider === 'ollama');
+  providerAvalaiBtn.classList.toggle('is-active', provider === 'avalai');
+  if (settingsModelValue) {
+    settingsModelValue.textContent = `${providerLabel()} ›`;
+  }
+  refreshAvalaiCredit();
+}
+
+function toggleLanguage(persist) {
+  applyLanguageUI(state.language === 'fa' ? 'en' : 'fa');
+  if (persist) savePreferences();
 }
 
 async function apiFetch(url, options) {
@@ -68,21 +144,82 @@ async function logout() {
   window.location.href = '/login';
 }
 
-function setProvider(provider) {
-  state.provider = provider;
-  providerOllamaBtn.classList.toggle('is-active', provider === 'ollama');
-  providerAvalaiBtn.classList.toggle('is-active', provider === 'avalai');
-  refreshAvalaiCredit();
+function setProvider(provider, persist) {
+  applyProviderUI(provider);
+  if (persist) savePreferences();
+}
+
+async function savePreferences() {
+  try {
+    await apiFetch('/api/preferences', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        provider: state.provider,
+        language: state.language,
+      }),
+    });
+  } catch (_) {
+    /* non-fatal */
+  }
 }
 
 function providerLabel() {
   return state.provider === 'avalai' ? 'AvalAI' : 'Ollama';
 }
 
+function formatHistoryTime(iso) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString(state.language === 'fa' ? 'fa-IR' : 'en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      day: '2-digit',
+      month: 'short',
+    });
+  } catch (_) {
+    return iso;
+  }
+}
+
+async function loadHistorySidebar() {
+  if (!historyList) return;
+  try {
+    const res = await apiFetch('/api/history');
+    const json = await res.json();
+    const items = (json.history || []).slice().reverse();
+    historyList.querySelectorAll('.history-item').forEach((el) => el.remove());
+    if (!items.length) {
+      if (historyEmpty) historyEmpty.hidden = false;
+      return;
+    }
+    if (historyEmpty) historyEmpty.hidden = true;
+    items.forEach((entry) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'history-item';
+      const q = entry.user_question || '';
+      btn.innerHTML = `
+        <div class="history-q">${escapeHtml(q)}</div>
+        <div class="history-meta">${escapeHtml(formatHistoryTime(entry.timestamp))}${entry.provider ? ' · ' + escapeHtml(entry.provider) : ''}</div>
+      `;
+      btn.addEventListener('click', () => {
+        messageInput.value = q;
+        messageInput.dir = isRtlText(q) ? 'rtl' : 'ltr';
+        messageInput.focus();
+      });
+      historyList.appendChild(btn);
+    });
+  } catch (_) {
+    /* ignore */
+  }
+}
+
 async function refreshAvalaiCredit() {
   const existing = document.getElementById('provider-credit-label');
   if (existing) existing.remove();
-  if (state.provider !== 'avalai') return;
+  if (state.provider !== 'avalai' || !providerAvalaiBtn) return;
   try {
     const res = await apiFetch('/api/avalai/credit');
     const json = await res.json();
@@ -128,7 +265,7 @@ async function sendMessage() {
   const text = messageInput.value.trim();
   if (!text) return;
 
-  welcomeBlock.remove();
+  if (welcomeBlock && welcomeBlock.isConnected) welcomeBlock.remove();
 
   const turn = document.createElement('div');
   turn.className = 'turn';
@@ -171,6 +308,7 @@ async function sendMessage() {
       return;
     }
     renderResult(loadingHolder, json, text);
+    loadHistorySidebar();
   } catch (e) {
     renderError(loadingHolder, { error: 'Network error reaching the server.' }, text);
   } finally {
