@@ -19,7 +19,8 @@ import requests
 OLLAMA_HOST = "http://127.0.0.1:11434"   # use 127.0.0.1, not "localhost" (Windows httpx/requests
                                           # can hit IPv6/proxy resolution issues with "localhost")
 #MODEL_NAME = "gemma4:e4b-it-qat"
-#MODEL_NAME = "qwen3.6:latest"
+#MODEL_NAME = " qwen3.5:0.8b"
+#MODEL_NAME = "gemma4:e4b"
 MODEL_NAME = "gemma4:latest"
 
 REQUEST_TIMEOUT = 60
