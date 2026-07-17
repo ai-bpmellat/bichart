@@ -1,14 +1,11 @@
 /* script.js — PSP BI Conversational Report Builder (vanilla JS, no frameworks) */
 
 const state = {
-  language: 'fa',  // 'fa' (Persian) or 'en' — controls AI response language
-  provider: 'avalai',  // default AvalAI; persisted per user on server
-  username: null,
+  language: 'fa',
+  provider: 'avalai',
 };
 
 const langToggleBtn = document.getElementById('lang-toggle-btn');
-const logoutBtn = document.getElementById('logout-btn');
-const usersMgmtBtn = document.getElementById('users-mgmt-btn');
 const providerOllamaBtn = document.getElementById('provider-ollama-btn');
 const providerAvalaiBtn = document.getElementById('provider-avalai-btn');
 const chatArea = document.getElementById('chat-area');
@@ -33,13 +30,8 @@ window.addEventListener('DOMContentLoaded', async () => {
   messageInput.focus();
 
   try {
-    const res = await apiFetch('/api/me');
-    const me = await res.json();
-    state.username = me.username || null;
-    if (me.role === 'admin' && usersMgmtBtn) {
-      usersMgmtBtn.hidden = false;
-    }
-    const prefs = me.preferences || {};
+    const res = await apiFetch('/api/preferences');
+    const prefs = await res.json();
     if (prefs.provider === 'ollama' || prefs.provider === 'avalai') {
       state.provider = prefs.provider;
     }
@@ -47,7 +39,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       state.language = prefs.language;
     }
   } catch (_) {
-    /* redirected on 401 */
+    /* use defaults */
   }
 
   applyProviderUI(state.provider);
@@ -56,7 +48,6 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 
 langToggleBtn.addEventListener('click', () => toggleLanguage(true));
-logoutBtn.addEventListener('click', logout);
 providerOllamaBtn.addEventListener('click', () => setProvider('ollama', true));
 providerAvalaiBtn.addEventListener('click', () => setProvider('avalai', true));
 if (settingsModelBtn) {
@@ -129,21 +120,7 @@ function toggleLanguage(persist) {
 }
 
 async function apiFetch(url, options) {
-  const res = await fetch(url, options);
-  if (res.status === 401) {
-    window.location.href = '/login';
-    throw new Error('unauthorized');
-  }
-  return res;
-}
-
-async function logout() {
-  try {
-    await fetch('/api/logout', { method: 'POST' });
-  } catch (_) {
-    /* redirect anyway */
-  }
-  window.location.href = '/login';
+  return fetch(url, options);
 }
 
 function setProvider(provider, persist) {
