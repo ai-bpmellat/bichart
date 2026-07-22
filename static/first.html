@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rayamate رایامیت</title>
+    <link rel="icon" type="image/png" sizes="512x512" href="/static/favicon-512.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/static/favicon-192.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/static/favicon-192.png" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Oswald:wght@400;500;600;700&family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -201,6 +206,19 @@
             border-bottom: 1px solid rgba(5, 150, 105, 0.08);
         }
 
+        .nav-brand-logo {
+            height: 80px;
+            width: 80px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+        @media (max-width: 640px) {
+            .nav-brand-logo {
+                height: 64px;
+                width: 64px;
+            }
+        }
+
         .marquee-track {
             display: flex;
             animation: marquee 30s linear infinite;
@@ -230,13 +248,11 @@
 
     <!-- ===== NAVIGATION ===== -->
     <nav class="nav-glass fixed top-0 left-0 right-0 z-50">
-        <div class="max-w-7xl mx-auto px-6 lg:px-8 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg, #059669, #047857); box-shadow: 0 4px 15px rgba(5,150,105,0.25);">
-                    <iconify-icon icon="lucide:database" style="color:#fff; font-size:20px;"></iconify-icon>
-                </div>
-                <span style="color:#0f2a1f; font-weight:700; font-size:1.25rem; letter-spacing:-0.02em;">Rayamate <span style="color:#059669; font-weight:400; font-size:1rem;">رایامیت</span></span>
-            </div>
+        <div class="max-w-7xl mx-auto px-6 lg:px-8 py-3 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-3" style="text-decoration:none;">
+                <img src="/static/logo.png" alt="" class="nav-brand-logo" />
+                <span style="color:#0f2a1f; font-weight:700; font-size:1.5rem; letter-spacing:-0.02em; line-height:1.2;">Rayamate <span style="color:#059669; font-weight:400; font-size:1.15rem;">رایامیت</span></span>
+            </a>
             <div class="hidden md:flex items-center gap-8" style="font-size:0.875rem; color:#5a7a6d;">
                 <a href="#features" class="hover:text-brand-dark transition-colors" style="color:inherit;">ویژگی‌ها</a>
                 <a href="#screens" class="hover:text-brand-dark transition-colors" style="color:inherit;">نمایش</a>

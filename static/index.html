@@ -4,6 +4,11 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>دستیار هوشمند هوش تجاری</title>
+<link rel="icon" type="image/png" sizes="512x512" href="/static/favicon-512.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="/static/favicon-192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png" />
+<link rel="apple-touch-icon" sizes="192x192" href="/static/favicon-192.png" />
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/style.css" />
 <script src="/static/vendor/chart.umd.min.js"></script>
@@ -14,10 +19,6 @@
 
   <header class="topbar app-header">
     <h1 class="app-header-title">دستیار هوشمند هوش تجاری</h1>
-    <div class="provider-switch app-header-provider">
-      <button id="provider-avalai-btn" class="ghost-btn provider-btn is-active" type="button" title="Use AvalAI cloud API">AvalAI</button>
-      <button id="provider-ollama-btn" class="ghost-btn provider-btn" type="button" title="Use local Ollama">Ollama</button>
-    </div>
     <button id="lang-toggle-btn" class="ghost-btn app-header-lang" title="Toggle AI response language">FA</button>
     <a id="users-mgmt-btn" class="ghost-btn app-header-users" href="/users" hidden title="User management">کاربران</a>
     <button id="logout-btn" class="ghost-btn app-header-logout" type="button" title="Sign out">خروج</button>
@@ -85,9 +86,26 @@
         <div class="dash-card-title">درباره این دستیار</div>
         <p>دستیار هوشمند هوش تجاری به شما کمک می‌کند داده‌های تراکنشی را تحلیل و درک کنید.</p>
       </div>
+
+      <div class="dash-card poll-card" id="feature-poll-card">
+        <div class="dash-card-title">
+          <span>🗳️</span>
+          <span>نظرسنجی قابلیت‌های آینده</span>
+        </div>
+        <p class="poll-hint">کدام قابلیت‌ها را زودتر می‌خواهید؟ (حداکثر ۳ مورد)</p>
+        <div class="poll-options" id="poll-options"></div>
+        <div class="poll-custom-wrap">
+          <input type="text" id="poll-custom-input" class="poll-custom-input" placeholder="پیشنهاد خودت… (حداکثر ۱۰۰ کاراکتر)" maxlength="100" />
+          <button type="button" class="poll-custom-add-btn" id="poll-custom-add-btn" title="افزودن به لیست">+</button>
+        </div>
+        <button type="button" class="primary-btn poll-submit-btn" id="poll-submit-btn">ثبت رأی</button>
+        <div class="poll-msg" id="poll-msg" hidden></div>
+        <div class="poll-results" id="poll-results" hidden></div>
+      </div>
     </aside>
 
-    <button type="button" class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="Collapse sidebar" aria-expanded="true">«</button>
+      <div class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="Collapse sidebar" aria-expanded="true">«</div>
+      <div class="sidebar-resize-handle" id="sidebar-resize-handle"></div>
   </div>
 
 </div>

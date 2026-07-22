@@ -1,14 +1,11 @@
 /* script.js — PSP BI Conversational Report Builder (vanilla JS, no frameworks) */
 
 const state = {
-  language: 'fa',  // 'fa' (Persian) or 'en' — controls AI response language
-  provider: 'avalai',  // default AvalAI; persisted per user on server
-  username: null,
+  language: 'fa',
+  provider: 'avalai',
 };
 
 const langToggleBtn = document.getElementById('lang-toggle-btn');
-const logoutBtn = document.getElementById('logout-btn');
-const usersMgmtBtn = document.getElementById('users-mgmt-btn');
 const providerOllamaBtn = document.getElementById('provider-ollama-btn');
 const providerAvalaiBtn = document.getElementById('provider-avalai-btn');
 const chatArea = document.getElementById('chat-area');
@@ -24,6 +21,7 @@ const settingsModelValue = document.getElementById('settings-model-value');
 const settingsLangValue = document.getElementById('settings-lang-value');
 const sidebarCollapseBtn = document.getElementById('sidebar-collapse-btn');
 const dashboardBody = document.querySelector('.dashboard-body');
+const logoutBtn = document.getElementById('logout-btn');
 
 window.addEventListener('DOMContentLoaded', async () => {
   if (typeof Chart !== 'undefined') {
@@ -33,13 +31,8 @@ window.addEventListener('DOMContentLoaded', async () => {
   messageInput.focus();
 
   try {
-    const res = await apiFetch('/api/me');
-    const me = await res.json();
-    state.username = me.username || null;
-    if (me.role === 'admin' && usersMgmtBtn) {
-      usersMgmtBtn.hidden = false;
-    }
-    const prefs = me.preferences || {};
+    const res = await apiFetch('/api/preferences');
+    const prefs = await res.json();
     if (prefs.provider === 'ollama' || prefs.provider === 'avalai') {
       state.provider = prefs.provider;
     }
@@ -47,18 +40,34 @@ window.addEventListener('DOMContentLoaded', async () => {
       state.language = prefs.language;
     }
   } catch (_) {
-    /* redirected on 401 */
+    /* use defaults */
   }
 
   applyProviderUI(state.provider);
   applyLanguageUI(state.language);
   await loadHistorySidebar();
+  
+  // Check user role and show/hide admin buttons
+  await checkUserRole();
 });
 
 langToggleBtn.addEventListener('click', () => toggleLanguage(true));
-logoutBtn.addEventListener('click', logout);
-providerOllamaBtn.addEventListener('click', () => setProvider('ollama', true));
-providerAvalaiBtn.addEventListener('click', () => setProvider('avalai', true));
+if (providerOllamaBtn) {
+  providerOllamaBtn.addEventListener('click', () => setProvider('ollama', true));
+}
+if (providerAvalaiBtn) {
+  providerAvalaiBtn.addEventListener('click', () => setProvider('avalai', true));
+}
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', async () => {
+    try {
+      await apiFetch('/api/logout', { method: 'POST' });
+      window.location.href = '/login';
+    } catch (_) {
+      window.location.href = '/login';
+    }
+  });
+}
 if (settingsModelBtn) {
   settingsModelBtn.addEventListener('click', () => {
     setProvider(state.provider === 'avalai' ? 'ollama' : 'avalai', true);
@@ -73,11 +82,55 @@ if (historyRefreshBtn) {
 if (sidebarCollapseBtn && dashboardBody) {
   sidebarCollapseBtn.addEventListener('click', () => {
     const collapsed = dashboardBody.classList.toggle('sidebar-collapsed');
+    dashboardBody.classList.remove('sidebar-resizable');
     sidebarCollapseBtn.textContent = collapsed ? '»' : '«';
     sidebarCollapseBtn.title = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
     sidebarCollapseBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
   });
 }
+
+const SIDEBAR_MIN = 200;
+const SIDEBAR_MAX = 600;
+const SIDEBAR_DEFAULT = 340;
+const resizeHandle = document.getElementById('sidebar-resize-handle');
+
+if (resizeHandle && dashboardBody) {
+  let startX = 0;
+  let startW = 0;
+
+  resizeHandle.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    dashboardBody.classList.add('sidebar-resizable');
+    dashboardBody.classList.remove('sidebar-collapsed');
+    startX = e.clientX;
+    startW = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sidebar-width')) || SIDEBAR_DEFAULT;
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  });
+
+  function onMouseMove(e) {
+    const bodyRect = dashboardBody.getBoundingClientRect();
+    const sidebarPx = Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, bodyRect.right - e.clientX));
+    document.documentElement.style.setProperty('--sidebar-width', sidebarPx + 'px');
+  }
+
+  function onMouseUp() {
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+    // persist in session storage
+    const w = document.documentElement.style.getPropertyValue('--sidebar-width');
+    if (w) sessionStorage.setItem('sidebar_width', w);
+  }
+}
+
+// restore saved width on load
+(function restoreSidebarWidth() {
+  const saved = sessionStorage.getItem('sidebar_width');
+  if (saved && dashboardBody) {
+    document.documentElement.style.setProperty('--sidebar-width', saved);
+    dashboardBody.classList.add('sidebar-resizable');
+  }
+})();
 
 document.querySelectorAll('.quick-tile').forEach((btn) => {
   btn.addEventListener('click', () => {
@@ -115,12 +168,15 @@ function applyLanguageUI(language) {
 
 function applyProviderUI(provider) {
   state.provider = provider;
-  providerOllamaBtn.classList.toggle('is-active', provider === 'ollama');
-  providerAvalaiBtn.classList.toggle('is-active', provider === 'avalai');
+  if (providerOllamaBtn) {
+    providerOllamaBtn.classList.toggle('is-active', provider === 'ollama');
+  }
+  if (providerAvalaiBtn) {
+    providerAvalaiBtn.classList.toggle('is-active', provider === 'avalai');
+  }
   if (settingsModelValue) {
     settingsModelValue.textContent = `${providerLabel()} ›`;
   }
-  refreshAvalaiCredit();
 }
 
 function toggleLanguage(persist) {
@@ -129,21 +185,28 @@ function toggleLanguage(persist) {
 }
 
 async function apiFetch(url, options) {
-  const res = await fetch(url, options);
-  if (res.status === 401) {
-    window.location.href = '/login';
-    throw new Error('unauthorized');
-  }
-  return res;
+  return fetch(url, options);
 }
 
-async function logout() {
+async function checkUserRole() {
+  const usersBtn = document.getElementById('users-mgmt-btn');
+  if (!usersBtn) return;
+  
   try {
-    await fetch('/api/logout', { method: 'POST' });
+    const res = await apiFetch('/api/me');
+    if (!res.ok) {
+      usersBtn.hidden = true;
+      return;
+    }
+    const userData = await res.json();
+    if (userData.role === 'admin') {
+      usersBtn.hidden = false;
+    } else {
+      usersBtn.hidden = true;
+    }
   } catch (_) {
-    /* redirect anyway */
+    usersBtn.hidden = true;
   }
-  window.location.href = '/login';
 }
 
 function setProvider(provider, persist) {
@@ -215,26 +278,6 @@ async function loadHistorySidebar() {
     });
   } catch (_) {
     /* ignore */
-  }
-}
-
-async function refreshAvalaiCredit() {
-  const existing = document.getElementById('provider-credit-label');
-  if (existing) existing.remove();
-  if (state.provider !== 'avalai' || !providerAvalaiBtn) return;
-  try {
-    const res = await apiFetch('/api/avalai/credit');
-    const json = await res.json();
-    if (!res.ok) return;
-    const label = document.createElement('span');
-    label.id = 'provider-credit-label';
-    label.className = 'provider-credit';
-    const balance = json.credit ?? json.balance ?? json.remaining ?? JSON.stringify(json);
-    label.textContent = state.language === 'fa' ? `اعتبار: ${balance}` : `Credit: ${balance}`;
-    label.title = typeof balance === 'object' ? JSON.stringify(json) : String(balance);
-    providerAvalaiBtn.parentElement.appendChild(label);
-  } catch (_) {
-    /* credit display is optional */
   }
 }
 
@@ -1108,3 +1151,195 @@ function isRtlText(str) {
 function dirAttr(str) {
   return isRtlText(str) ? ' dir="rtl"' : ' dir="ltr"';
 }
+
+// ---------------------------------------------------------------------------
+// Feature poll (نظرسنجی قابلیت‌های آینده)
+// ---------------------------------------------------------------------------
+const pollCard = document.getElementById('feature-poll-card');
+const pollOptionsEl = document.getElementById('poll-options');
+const pollSubmitBtn = document.getElementById('poll-submit-btn');
+const pollMsgEl = document.getElementById('poll-msg');
+const pollResultsEl = document.getElementById('poll-results');
+
+const pollState = {
+  maxChoices: 3,
+  options: [],
+  customOptions: [],
+  counts: {},
+  totalVoters: 0,
+  myVotes: [],
+};
+
+const CUSTOM_PREFIX = '_custom_';
+
+function pollToFaDigits(n) {
+  return String(n).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[d]);
+}
+
+function showPollMsg(text, ok) {
+  if (!pollMsgEl) return;
+  pollMsgEl.textContent = text;
+  pollMsgEl.classList.toggle('is-ok', !!ok);
+  pollMsgEl.hidden = false;
+}
+
+function selectedPollFeatureIds() {
+  return Array.from(
+    pollOptionsEl.querySelectorAll('input[type="checkbox"]:checked'),
+  ).map((el) => el.value);
+}
+
+function enforceMaxChoices() {
+  const selected = selectedPollFeatureIds();
+  if (selected.length > pollState.maxChoices) {
+    const boxes = pollOptionsEl.querySelectorAll('input[type="checkbox"]:checked');
+    const lastCb = boxes[boxes.length - 1];
+    if (lastCb) {
+      lastCb.checked = false;
+      showPollMsg(`حداکثر ${pollToFaDigits(pollState.maxChoices)} گزینه قابل انتخاب است.`, false);
+    }
+  } else {
+    if (pollMsgEl) pollMsgEl.hidden = true;
+  }
+}
+
+function renderPollOptions() {
+  pollOptionsEl.innerHTML = '';
+  const allOpts = pollState.options.concat(pollState.customOptions || []);
+  allOpts.forEach((opt) => {
+    const label = document.createElement('label');
+    label.className = 'poll-option';
+    if (opt.id.startsWith(CUSTOM_PREFIX)) label.classList.add('poll-option-custom');
+    const checked = pollState.myVotes.includes(opt.id) ? ' checked' : '';
+    label.innerHTML = `
+      <input type="checkbox" value="${escapeHtml(opt.id)}"${checked} />
+      <span>${escapeHtml(opt.label)}</span>
+    `;
+    pollOptionsEl.appendChild(label);
+  });
+
+  pollOptionsEl.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+    cb.addEventListener('change', enforceMaxChoices);
+  });
+}
+
+function renderPollResults() {
+  if (!pollResultsEl) return;
+  if (!pollState.totalVoters) {
+    pollResultsEl.hidden = true;
+    return;
+  }
+  const allOpts = pollState.options.concat(pollState.customOptions || []);
+  const maxCount = Math.max(1, ...Object.values(pollState.counts));
+  const rows = allOpts
+    .slice()
+    .sort((a, b) => (pollState.counts[b.id] || 0) - (pollState.counts[a.id] || 0))
+    .map((opt) => {
+      const count = pollState.counts[opt.id] || 0;
+      const pct = Math.round((count / maxCount) * 100);
+      const mine = pollState.myVotes.includes(opt.id) ? ' is-mine' : '';
+      return `
+        <div class="poll-result-row${mine}">
+          <div class="poll-result-label">
+            <span>${escapeHtml(opt.label)}</span>
+            <b>${pollToFaDigits(count)}</b>
+          </div>
+          <div class="poll-result-bar"><i style="width:${pct}%"></i></div>
+        </div>
+      `;
+    });
+  pollResultsEl.innerHTML = `
+    <div class="poll-results-title">نتایج تاکنون (${pollToFaDigits(pollState.totalVoters)} رأی‌دهنده)</div>
+    ${rows.join('')}
+  `;
+  pollResultsEl.hidden = false;
+}
+
+function applyPollState(json) {
+  pollState.options = json.options || [];
+  pollState.customOptions = json.custom_options || [];
+  pollState.counts = json.counts || {};
+  pollState.totalVoters = json.total_voters || 0;
+  pollState.myVotes = json.my_votes || [];
+  pollState.maxChoices = json.max_choices || 3;
+  renderPollOptions();
+  renderPollResults();
+  if (pollSubmitBtn) {
+    pollSubmitBtn.textContent = pollState.myVotes.length ? 'به‌روزرسانی رأی' : 'ثبت رأی';
+  }
+}
+
+async function loadFeaturePoll() {
+  if (!pollCard) return;
+  try {
+    const res = await apiFetch('/api/feature-poll');
+    if (!res.ok) throw new Error('poll load failed');
+    applyPollState(await res.json());
+  } catch (_) {
+    pollCard.hidden = true;
+  }
+}
+
+const pollCustomInput = document.getElementById('poll-custom-input');
+const pollCustomAddBtn = document.getElementById('poll-custom-add-btn');
+
+if (pollCustomAddBtn && pollCustomInput) {
+  pollCustomAddBtn.addEventListener('click', () => {
+    const text = pollCustomInput.value.trim();
+    if (!text) { showPollMsg('متنی وارد کنید.', false); return; }
+    if (text.length > 100) { showPollMsg('حداکثر ۱۰۰ کاراکتر مجاز است.', false); return; }
+    const existing = pollOptionsEl.querySelectorAll('input[type="checkbox"]');
+    const ids = Array.from(existing).map((cb) => cb.value);
+    const prefix = CUSTOM_PREFIX + text;
+    if (ids.includes(prefix)) { showPollMsg('این گزینه قبلاً اضافه شده.', false); return; }
+    if (selectedPollFeatureIds().length >= pollState.maxChoices) {
+      showPollMsg(`پیش از افزودن، یکی از انتخاب‌های فعلی را لغو کنید. حداکثر ${pollToFaDigits(pollState.maxChoices)}.`, false);
+      return;
+    }
+    const label = document.createElement('label');
+    label.className = 'poll-option poll-option-custom';
+    label.innerHTML = `
+      <input type="checkbox" value="${escapeHtml(prefix)}" checked />
+      <span>${escapeHtml(text)}</span>
+    `;
+    pollOptionsEl.appendChild(label);
+    label.querySelector('input').addEventListener('change', enforceMaxChoices);
+    pollCustomInput.value = '';
+    if (pollMsgEl) pollMsgEl.hidden = true;
+  });
+
+  pollCustomInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); pollCustomAddBtn.click(); }
+  });
+}
+
+if (pollSubmitBtn) {
+  pollSubmitBtn.addEventListener('click', async () => {
+    const features = selectedPollFeatureIds();
+    if (!features.length) {
+      showPollMsg('حداقل یک گزینه را انتخاب کنید یا با نوشتن در کادر بالا گزینه جدید اضافه کنید.', false);
+      return;
+    }
+    pollSubmitBtn.disabled = true;
+    try {
+      const res = await apiFetch('/api/feature-poll', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ features }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        showPollMsg(json.error || 'ثبت رأی ناموفق بود.', false);
+        return;
+      }
+      applyPollState(json);
+      showPollMsg('رأی شما با موفقیت ثبت شد. متشکریم! 🌱', true);
+    } catch (_) {
+      showPollMsg('خطا در ارتباط با سرور.', false);
+    } finally {
+      pollSubmitBtn.disabled = false;
+    }
+  });
+}
+
+window.addEventListener('DOMContentLoaded', loadFeaturePoll);

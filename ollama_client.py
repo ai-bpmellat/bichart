@@ -36,7 +36,8 @@ DEBUG_SQL = os.environ.get("DEBUG_SQL", "0") == "1"
 SQL_SYSTEM_PROMPT = (
     "You are a BI SQL expert. Return ONLY a valid JSON object with keys: "
     "'sql' (the SQL query), and 'explanation' (brief description). "
-    "Do not use markdown, do not add extra text."
+    "Do not use markdown, do not add extra text.",
+    
 )
 
 # Default response language for 'explanation' and 'analysis' text shown to the
@@ -194,6 +195,10 @@ def generate_sql(user_question: str, schema_description: str, language: str = RE
         f"For calendar months use SQLite modifier 'start of month' (not 'first day of month'). "
         f"Last month / ماه گذشته: full_date >= date('now','start of month','-1 month') "
         f"AND full_date < date('now','start of month'). "
+        f"Forecast / prediction questions (پیش‌بینی، انتظار می‌رود، روند، forecast, expected): "
+        f"the database has NO future transactions — never filter full_date with '+1 month' or future dates. "
+        f"Return historical aggregates instead (e.g. monthly totals via "
+        f"GROUP BY strftime('%Y-%m', dim_date.full_date) for the last 6 months) so a trend can be inferred. "
         f"Join dim_merchant directly on fact_transactions.merchant_id (do not route via dim_terminal unless needed). "
         f"Do NOT add status filters unless the user explicitly asked (e.g. 'فعال فقط', 'موفق', 'ناموفق'). "
         f"If filtering terminal status, use lowercase: dim_terminal.status IN ('active','inactive'). "

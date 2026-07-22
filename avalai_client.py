@@ -19,8 +19,10 @@ from ollama_client import (
 )
 
 AVALAI_BASE = "https://api.avalai.ir/v1"
-AVALAI_API_KEY = os.environ.get("AVALAI_API_KEY", "")
+AVALAI_API_KEY = os.environ.get("AVALAI_API_KEY", "aa-PqX6XTobrcQv8r4zFGaIIhl4lur7e1kNswrKsIh2sAKjcczu")
+#AVALAI_MODEL = os.environ.get("AVALAI_MODEL", "glm-5.2")
 AVALAI_MODEL = os.environ.get("AVALAI_MODEL", "gpt-4o-mini")
+#AVALAI_MODEL = os.environ.get("AVALAI_MODEL", "claude-opus-4-8")
 
 REQUEST_TIMEOUT = 60
 
@@ -29,18 +31,24 @@ class AvalAIError(Exception):
     pass
 
 
+def _text_content(text: str):
+    """AvalAI expects content parts as objects, not a bare string."""
+    return [{"type": "text", "text": text}]
+
+
 def _chat(user: str, system: str = "", temperature: float = 0.1) -> str:
     if not AVALAI_API_KEY:
         raise AvalAIError(
             "AVALAI_API_KEY is not set on the server. "
             "Set it with: $env:AVALAI_API_KEY=\"your-key\" (PowerShell)"
         )
+    messages = []
+    if system and system.strip():
+        messages.append({"role": "system", "content": _text_content(system)})
+    messages.append({"role": "user", "content": _text_content(user)})
     payload = {
         "model": AVALAI_MODEL,
-        "messages": [
-            {"role": "system", "content": system},
-            {"role": "user", "content": user},
-        ],
+        "messages": messages,
         "temperature": temperature,
     }
     try:
@@ -105,6 +113,10 @@ def generate_sql(user_question: str, schema_description: str, language: str = RE
         f"For calendar months use SQLite modifier 'start of month' (not 'first day of month'). "
         f"Last month / ماه گذشته: full_date >= date('now','start of month','-1 month') "
         f"AND full_date < date('now','start of month'). "
+        f"Forecast / prediction questions (پیش‌بینی، انتظار می‌رود، روند، forecast, expected): "
+        f"the database has NO future transactions — never filter full_date with '+1 month' or future dates. "
+        f"Return historical aggregates instead (e.g. monthly totals via "
+        f"GROUP BY strftime('%Y-%m', dim_date.full_date) for the last 6 months) so a trend can be inferred. "
         f"Join dim_merchant directly on fact_transactions.merchant_id (do not route via dim_terminal unless needed). "
         f"Do NOT add status filters unless the user explicitly asked (e.g. 'فعال فقط', 'موفق', 'ناموفق'). "
         f"If filtering terminal status, use lowercase: dim_terminal.status IN ('active','inactive'). "

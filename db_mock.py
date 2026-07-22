@@ -232,9 +232,24 @@ STATUS_WEIGHTS = [("approved", 0.86), ("declined", 0.10), ("reversed", 0.04)]
 CHANNELS = ["POS", "ONLINE", "MOBILE"]
 TERMINAL_TYPES = ["POS", "mPOS", "Online"]
 
-# Fixed calendar window for all mock dates (dim_date, transactions, terminal installs)
-MOCK_DATE_START = datetime.date(2026, 1, 1)
-MOCK_DATE_END = datetime.date(2026, 6, 22)
+def months_ago(d: datetime.date, months: int) -> datetime.date:
+    """Return the same calendar day N months earlier (clamped to month length)."""
+    year = d.year
+    month = d.month - months
+    while month <= 0:
+        month += 12
+        year -= 1
+    day = min(d.day, [
+        31,
+        29 if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0) else 28,
+        31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+    ][month - 1])
+    return datetime.date(year, month, day)
+
+
+# Rolling window: last 6 months through today (dim_date, transactions, terminal installs)
+MOCK_DATE_END = datetime.date.today()
+MOCK_DATE_START = months_ago(MOCK_DATE_END, 6)
 
 
 def weighted_choice(pairs):
@@ -249,17 +264,23 @@ def mask_pan():
 
 
 def build_database(n_transactions: int = 1000):
-    # Fresh start
+    # Prefer a clean file rebuild; if the DB is locked (e.g. uvicorn is running),
+    # drop/recreate tables in place instead of deleting the file.
     if os.path.exists(SQLITE_PATH):
-        os.remove(SQLITE_PATH)
+        try:
+            os.remove(SQLITE_PATH)
+        except OSError as e:
+            print(f"Could not delete {SQLITE_PATH} ({e}); rebuilding tables in place.")
+            Base.metadata.drop_all(engine)
 
     Base.metadata.create_all(engine)
     db = SessionLocal()
 
     try:
-        # --- dim_date: 2026-01-01 through 2026-06-22 ---
+        # --- dim_date: rolling last 6 months through today ---
         start = MOCK_DATE_START
         end = MOCK_DATE_END
+        print(f"date window: {start.isoformat()} -> {end.isoformat()}")
         cur = start
         date_objs = []
         while cur <= end:

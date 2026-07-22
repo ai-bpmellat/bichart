@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>اسلایدهای توضیح کد newDashboard2</title>
+<style>
+  @page { size: 338mm 190mm; margin: 0; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #fff;
+    color: #0f2a1f;
+    font-family: Tahoma, Arial, sans-serif;
+  }
+  .slide {
+    width: 338mm;
+    height: 190mm;
+    padding: 14mm 16mm 12mm;
+    position: relative;
+    break-after: page;
+    overflow: hidden;
+    background: #ffffff;
+  }
+  .slide:last-child { break-after: auto; }
+  .topbar {
+    position: absolute; top: 0; left: 0; right: 0; height: 8px;
+    background: linear-gradient(90deg, #059669, #047857);
+  }
+  .kicker {
+    color: #059669; font-size: 12pt; font-weight: bold;
+    letter-spacing: .04em; margin-top: 4mm;
+  }
+  h1 {
+    font-size: 34pt; line-height: 1.45; margin: 8mm 0 4mm; color: #0f2a1f;
+  }
+  h1 span { color: #059669; }
+  h2 {
+    font-size: 26pt; margin: 3mm 0 7mm; color: #0f2a1f;
+  }
+  h3 { margin: 0 0 3mm; color: #047857; font-size: 14pt; }
+  .lead { font-size: 15pt; color: #5a7a6d; max-width: 240mm; }
+  .body { font-size: 13.5pt; line-height: 1.7; }
+  ul { margin: 0; padding-right: 7mm; }
+  li { margin: 2.2mm 0; }
+  code {
+    font-family: Consolas, "Courier New", monospace;
+    direction: ltr; unicode-bidi: embed;
+    background: #ecfdf5; color: #047857;
+    padding: 0 2mm; border-radius: 3px; font-size: 11.5pt;
+  }
+  .meta {
+    margin-top: 14mm; display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; max-width: 220mm;
+  }
+  .meta div {
+    background: #ecfdf5; border-right: 4px solid #059669; padding: 4mm 5mm;
+  }
+  .meta span { display: block; color: #5a7a6d; font-size: 10pt; }
+  .footer {
+    position: absolute; left: 16mm; right: 16mm; bottom: 7mm;
+    display: flex; justify-content: space-between;
+    color: #5a7a6d; font-size: 10.5pt;
+    border-top: 1px solid #d7e8e0; padding-top: 3mm;
+  }
+  .cards {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 5mm;
+  }
+  .card {
+    background: #f4f8f6; border: 1px solid #cfe3da; border-radius: 8px; padding: 5mm;
+  }
+  .card p { margin: 0; font-size: 12.5pt; color: #314c43; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8mm; }
+  .flow {
+    display: flex; align-items: stretch; justify-content: space-between;
+    gap: 2mm; margin-bottom: 7mm;
+  }
+  .step {
+    flex: 1; background: #ecfdf5; border: 1px solid #a7d7c4; border-radius: 8px;
+    padding: 4mm 3mm; text-align: center;
+  }
+  .step span {
+    display: inline-flex; width: 8mm; height: 8mm; border-radius: 50%;
+    background: #059669; color: white; align-items: center; justify-content: center;
+    font-weight: bold; margin-bottom: 2mm;
+  }
+  .step p { margin: 0; font-size: 11pt; line-height: 1.45; }
+  .arrow { align-self: center; color: #059669; font-size: 18pt; font-weight: bold; }
+  .table { display: grid; gap: 3mm; }
+  .table > div {
+    display: grid; grid-template-columns: 1.2fr 1fr; gap: 4mm;
+    background: #f7faf9; border: 1px solid #d5e6df; border-radius: 6px; padding: 3.5mm 4mm;
+    align-items: center;
+  }
+  .table span { color: #48635a; }
+  .stamp {
+    margin-top: 10mm; text-align: center; color: #059669; font-weight: bold; font-size: 14pt;
+  }
+  .cover .footer { border-top: none; }
+</style>
+</head>
+<body>
+
+<section class="slide cover">
+  <div class="topbar"></div>
+  <div class="kicker">RAYAMATE · CODE SLIDES</div>
+  <h1>توضیح کدها و فایل‌ها<br><span dir="ltr">newDashboard2</span></h1>
+  <p class="lead">ارائه اسلایدی فارسی از معماری، API، فرانت‌اند و فایل‌های مهم پروژه</p>
+  <div class="meta">
+    <div><span>Commit</span><b dir="ltr">7643d0fd45</b></div>
+    <div><span>تاریخ</span><b dir="ltr">2026-07-15</b></div>
+    <div><span>فایل‌ها</span><b>30 فایل</b></div>
+    <div><span>موضوع</span><b>Change first page of DashboardCreate</b></div>
+  </div>
+  <div class="footer"><span>Rayamate</span><span>1 / 14</span></div>
+</section>
+
+    <section class="slide">
+      <div class="topbar"></div>
+      <div class="kicker">۱ · نمای کلان</div>
+      <h2>معماری سامانه</h2>
+      <div class="body"><div class="flow"><div class="step"><span>1</span><p>مرورگر<br>Landing / Login / Dashboard</p></div><div class="arrow">←</div><div class="step"><span>2</span><p>FastAPI<br>Session + Routes</p></div><div class="arrow">←</div><div class="step"><span>3</span><p>مدل زبانی<br>AvalAI یا Ollama</p></div><div class="arrow">←</div><div class="step"><span>4</span><p>SQL Safety<br>اصلاح و اعتبارسنجی</p></div><div class="arrow">←</div><div class="step"><span>5</span><p>SQLAlchemy<br>SQLite / DB</p></div></div><ul><li>هدف: سؤال فارسی/انگلیسی درباره تراکنش‌ها → تولید SQL → جدول/نمودار/تحلیل</li><li>Backend: FastAPI + Pydantic + SQLAlchemy + Pandas</li><li>Frontend فعال: پوشه <code>static/</code> (نسخه‌های ریشه legacy هستند)</li></ul></div>
+      <div class="footer">
+        <span>Rayamate · توضیح کد newDashboard2</span>
+        <span>2 / 14</span>
+      </div>
+    </section>
+    
+    <section class="slide">
+      <div class="topbar"></div>
+      <div class="kicker">۲ · مسیر کاربر</div>
+      <h2>جریان End-to-End</h2>
+      <div class="body"><div class="cards"><div class="card"><h3>ورود</h3><p>login.js → POST /api/login → users.authenticate_user → session cookie → /app</p></div><div class="card"><h3>گفتگو</h3><p>sendMessage → POST /api/chat → generate_sql → normalize/validate → اجرا → جدول/نمودار</p></div><div class="card"><h3>تحلیل</h3><p>دکمه تحلیل → POST /api/analyze → generate_analysis روی ۲۰ ردیف اول</p></div><div class="card"><h3>کاربران</h3><p>فقط admin: /users → CRUD از طریق /api/users</p></div></div></div>
+      <div class="footer">
+        <span>Rayamate · توضیح کد newDashboard2</span>
+        <span>3 / 14</span>
+      </div>
+    </section>
+    
+    <section class="slide">
+      <div class="topbar"></div>
+      <div class="kicker">۳ · Backend اصلی</div>
+      <h2>app.py — قلب برنامه</h2>
+      <div class="body"><div class="two"><div><ul><li>تعریف FastAPI، middlewareها و مدل‌های Pydantic</li><li><code>RequireLoginMiddleware</code>: همه مسیرها به‌جز landing/login نیاز به ورود دارند</li><li><code>get_llm_client</code>: انتخاب AvalAI یا Ollama</li><li><code>SCHEMA_DESCRIPTION</code>: شرح جداول برای مدل</li></ul></div><div><ul><li><code>/api/chat</code>: تولید SQL + اجرا + timings</li><li><code>/api/analyze</code>: تحلیل اختیاری</li><li>مدیریت کاربران فقط برای نقش admin</li><li>زمان هر مرحله (SQL، safety، اجرا، حافظه) اندازه‌گیری می‌شود</li></ul></div></div></div>
+      <div class="footer">
+        <span>Rayamate · توضیح کد newDashboard2</span>
+        <span>4 / 14</span>
+      </div>
+    </section>
+    
+    <section class="slide">
+      <div class="topbar"></div>
+      <div class="kicker">۴ · داده و هویت</div>
+      <h2>database / users / auth / memory</h2>
+      <div class="body"><div class="cards"><div class="card"><h3>database.py</h3><p>تنظیم SQLAlchemy؛ DATABASE_URL برای تعویض DB؛ پیش‌فرض SQLite</p></div><div class="card"><h3>users.py</h3><p>جدول app_users؛ هش PBKDF2؛ CRUD؛ محافظت آخرین admin</p></div><div class="card"><h3>auth.py</h3><p>نشست امضاشده؛ is_authenticated / is_admin / current_user</p></div><div class="card"><h3>memory_manager.py</h3><p>تاریخچه و preference هر کاربر در history.json</p></div></div></div>
+      <div class="footer">
+        <span>Rayamate · توضیح کد newDashboard2</span>
+        <span>5 / 14</span>
+      </div>
+    </section>
+    
+    <section class="slide">
+      <div class="topbar"></div>
+      <div class="kicker">۵ · مدل و ایمنی SQL</div>
+      <h2>تولید SQL و کنترل امنیتی</h2>
+      <div class="body"><div class="two"><div><h3>کلاینت‌های مدل</h3><ul><li><code>ollama_client.py</code>: مدل محلی gemma روی 127.0.0.1</li><li><code>avalai_client.py</code>: API ابری سازگار با OpenAI</li><li>هر دو: <code>generate_sql</code> و <code>generate_analysis</code></li><li>استخراج مقاوم JSON از خروجی مدل</li></ul></div><div><h3>sql_safety.py</h3><ul><li>اصلاح date_key اشتباه → join با dim_date</li><li>نرمال‌سازی modifier ماه و status</li><li>حذف LIMIT ناخواسته</li><li>فقط SELECT/WITH؛ رد DROP/DELETE/UPDATE/...</li></ul></div></div></div>
+      <div class="footer">
+        <span>Rayamate · توضیح کد newDashboard2</span>
+        <span>6 / 14</span>
+      </div>
+    </section>
+    
+    <section class="slide">
+      <div class="topbar"></div>
+      <div class="kicker">۶ · داده آزمایشی</div>
+      <h2>db_mock.py — Star Schema</h2>
+      <div class="body"><div class="cards"><div class="card"><h3>dim_date</h3><p>تاریخ YYYYMMDD + full_date برای فیلتر تقویمی</p></div><div class="card"><h3>dim_category / merchant</h3><p>۱۵ صنف فارسی + پذیرندگان ایرانی</p></div><div class="card"><h3>dim_terminal</h3><p>پایانه POS / mPOS / Online</p></div><div class="card"><h3>fact_transactions</h3><p>~۱۰۰۰ تراکنش با مبلغ، وضعیت و کانال</p></div><div class="card"><h3>dim_customer</h3><p>مالک تجاری داده؛ جدا از حساب ورود app_users</p></div><div class="card"><h3>نکته</h3><p>اجرای مجدد db_mock.py دیتابیس را از نو می‌سازد</p></div></div></div>
+      <div class="footer">
+        <span>Rayamate · توضیح کد newDashboard2</span>
+        <span>7 / 14</span>
+      </div>
+    </section>
+    
+    <section class="slide">
+      <div class="topbar"></div>
+      <div class="kicker">۷ · APIها</div>
+      <h2>مسیرهای مهم HTTP</h2>
+      <div class="body">
+    <div class="table">
+      <div><code>GET /</code><span>صفحه معرفی first.html</span></div>
+      <div><code>GET /login</code> · <code>POST /api/login</code><span>ورود و نشست</span></div>
+      <div><code>GET /app</code><span>داشبورد گفتگو (نیاز به login)</span></div>
+      <div><code>POST /api/chat</code><span>سؤال → SQL → نتیجه</span></div>
+      <div><code>POST /api/analyze</code><span>تحلیل ثانویه</span></div>
+      <div><code>/api/history</code> · <code>/api/preferences</code><span>حافظه و تنظیمات</span></div>
+      <div><code>/users</code> · <code>/api/users</code><span>مدیریت کاربران (admin)</span></div>
+      <div><code>/api/health</code><span>وضعیت DB و مدل‌ها</span></div>
+    </div>
+    </div>
+      <div class="footer">
+        <span>Rayamate · توضیح کد newDashboard2</span>
+        <span>8 / 14</span>
+      </div>
+    </section>
+    
+    <section class="slide">
+      <div class="topbar"></div>
+      <div class="kicker">۸ · Frontend فعال</div>
+      <h2>صفحات static/</h2>
+      <div class="body"><div class="cards"><div class="card"><h3>first.html</h3><p>لندینگ بازاریابی؛ Tailwind؛ لینک ورود پویا به :8000/login</p></div><div class="card"><h3>login.html + login.js</h3><p>فرم ورود، کپچای نمایشی، remember username، redirect به /app</p></div><div class="card"><h3>index.html</h3><p>داشبورد: provider، زبان، تاریخچه، quick actions، composer</p></div><div class="card"><h3>users.html + users.js</h3><p>CRUD کاربران برای admin</p></div></div></div>
+      <div class="footer">
+        <span>Rayamate · توضیح کد newDashboard2</span>
+        <span>9 / 14</span>
+      </div>
+    </section>
+    
+    <section class="slide">
+      <div class="topbar"></div>
+      <div class="kicker">۹ · منطق کلاینت</div>
+      <h2>static/script.js</h2>
+      <div class="body"><div class="two"><div><ul><li>خواندن هویت از <code>/api/me</code></li><li>انتخاب AvalAI / Ollama و زبان FA/EN</li><li>ارسال سؤال به <code>/api/chat</code></li><li>نمایش SQL جمع‌شونده، توضیح و timings</li></ul></div><div><ul><li>جدول صفحه‌بندی‌شده تا ۱۰۰۰ ردیف در صفحه</li><li>نمودار Chart.js: bar / line / pie / doughnut</li><li>تحلیل اختیاری با دکمه جداگانه</li><li>escapeHtml برای جلوگیری از XSS در خروجی</li></ul></div></div></div>
+      <div class="footer">
+        <span>Rayamate · توضیح کد newDashboard2</span>
+        <span>10 / 14</span>
+      </div>
+    </section>
+    
+    <section class="slide">
+      <div class="topbar"></div>
+      <div class="kicker">۱۰ · استایل و دارایی‌ها</div>
+      <h2>CSS، Chart.js و فایل‌های کمکی</h2>
+      <div class="body"><div class="cards"><div class="card"><h3>static/style.css</h3><p>طراحی داشبورد RTL، sidebar، result strip، جدول و نمودار</p></div><div class="card"><h3>chart.umd.min.js</h3><p>کتابخانه Chart.js محلی (vendored)</p></div><div class="card"><h3>Dockerfile + passenger_wsgi</h3><p>استقرار container و cPanel</p></div><div class="card"><h3>requirements.txt</h3><p>FastAPI، Uvicorn، SQLAlchemy، Pandas، Requests، a2wsgi</p></div></div></div>
+      <div class="footer">
+        <span>Rayamate · توضیح کد newDashboard2</span>
+        <span>11 / 14</span>
+      </div>
+    </section>
+    
+    <section class="slide">
+      <div class="topbar"></div>
+      <div class="kicker">۱۱ · Legacy</div>
+      <h2>فایل‌های ریشه که سرو نمی‌شوند</h2>
+      <div class="body"><ul><li><code>index.html</code> / <code>script.js</code> / <code>style.css</code> در ریشه: نسخه قدیمی</li><li>FastAPI فقط <code>static/index.html</code> را برای <code>/app</code> سرو می‌کند</li><li>script ریشه هنوز به access_key و /api/customers اشاره دارد (منسوخ)</li><li>README در چند بخش با کد فعلی همگام نیست (auth، LIMIT، تعداد تراکنش‌ها)</li><li>ارائه قدیمی: <code>create_presentation.py</code> → <code>Rayamate_Presentation.pptx</code></li></ul></div>
+      <div class="footer">
+        <span>Rayamate · توضیح کد newDashboard2</span>
+        <span>12 / 14</span>
+      </div>
+    </section>
+    
+    <section class="slide">
+      <div class="topbar"></div>
+      <div class="kicker">۱۲ · امنیت</div>
+      <h2>نقاط قوت و ریسک‌ها</h2>
+      <div class="body"><div class="two"><div><h3>نقاط قوت</h3><ul><li>هش گذرواژه با PBKDF2</li><li>SQL فقط خواندنی</li><li>کلید AvalAI فقط سمت سرور</li><li>CRUD کاربران محدود به admin</li></ul></div><div><h3>ریسک‌های مهم</h3><ul><li>secret و admin پیش‌فرض در کد/محیط</li><li>کپچا فقط checkbox مرورگر</li><li>نبود CSRF و row-level scope واقعی</li><li>validator مبتنی بر regex نه parser کامل</li></ul></div></div></div>
+      <div class="footer">
+        <span>Rayamate · توضیح کد newDashboard2</span>
+        <span>13 / 14</span>
+      </div>
+    </section>
+    
+    <section class="slide">
+      <div class="topbar"></div>
+      <div class="kicker">۱۳ · جمع‌بندی</div>
+      <h2>آماده استفاده به‌عنوان prototype</h2>
+      <div class="body"><ul><li>newDashboard2 یک BI مکالمه‌ای کامل با ورود، داشبورد، دو مدل و مدیریت کاربر است</li><li>مسیر فعال: <code>static/</code> + <code>app.py</code> + لایه SQL safety + memory</li><li>پیش از production: rotate secrets، CSRF/rate-limit، auth سطح ردیف، همگام‌سازی README</li><li>منبع این اسلایدها: commit <code dir='ltr'>7643d0fd45</code> روی branch newDashboard2</li></ul><div class="stamp">پایان ارائه · 2026-07-19</div></div>
+      <div class="footer">
+        <span>Rayamate · توضیح کد newDashboard2</span>
+        <span>14 / 14</span>
+      </div>
+    </section>
+    
+</body>
+</html>

@@ -33,7 +33,6 @@ from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from starlette.middleware.sessions import SessionMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware
 import pandas as pd
 from sqlalchemy import text
 
@@ -67,21 +66,22 @@ PUBLIC_PATHS = frozenset({"/", "/login", "/api/login", "/favicon.ico"})
 PUBLIC_PREFIXES = ("/static/",)
 
 
-class RequireLoginMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        path = request.url.path
-        if path in PUBLIC_PATHS or any(path.startswith(p) for p in PUBLIC_PREFIXES):
-            return await call_next(request)
-        if is_authenticated(request.session):
-            return await call_next(request)
-        if path.startswith("/api/"):
-            return JSONResponse(status_code=401, content={"error": "Authentication required."})
-        return RedirectResponse(url="/login", status_code=302)
-
-
 app = FastAPI(title="PSP BI Conversational Report Builder")
-# SessionMiddleware must be outermost so request.session is available in RequireLoginMiddleware.
-app.add_middleware(RequireLoginMiddleware)
+
+
+@app.middleware("http")
+async def require_login_middleware(request: Request, call_next):
+    path = request.url.path
+    if path in PUBLIC_PATHS or any(path.startswith(p) for p in PUBLIC_PREFIXES):
+        return await call_next(request)
+    if is_authenticated(request.session):
+        return await call_next(request)
+    if path.startswith("/api/"):
+        return JSONResponse(status_code=401, content={"error": "Authentication required."})
+    return RedirectResponse(url="/login", status_code=302)
+
+
+# Added after @app.middleware so SessionMiddleware is outermost and request.session works.
 app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET, same_site="lax")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
@@ -156,7 +156,7 @@ Notes:
   * "last month" / "ماه گذشته": WHERE d.full_date >= date('now','start of month','-1 month')
     AND d.full_date < date('now','start of month')
   * Use SQLite modifier 'start of month' — NEVER 'first day of month' (returns NULL in SQLite).
-  * Mock data spans full_date 2026-01-01 through 2026-06-22 (about six months).
+  * Mock data spans approximately the last 6 months through today (rolling window from db_mock.py).
 - Status rules:
   * dim_terminal.status: 'active' / 'inactive' (lowercase) — do not use 'Active'
   * fact_transactions.status: approved / declined / reversed
@@ -316,6 +316,11 @@ def api_delete_user(user_id: int, request: Request):
         status = 404 if err == "User not found." else 400
         return JSONResponse(status_code=status, content={"error": err})
     return {"ok": True}
+
+
+@app.get("/favicon.ico")
+def favicon():
+    return FileResponse(os.path.join(STATIC_DIR, "favicon-32.png"), media_type="image/png")
 
 
 @app.get("/")
@@ -550,6 +555,123 @@ def put_preferences(req: PreferencesRequest, request: Request):
     language = req.language if req.language in ("fa", "en") else None
     prefs = memory.set_preferences(username, provider=provider, language=language)
     return {"ok": True, "preferences": prefs}
+
+
+# ---------------------------------------------------------------------------
+# Feature poll: users vote for the next features they want built.
+# Votes are stored per-username in feature_poll.json.
+# ---------------------------------------------------------------------------
+import json as _json
+import threading as _threading
+
+FEATURE_POLL_FILE = os.path.join(BASE_DIR, "feature_poll.json")
+_feature_poll_lock = _threading.Lock()
+
+FEATURE_POLL_OPTIONS = [
+    {"id": "anomaly_alerts", "label": "هشدار هوشمند ناهنجاری تراکنش‌ها"},
+    {"id": "jalali_calendar", "label": "تقویم شمسی در نمودارها و فیلترها"},
+    {"id": "geo_map", "label": "نقشه جغرافیایی تراکنش‌ها"},
+    {"id": "scheduled_reports", "label": "گزارش زمان‌بندی‌شده و ارسال خودکار"},
+    {"id": "excel_export", "label": "خروجی اکسل و PDF از نتایج"},
+    {"id": "telegram_bot", "label": "ربات تلگرام / پیامک هشدار"},
+    {"id": "forecast", "label": "پیش‌بینی روند تراکنش‌ها"},
+]
+_FEATURE_POLL_IDS = frozenset(o["id"] for o in FEATURE_POLL_OPTIONS)
+FEATURE_POLL_MAX_CHOICES = 3
+
+# Custom feature suggestions (max 100 chars, stored as special options)
+FEATURE_CUSTOM_MAX_LEN = 100
+FEATURE_CUSTOM_PREFIX = "_custom_"
+
+
+class FeaturePollRequest(BaseModel):
+    features: list[str]
+
+
+def _load_feature_poll() -> dict:
+    try:
+        with open(FEATURE_POLL_FILE, "r", encoding="utf-8") as f:
+            data = _json.load(f)
+        if isinstance(data, dict) and isinstance(data.get("votes"), dict):
+            return data
+    except (OSError, ValueError):
+        pass
+    return {"votes": {}}
+
+
+def _save_feature_poll(data: dict) -> None:
+    with open(FEATURE_POLL_FILE, "w", encoding="utf-8") as f:
+        _json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def _feature_poll_state(username: str) -> dict:
+    data = _load_feature_poll()
+    votes = data["votes"]
+
+    # Built-in options
+    counts: dict[str, int] = {o["id"]: 0 for o in FEATURE_POLL_OPTIONS}
+    # Collect custom options from all voters
+    custom_pool: dict[str, str] = {}
+    for selection in votes.values():
+        for oid in selection:
+            if oid in counts:
+                counts[oid] += 1
+            elif oid.startswith(FEATURE_CUSTOM_PREFIX):
+                label = oid[len(FEATURE_CUSTOM_PREFIX):]
+                custom_pool[oid] = label
+                counts.setdefault(oid, 0)
+                counts[oid] += 1
+
+    return {
+        "options": FEATURE_POLL_OPTIONS,
+        "custom_options": [{"id": k, "label": v} for k, v in custom_pool.items()],
+        "max_choices": FEATURE_POLL_MAX_CHOICES,
+        "counts": counts,
+        "total_voters": len(votes),
+        "my_votes": votes.get(username, []),
+    }
+
+
+@app.get("/api/feature-poll")
+def get_feature_poll(request: Request):
+    session_user = current_user(request.session)
+    username = session_user.get("username") if session_user else "anonymous"
+    with _feature_poll_lock:
+        return _feature_poll_state(username)
+
+
+@app.post("/api/feature-poll")
+def post_feature_poll(req: FeaturePollRequest, request: Request):
+    session_user = current_user(request.session)
+    username = session_user.get("username") if session_user else "anonymous"
+
+    selection = []
+    for f in dict.fromkeys(req.features):
+        if f in _FEATURE_POLL_IDS:
+            selection.append(f)
+        elif f.startswith(FEATURE_CUSTOM_PREFIX):
+            label = f[len(FEATURE_CUSTOM_PREFIX):]
+            if label and len(label) <= FEATURE_CUSTOM_MAX_LEN:
+                selection.append(f)
+            elif label:
+                return JSONResponse(
+                    status_code=400,
+                    content={"error": "متن گزینه سفارشی حداکثر ۱۰۰ کاراکتر می‌تواند باشد."},
+                )
+
+    if not selection:
+        return JSONResponse(status_code=400, content={"error": "حداقل یک قابلیت را انتخاب یا پیشنهاد کنید."})
+    if len(selection) > FEATURE_POLL_MAX_CHOICES:
+        return JSONResponse(
+            status_code=400,
+            content={"error": f"حداکثر {FEATURE_POLL_MAX_CHOICES} گزینه قابل انتخاب است."},
+        )
+
+    with _feature_poll_lock:
+        data = _load_feature_poll()
+        data["votes"][username] = selection
+        _save_feature_poll(data)
+        return {"ok": True, **_feature_poll_state(username)}
 
 
 if __name__ == "__main__":
