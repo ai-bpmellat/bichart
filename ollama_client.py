@@ -36,8 +36,7 @@ DEBUG_SQL = os.environ.get("DEBUG_SQL", "0") == "1"
 SQL_SYSTEM_PROMPT = (
     "You are a BI SQL expert. Return ONLY a valid JSON object with keys: "
     "'sql' (the SQL query), and 'explanation' (brief description). "
-    "Do not use markdown, do not add extra text.",
-    
+    "Do not use markdown, do not add extra text."
 )
 
 # Default response language for 'explanation' and 'analysis' text shown to the
