@@ -6,3 +6,6 @@ requests
 python-multipart
 itsdangerous
 a2wsgi
+fpdf2
+uharfbuzz
+openpyxl

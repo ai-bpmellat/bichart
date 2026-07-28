@@ -31,19 +31,31 @@ shape, file layout, prompts, and frontend — follows the brief as given.
 ## Project layout
 
 ```
-psp_bi_chat/
-├── app.py              # FastAPI app: routes /, /api/chat, /api/health, /api/login, /api/customers
-├── database.py         # SQLAlchemy engine config — swap SQLite for DB2/SQL Server here
-├── db_mock.py           # Generates schema + ~10k mock rows (run once)
-├── auth.py              # Authorization: maps access_key -> customer, scopes SQL to owned merchants
-├── sql_safety.py         # Validates SELECT-only SQL, blocks destructive statements, caps rows
-├── ollama_client.py      # HTTP client for Ollama, with JSON-parsing fallback chain
-├── memory_manager.py     # In-memory + history.json conversation persistence
+bichart/
+├── app.py                 # FastAPI entry: routes, auth middleware, chat/export APIs
+├── passenger_wsgi.py      # cPanel / Passenger ASGI wrapper
+├── Dockerfile
 ├── requirements.txt
-└── static/
-    ├── index.html
-    ├── style.css
-    └── script.js
+├── database.py            # SQLAlchemy engine (SQLite under data/)
+├── db_mock.py             # Build mock schema + sample rows (run once)
+├── auth.py / users.py     # Session auth + app_users CRUD
+├── sql_safety.py          # SELECT-only validation
+├── ollama_client.py       # Local Ollama LLM client
+├── avalai_client.py       # AvalAI LLM client
+├── analysis_prompt.py     # Shared analysis / discussion prompts
+├── memory_manager.py      # Per-user history + preferences
+├── pdf_generator.py       # PDF export
+├── excel_generator.py     # Excel export
+├── column_labels.py       # Friendly column titles for exports
+├── data/                  # Runtime DB + history (gitignored)
+├── exports/               # Generated PDF/Excel downloads (gitignored)
+├── docs/                  # Generated documentation & presentations
+├── scripts/               # One-off doc/presentation generators
+└── static/                # Frontend (first, login, app, users) + assets
+    ├── index.html / style.css / script.js
+    ├── first.html / login.html / users.html
+    ├── fonts/ / images/ / vendor/
+    └── favicon*.png / logo.png
 ```
 
 ## Pipeline (per chat message)
@@ -84,7 +96,63 @@ exactly as-is, and only replace `auth.get_customer_by_key()` with a lookup
 against your real identity provider (JWT claim, session, OAuth token, etc.)
 that still resolves to a `{"customer_id", "customer_name", "role"}` dict.
 
-## Setup
+## Run with Docker (recommended)
+
+### 1. Start Docker Desktop
+
+On Windows, make sure Docker Desktop is running first. If it is not running,
+`docker run` / `docker compose` will fail with a pipe error.
+
+### 2. Set environment variables
+
+Create a `.env` file in the project root (same directory as `docker-compose.yml`):
+
+```env
+AVALAI_API_KEY=your-avalai-key
+SESSION_SECRET=replace-with-a-long-random-secret
+```
+
+### 3. Build and run
+
+```bash
+docker compose up --build -d
+```
+
+Or on Windows PowerShell (one command):
+
+```powershell
+.\run-docker.ps1
+```
+
+Optional flags:
+
+```powershell
+# Skip rebuild
+.\run-docker.ps1 -NoBuild
+
+# Wait up to 180 seconds for Docker engine startup
+.\run-docker.ps1 -WaitSeconds 180
+```
+
+Open [http://localhost:8000](http://localhost:8000).
+
+### 4. Useful commands
+
+```bash
+# logs
+docker compose logs -f
+
+# stop
+docker compose down
+
+# rebuild after code changes
+docker compose up --build -d
+```
+
+The container auto-creates the mock DB on first start if it is missing, and
+persists runtime files in local `data/` and `exports/` through bind mounts.
+
+## Setup (without Docker)
 
 ### 1. Install Ollama and pull the model
 

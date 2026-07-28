@@ -11,18 +11,33 @@ env/
 dist/
 build/
 
-# Local data & runtime
+# Local data & runtime (legacy root + data/)
 *.db
 history.json
+feedback.json
+feature_poll.json
+data/*.db
+data/*.json
+!data/.gitkeep
 .env
 .env.*
+
+# Generated report exports
+exports/*
+!exports/.gitkeep
+report*.pdf
+report*.xlsx
+test_*.pdf
+test_*.xlsx
+test_output.*
 
 # Archives & backups
 *.tar.gz
 * copy.py
 
-# IDE / OS
+# IDE / OS / local test leftovers
 .idea/
 .vscode/
 .DS_Store
 Thumbs.db
+.test_cookies.txt

@@ -1,6 +1,6 @@
 """
 Generate a Persian presentation (PPTX) for the Rayamate BI project.
-Run: python create_presentation.py
+Run: python scripts/create_presentation.py
 """
 
 from pptx import Presentation
@@ -427,7 +427,11 @@ def build():
     )
     footer(s, 11, total)
 
-    out = "Rayamate_Presentation.pptx"
+    from pathlib import Path
+
+    out_dir = Path(__file__).resolve().parent.parent / "docs" / "presentations"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out = str(out_dir / "Rayamate_Presentation.pptx")
     prs.save(out)
     print(out)
 

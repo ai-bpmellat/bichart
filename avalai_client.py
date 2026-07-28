@@ -16,6 +16,7 @@ from ollama_client import (
     _ANALYSIS_LANGUAGE_INSTRUCTIONS,
     _LANGUAGE_INSTRUCTIONS,
     _extract_json,
+    _fix_sql_prompt,
 )
 
 AVALAI_BASE = "https://api.avalai.ir/v1"
@@ -132,22 +133,64 @@ def generate_sql(user_question: str, schema_description: str, language: str = RE
     return parsed
 
 
+def fix_sql(
+    user_question: str,
+    schema_description: str,
+    failed_sql: str,
+    error_message: str,
+    language: str = RESPONSE_LANGUAGE,
+) -> dict:
+    """Execution-feedback self-correction: given a query that failed to run and the
+    database's error message, ask the model for a corrected query. Raises AvalAIError
+    on failure — the caller should treat that as 'auto-fix unavailable' and fall back
+    to reporting the original execution error to the user."""
+    prompt = _fix_sql_prompt(user_question, schema_description, failed_sql, error_message, language)
+    raw = _chat(prompt, system=SQL_SYSTEM_PROMPT, temperature=0.1)
+    parsed = _extract_json(raw)
+    if "sql" not in parsed:
+        raise AvalAIError(f"Model JSON missing 'sql' key: {parsed}")
+    parsed.setdefault("explanation", "")
+    return parsed
+
+
 def generate_analysis(data_sample: list, user_question: str, language: str = RESPONSE_LANGUAGE) -> str:
     data_json = json.dumps(data_sample, ensure_ascii=False, default=str)
-    prompt = (
-        f"Here is the data (first 20 rows): {data_json}. "
-        f"Based on this, user asked: {user_question}. "
-        f"Provide a clear, concise analysis, forecast, or prediction."
-    )
+    from analysis_prompt import ANALYSIS_SYSTEM_RULES, build_analysis_prompt
+
+    prompt = build_analysis_prompt(data_json, user_question)
     lang_instruction = _ANALYSIS_LANGUAGE_INSTRUCTIONS.get(language, _ANALYSIS_LANGUAGE_INSTRUCTIONS["en"])
-    system = (
-        "You are a BI data analyst for a Payment Service Provider. "
-        "Be concise, specific, and use numbers from the data when possible. "
-        f"{lang_instruction} "
-        "Respond in plain text (no JSON, no markdown headers)."
-    )
+    system = f"{ANALYSIS_SYSTEM_RULES}\n\n{lang_instruction}"
     try:
-        raw = _chat(prompt, system=system, temperature=0.4)
+        raw = _chat(prompt, system=system, temperature=0.2)
     except AvalAIError as e:
         return f"(Analysis unavailable: {e})"
     return raw.strip() or "No analysis could be generated for this result set."
+
+
+def generate_discussion(
+    data_sample: list,
+    user_question: str,
+    analysis: str,
+    user_message: str,
+    history: list | None = None,
+    focus: str = "",
+    language: str = RESPONSE_LANGUAGE,
+) -> str:
+    data_json = json.dumps(data_sample or [], ensure_ascii=False, default=str)
+    from analysis_prompt import DISCUSSION_SYSTEM_RULES, build_discussion_prompt
+
+    prompt = build_discussion_prompt(
+        data_json=data_json,
+        user_question=user_question or "",
+        analysis=analysis or "",
+        focus=focus or "",
+        history=history or [],
+        user_message=user_message,
+    )
+    lang_instruction = _ANALYSIS_LANGUAGE_INSTRUCTIONS.get(language, _ANALYSIS_LANGUAGE_INSTRUCTIONS["en"])
+    system = f"{DISCUSSION_SYSTEM_RULES}\n\n{lang_instruction}"
+    try:
+        raw = _chat(prompt, system=system, temperature=0.25)
+    except AvalAIError as e:
+        return f"(Discussion unavailable: {e})"
+    return raw.strip() or "No discussion reply could be generated."

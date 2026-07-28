@@ -9,10 +9,12 @@ from datetime import datetime
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parent.parent
 BRANCH = "newDashboard2"
-HTML_OUT = ROOT / "newDashboard2_code_documentation_fa.html"
-PDF_OUT = ROOT / "newDashboard2_code_documentation_fa.pdf"
+DOCS = ROOT / "docs"
+DOCS.mkdir(exist_ok=True)
+HTML_OUT = DOCS / "newDashboard2_code_documentation_fa.html"
+PDF_OUT = DOCS / "newDashboard2_code_documentation_fa.pdf"
 
 
 def git(*args: str, text: bool = True):

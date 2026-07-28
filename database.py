@@ -28,7 +28,15 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SQLITE_PATH = os.path.join(BASE_DIR, "psp_bi_mock.db")
+DATA_DIR = os.path.join(BASE_DIR, "data")
+os.makedirs(DATA_DIR, exist_ok=True)
+
+_legacy_db = os.path.join(BASE_DIR, "psp_bi_mock.db")
+_data_db = os.path.join(DATA_DIR, "psp_bi_mock.db")
+# Prefer data/; keep root path while a running process still holds the legacy file.
+SQLITE_PATH = _data_db if os.path.exists(_data_db) else (
+    _legacy_db if os.path.exists(_legacy_db) else _data_db
+)
 
 # ---------------------------------------------------------------------------
 # DATABASE_URL is the single switch. Read from env var so you can override

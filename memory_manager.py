@@ -20,9 +20,14 @@ import datetime
 import json
 import os
 import threading
+import uuid
 from typing import Optional
 
-HISTORY_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "history.json")
+_BASE = os.path.dirname(os.path.abspath(__file__))
+_DATA_DIR = os.path.join(_BASE, "data")
+os.makedirs(_DATA_DIR, exist_ok=True)
+HISTORY_FILE = os.path.join(_DATA_DIR, "history.json")
+FEEDBACK_FILE = os.path.join(_DATA_DIR, "feedback.json")
 
 DEFAULT_PREFERENCES = {
     "provider": "avalai",
@@ -54,7 +59,11 @@ class MemoryManager:
 
     def add_message(self, username: Optional[str] = None, **kwargs) -> dict:
         """Add a message to the user's in-memory history and persist immediately."""
-        entry = {"timestamp": datetime.datetime.now().isoformat(), **kwargs}
+        entry = {
+            "id": kwargs.pop("id", None) or str(uuid.uuid4()),
+            "timestamp": datetime.datetime.now().isoformat(),
+            **kwargs,
+        }
         with self._lock:
             bucket = self._ensure_user(username or kwargs.get("username") or "anonymous")
             if username:
@@ -89,6 +98,89 @@ class MemoryManager:
                         break
             target["analysis"] = analysis
             self.save_to_disk()
+
+    def set_feedback(
+        self,
+        username: Optional[str],
+        message_id: str,
+        rating: str,
+    ) -> tuple[bool, Optional[str]]:
+        """Attach thumbs up/down feedback to a stored message. Returns (ok, error)."""
+        if rating not in ("up", "down"):
+            return False, "Invalid rating."
+        if not message_id:
+            return False, "Message id is required."
+
+        with self._lock:
+            bucket = self._ensure_user(username or "anonymous")
+            target = None
+            for entry in bucket["messages"]:
+                if entry.get("id") == message_id:
+                    target = entry
+                    break
+            if not target:
+                return False, "Message not found."
+
+            feedback = {
+                "rating": rating,
+                "at": datetime.datetime.now().isoformat(),
+            }
+            target["feedback"] = feedback
+            self.save_to_disk()
+            self._append_feedback_log(username or "anonymous", message_id, target, feedback)
+        return True, None
+
+    def _append_feedback_log(
+        self,
+        username: str,
+        message_id: str,
+        message: dict,
+        feedback: dict,
+    ) -> None:
+        """Persist feedback entries for offline evaluation / prompt tuning."""
+        record = {
+            "message_id": message_id,
+            "username": username,
+            "rating": feedback["rating"],
+            "at": feedback["at"],
+            "user_question": message.get("user_question"),
+            "sql": message.get("sql"),
+            "explanation": message.get("explanation"),
+            "row_count": message.get("row_count"),
+            "provider": message.get("provider"),
+            "language": message.get("language"),
+            "analysis": message.get("analysis"),
+        }
+        try:
+            entries: list = []
+            if os.path.exists(FEEDBACK_FILE):
+                with open(FEEDBACK_FILE, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    if isinstance(data, dict) and isinstance(data.get("entries"), list):
+                        entries = data["entries"]
+            entries.append(record)
+            with open(FEEDBACK_FILE, "w", encoding="utf-8") as f:
+                json.dump({"entries": entries}, f, ensure_ascii=False, indent=2, default=str)
+        except OSError as e:
+            print(f"[memory_manager] Warning: could not write feedback.json: {e}")
+
+    def get_frequent_questions(self, n: int = 10) -> list:
+        """Return the top-n most-asked questions across all users, most frequent first."""
+        with self._lock:
+            counts: dict[str, dict] = {}
+            for bucket in self.users.values():
+                for entry in bucket.get("messages", []):
+                    q = (entry.get("user_question") or "").strip()
+                    if not q or q == "SQL run":
+                        continue
+                    key = q.lower()
+                    info = counts.setdefault(key, {"question": q, "count": 0, "last_asked": ""})
+                    info["count"] += 1
+                    ts = entry.get("timestamp") or ""
+                    if ts > info["last_asked"]:
+                        info["last_asked"] = ts
+            ranked = sorted(counts.values(), key=lambda x: (x["count"], x["last_asked"]), reverse=True)
+            return ranked[:n]
 
     def get_preferences(self, username: Optional[str] = None) -> dict:
         with self._lock:

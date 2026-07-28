@@ -2,25 +2,14 @@
 app.py
 ------
 FastAPI application exposing:
-    GET  /              -> serves the chat UI (static/index.html)
-    POST /api/chat       -> text-to-SQL, safety check, execute (results shown first)
-    POST /api/analyze    -> optional Ollama analysis on demand (after results)
+    GET  /              -> product landing (static/first.html)
+    GET  /login         -> login form
+    GET  /app           -> chat UI (static/index.html)
+    POST /api/chat       -> text-to-SQL only (user can edit before running)
+    POST /api/run_sql    -> safety check + execute edited/generated SQL
+    POST /api/analyze    -> optional analysis on demand (after results)
+    POST /api/discuss    -> debate / correct flawed data or analysis (multi-turn)
     GET  /api/health     -> health check (DB + Ollama reachability)
-
-Pipeline executed by /api/chat, in order:
-    1. Call Gemma (ollama_client.generate_sql) with a strict JSON system prompt.
-    2. Validate the SQL is read-only SELECT only (sql_safety.validate_select_only).
-    3. Execute against SQLite (swappable engine via database.py), capped at sql_safety.MAX_ROWS.
-    4. Store the turn in memory (memory_manager) and persist to history.json.
-    5. Return {sql, explanation, data} to the frontend (no analysis — user triggers /api/analyze).
-
-Why FastAPI instead of Flask:
-    The brief asked for Flask but allowed swapping frameworks if something fits
-    better. This pipeline makes two sequential, network-bound calls to Ollama per
-    request (SQL generation, then analysis). FastAPI's native async support means
-    the server doesn't block its single worker thread waiting on those HTTP calls,
-    Pydantic gives free request validation, and you get OpenAPI docs at /docs for
-    free, which is handy when testing the API directly during development.
 """
 
 import os
@@ -37,6 +26,8 @@ import pandas as pd
 from sqlalchemy import text
 
 from database import engine, SessionLocal
+from pdf_generator import generate_llm_pdf
+from excel_generator import generate_llm_excel
 import ollama_client
 import avalai_client
 from sql_safety import validate_select_only, UnsafeSQLError, strip_unrequested_limit, normalize_generated_sql
@@ -52,6 +43,7 @@ from auth import (
 import users as users_mod
 
 VALID_PROVIDERS = frozenset({"ollama", "avalai"})
+HISTORY_DATA_CAP = 500  # max rows persisted per history entry, so replaying a past chart/table works
 
 
 def get_llm_client(provider: str):
@@ -61,6 +53,10 @@ def get_llm_client(provider: str):
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(BASE_DIR, "static")
+DATA_DIR = os.path.join(BASE_DIR, "data")
+EXPORTS_DIR = os.path.join(BASE_DIR, "exports")
+os.makedirs(DATA_DIR, exist_ok=True)
+os.makedirs(EXPORTS_DIR, exist_ok=True)
 
 PUBLIC_PATHS = frozenset({"/", "/login", "/api/login", "/favicon.ico"})
 PUBLIC_PREFIXES = ("/static/",)
@@ -177,9 +173,28 @@ class ChatRequest(BaseModel):
     provider: Optional[str] = "avalai"  # "ollama" or "avalai"
 
 
+class RunSqlRequest(BaseModel):
+    sql: str
+    message: Optional[str] = None  # original user question (for history)
+    explanation: Optional[str] = None
+    language: Optional[str] = None
+    provider: Optional[str] = None
+
+
 class AnalyzeRequest(BaseModel):
     message: str
     data: list
+    language: Optional[str] = None
+    provider: Optional[str] = "avalai"
+
+
+class DiscussRequest(BaseModel):
+    message: str
+    data: Optional[list] = None
+    analysis: Optional[str] = None
+    focus: Optional[str] = None  # selected snippet the user wants to debate
+    history: Optional[list] = None  # [{role: user|assistant, content: str}, ...]
+    original_question: Optional[str] = None
     language: Optional[str] = None
     provider: Optional[str] = "avalai"
 
@@ -210,6 +225,11 @@ class UserUpdateRequest(BaseModel):
     display_name: Optional[str] = None
     role: Optional[str] = None
     is_active: Optional[bool] = None
+
+
+class FeedbackRequest(BaseModel):
+    message_id: str
+    rating: str  # "up" or "down"
 
 
 # ---------------------------------------------------------------------------
@@ -376,6 +396,7 @@ def avalai_credit():
 
 @app.post("/api/chat")
 def chat(req: ChatRequest, request: Request):
+    """Step 1: generate SQL from the user question (no execution)."""
     user_question = req.message.strip()
     if not user_question:
         return JSONResponse(status_code=400, content={"error": "Empty message."})
@@ -383,13 +404,11 @@ def chat(req: ChatRequest, request: Request):
     session_user = current_user(request.session)
     username = session_user.get("username") if session_user else "anonymous"
 
-    # Prefer request values; fall back to saved per-user preferences; then defaults
     prefs = memory.get_preferences(username)
     language = req.language or prefs.get("language") or ollama_client.RESPONSE_LANGUAGE
     provider = req.provider if req.provider in VALID_PROVIDERS else prefs.get("provider", "avalai")
     if provider not in VALID_PROVIDERS:
         provider = "avalai"
-    # Remember model choice for this user's next questions
     memory.set_preferences(username, provider=provider, language=language)
 
     llm = get_llm_client(provider)
@@ -399,7 +418,6 @@ def chat(req: ChatRequest, request: Request):
     def _mark(step: str, started: float) -> None:
         timings[step] = round((time.perf_counter() - started) * 1000, 1)
 
-    # ---- Step 1: Text-to-SQL via selected LLM provider ----
     t = time.perf_counter()
     try:
         sql_result = llm.generate_sql(user_question, SCHEMA_DESCRIPTION, language=language)
@@ -417,40 +435,113 @@ def chat(req: ChatRequest, request: Request):
     raw_sql = normalize_generated_sql(strip_unrequested_limit(sql_result["sql"], user_question))
     _mark("sql_normalize", t)
 
-    # ---- Step 2: Safety check (read-only SELECT, no destructive statements) ----
+    timings["total"] = round((time.perf_counter() - t0) * 1000, 1)
+
+    return {
+        "sql": raw_sql,
+        "explanation": explanation,
+        "language": language,
+        "provider": provider,
+        "timings": timings,
+        "awaiting_run": True,
+    }
+
+
+@app.post("/api/run_sql")
+def run_sql(req: RunSqlRequest, request: Request):
+    """Step 2: validate and execute user-edited (or generated) SQL."""
+    sql_text = (req.sql or "").strip()
+    if not sql_text:
+        return JSONResponse(status_code=400, content={"error": "Empty SQL."})
+
+    session_user = current_user(request.session)
+    username = session_user.get("username") if session_user else "anonymous"
+    prefs = memory.get_preferences(username)
+    language = req.language or prefs.get("language") or ollama_client.RESPONSE_LANGUAGE
+    provider = req.provider if req.provider in VALID_PROVIDERS else prefs.get("provider", "avalai")
+    if provider not in VALID_PROVIDERS:
+        provider = "avalai"
+
+    user_question = (req.message or "").strip() or "SQL run"
+    explanation = req.explanation or ""
+
+    timings: dict[str, float] = {}
+    t0 = time.perf_counter()
+
+    def _mark(step: str, started: float) -> None:
+        timings[step] = round((time.perf_counter() - started) * 1000, 1)
+
+    t = time.perf_counter()
+    # Light normalize helps date_key / status issues even after manual edits.
+    normalized = normalize_generated_sql(
+        strip_unrequested_limit(sql_text, user_question) if user_question != "SQL run" else sql_text
+    )
+    _mark("sql_normalize", t)
+
     t = time.perf_counter()
     try:
-        safe_sql = validate_select_only(raw_sql)
+        safe_sql = validate_select_only(normalized)
     except UnsafeSQLError as e:
         _mark("sql_safety", t)
         timings["total"] = round((time.perf_counter() - t0) * 1000, 1)
         return JSONResponse(
             status_code=400,
             content={
-                "error": f"Generated SQL was rejected for safety reasons: {e}",
-                "sql": raw_sql,
+                "error": f"SQL was rejected for safety reasons: {e}",
+                "sql": normalized,
                 "explanation": explanation,
                 "timings": timings,
             },
         )
     _mark("sql_safety", t)
 
-    # ---- Step 3: Execute against the DB ----
-    t = time.perf_counter()
-    try:
+    def _execute(sql_to_run: str) -> list:
         db = SessionLocal()
         try:
-            df = pd.read_sql_query(text(safe_sql), db.bind)
+            df = pd.read_sql_query(text(sql_to_run), db.bind)
         finally:
             db.close()
-        records = df.to_dict(orient="records")
+        return df.to_dict(orient="records")
+
+    t = time.perf_counter()
+    llm = get_llm_client(provider)
+    auto_fixed = False
+    records = None
+    exec_error: Optional[Exception] = None
+    try:
+        records = _execute(safe_sql)
     except Exception as e:
+        exec_error = e
+        # One automatic self-correction attempt: feed the DB error back to the LLM
+        # instead of immediately forcing the user to edit the SQL by hand.
+        try:
+            fix_t = time.perf_counter()
+            fixed = llm.fix_sql(
+                user_question=user_question,
+                schema_description=SCHEMA_DESCRIPTION,
+                failed_sql=safe_sql,
+                error_message=str(e),
+                language=language,
+            )
+            candidate_sql = validate_select_only(
+                normalize_generated_sql(strip_unrequested_limit(fixed.get("sql", ""), user_question))
+            )
+            records = _execute(candidate_sql)
+            safe_sql = candidate_sql
+            explanation = fixed.get("explanation") or explanation
+            auto_fixed = True
+            exec_error = None
+            _mark("sql_autofix", fix_t)
+        except Exception:
+            pass  # auto-fix unavailable or still failing — report the original error below
+
+    if exec_error is not None:
         _mark("sql_execution", t)
         timings["total"] = round((time.perf_counter() - t0) * 1000, 1)
         return JSONResponse(
             status_code=400,
             content={
-                "error": f"SQL execution failed: {e}",
+                "error": f"SQL execution failed: {exec_error}",
                 "sql": safe_sql,
                 "explanation": explanation,
                 "timings": timings,
@@ -458,14 +549,14 @@ def chat(req: ChatRequest, request: Request):
         )
     _mark("sql_execution", t)
 
-    # ---- Step 4: Persist to per-user memory ----
     t = time.perf_counter()
-    memory.add_message(
+    entry = memory.add_message(
         username=username,
         user_question=user_question,
         sql=safe_sql,
         explanation=explanation,
         row_count=len(records),
+        data=records[:HISTORY_DATA_CAP],
         analysis=None,
         provider=provider,
         language=language,
@@ -475,6 +566,7 @@ def chat(req: ChatRequest, request: Request):
     timings["total"] = round((time.perf_counter() - t0) * 1000, 1)
 
     return {
+        "message_id": entry.get("id"),
         "sql": safe_sql,
         "explanation": explanation,
         "data": records,
@@ -482,6 +574,7 @@ def chat(req: ChatRequest, request: Request):
         "language": language,
         "provider": provider,
         "timings": timings,
+        "auto_fixed": auto_fixed,
     }
 
 
@@ -510,7 +603,7 @@ def analyze(req: AnalyzeRequest, request: Request):
 
     t = time.perf_counter()
     try:
-        sample = req.data[:20]
+        sample = req.data[:80]
         analysis = llm.generate_analysis(sample, user_question, language=language)
     except Exception as e:
         timings["analysis"] = round((time.perf_counter() - t) * 1000, 1)
@@ -532,12 +625,97 @@ def analyze(req: AnalyzeRequest, request: Request):
     }
 
 
+@app.post("/api/discuss")
+def discuss(req: DiscussRequest, request: Request):
+    """Discuss / challenge data rows or analysis wording (multi-turn)."""
+    user_message = (req.message or "").strip()
+    if not user_message:
+        return JSONResponse(status_code=400, content={"error": "Empty discussion message."})
+
+    session_user = current_user(request.session)
+    username = session_user.get("username") if session_user else "anonymous"
+    prefs = memory.get_preferences(username)
+
+    language = req.language or prefs.get("language") or ollama_client.RESPONSE_LANGUAGE
+    provider = req.provider if req.provider in VALID_PROVIDERS else prefs.get("provider", "avalai")
+    if provider not in VALID_PROVIDERS:
+        provider = "avalai"
+    memory.set_preferences(username, provider=provider, language=language)
+
+    llm = get_llm_client(provider)
+    timings: dict[str, float] = {}
+    t0 = time.perf_counter()
+    t = time.perf_counter()
+    try:
+        sample = (req.data or [])[:80]
+        history = req.history or []
+        # Keep history bounded
+        if len(history) > 20:
+            history = history[-20:]
+        reply = llm.generate_discussion(
+            data_sample=sample,
+            user_question=req.original_question or "",
+            analysis=req.analysis or "",
+            user_message=user_message,
+            history=history,
+            focus=req.focus or "",
+            language=language,
+        )
+    except Exception as e:
+        timings["discussion"] = round((time.perf_counter() - t) * 1000, 1)
+        timings["total"] = round((time.perf_counter() - t0) * 1000, 1)
+        return JSONResponse(
+            status_code=502,
+            content={"error": f"Discussion failed: {e}", "timings": timings},
+        )
+    timings["discussion"] = round((time.perf_counter() - t) * 1000, 1)
+    timings["total"] = timings["discussion"]
+
+    return {
+        "reply": reply,
+        "language": language,
+        "provider": provider,
+        "timings": timings,
+    }
+
+
+@app.post("/api/feedback")
+def submit_feedback(req: FeedbackRequest, request: Request):
+    """Store thumbs up/down on a completed answer for evaluation and prompt tuning."""
+    session_user = current_user(request.session)
+    if not session_user:
+        return JSONResponse(status_code=401, content={"error": "Authentication required."})
+
+    rating = (req.rating or "").strip().lower()
+    if rating in ("correct", "up", "👍"):
+        rating = "up"
+    elif rating in ("wrong", "down", "👎"):
+        rating = "down"
+    else:
+        return JSONResponse(status_code=400, content={"error": "Rating must be up or down."})
+
+    ok, err = memory.set_feedback(
+        session_user.get("username"),
+        req.message_id.strip(),
+        rating,
+    )
+    if not ok:
+        return JSONResponse(status_code=404, content={"error": err or "Could not save feedback."})
+    return {"ok": True, "rating": rating}
+
+
 @app.get("/api/history")
 def get_history(request: Request):
     """Returns the persisted conversation history for the logged-in user."""
     session_user = current_user(request.session)
     username = session_user.get("username") if session_user else "anonymous"
     return {"history": memory.get_context(username=username, n=50)}
+
+
+@app.get("/api/frequent-questions")
+def frequent_questions():
+    """Top asked questions across all users, for the sidebar suggestions panel."""
+    return {"questions": memory.get_frequent_questions(n=10)}
 
 
 @app.get("/api/preferences")
@@ -557,6 +735,78 @@ def put_preferences(req: PreferencesRequest, request: Request):
     return {"ok": True, "preferences": prefs}
 
 
+class PDFExportRequest(BaseModel):
+    title: str
+    explanation: str
+    data: Optional[list] = None
+    analysis: Optional[str] = None
+    chart_image: Optional[str] = None  # data-URL or base64 PNG/JPEG from Chart.js
+
+
+class ExcelExportRequest(BaseModel):
+    title: str
+    explanation: str
+    data: Optional[list] = None
+    analysis: Optional[str] = None
+
+
+@app.post("/api/export_pdf")
+def export_pdf(req: PDFExportRequest, request: Request):
+    """Generates a PDF report from the provided LLM data."""
+    if not is_authenticated(request.session):
+        return JSONResponse(status_code=401, content={"error": "Authentication required."})
+
+    try:
+        stamp = time.strftime("%Y%m%d%H%M%S")
+        filename = f"report{stamp}.pdf"
+        filepath = os.path.join(EXPORTS_DIR, filename)
+
+        generate_llm_pdf(
+            output_path=filepath,
+            title=req.title,
+            explanation=req.explanation,
+            data=req.data,
+            analysis=req.analysis,
+            chart_image=req.chart_image,
+        )
+
+        return FileResponse(
+            path=filepath,
+            filename=filename,
+            media_type="application/pdf",
+        )
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": f"PDF generation failed: {e}"})
+
+
+@app.post("/api/export_excel")
+def export_excel(req: ExcelExportRequest, request: Request):
+    """Generates an Excel workbook: sheet0=Data, sheet1=Explanation, sheet2=Analysis."""
+    if not is_authenticated(request.session):
+        return JSONResponse(status_code=401, content={"error": "Authentication required."})
+
+    try:
+        stamp = time.strftime("%Y%m%d%H%M%S")
+        filename = f"report{stamp}.xlsx"
+        filepath = os.path.join(EXPORTS_DIR, filename)
+
+        generate_llm_excel(
+            output_path=filepath,
+            title=req.title,
+            explanation=req.explanation,
+            data=req.data,
+            analysis=req.analysis,
+        )
+
+        return FileResponse(
+            path=filepath,
+            filename=filename,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": f"Excel generation failed: {e}"})
+
+
 # ---------------------------------------------------------------------------
 # Feature poll: users vote for the next features they want built.
 # Votes are stored per-username in feature_poll.json.
@@ -564,7 +814,7 @@ def put_preferences(req: PreferencesRequest, request: Request):
 import json as _json
 import threading as _threading
 
-FEATURE_POLL_FILE = os.path.join(BASE_DIR, "feature_poll.json")
+FEATURE_POLL_FILE = os.path.join(DATA_DIR, "feature_poll.json")
 _feature_poll_lock = _threading.Lock()
 
 FEATURE_POLL_OPTIONS = [
@@ -625,7 +875,6 @@ def _feature_poll_state(username: str) -> dict:
     return {
         "options": FEATURE_POLL_OPTIONS,
         "custom_options": [{"id": k, "label": v} for k, v in custom_pool.items()],
-        "max_choices": FEATURE_POLL_MAX_CHOICES,
         "counts": counts,
         "total_voters": len(votes),
         "my_votes": votes.get(username, []),

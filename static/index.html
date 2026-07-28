@@ -37,7 +37,12 @@
 
       <footer class="composer">
         <textarea id="message-input" placeholder="Ask a question about your transactions… (Persian or English)" rows="1"></textarea>
-        <button id="send-btn" class="primary-btn">Send</button>
+        <div class="composer-actions">
+          <button id="voice-input-btn" class="ghost-btn voice-btn" type="button" title="Voice input (FA/EN)" aria-pressed="false">🎤</button>
+          <button id="export-pdf-btn" class="ghost-btn" title="Export last result to PDF" disabled>PDF</button>
+          <button id="export-excel-btn" class="ghost-btn" title="Export last result to Excel" disabled>Excel</button>
+          <button id="send-btn" class="primary-btn">Send</button>
+        </div>
       </footer>
     </section>
 
@@ -51,6 +56,16 @@
           <div class="history-empty" id="history-empty">هنوز گفتگویی ثبت نشده است.</div>
         </div>
         <button type="button" class="dash-link-btn" id="history-refresh-btn">به‌روزرسانی تاریخچه</button>
+      </div>
+
+      <div class="dash-card">
+        <div class="dash-card-title">
+          <span>❓</span>
+          <span>۱۰ سؤال پرتکرار</span>
+        </div>
+        <div class="history-list" id="freq-list">
+          <div class="history-empty" id="freq-empty">هنوز سؤالی ثبت نشده است.</div>
+        </div>
       </div>
 
       <div class="dash-card">

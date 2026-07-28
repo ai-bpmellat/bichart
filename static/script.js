@@ -3,6 +3,8 @@
 const state = {
   language: 'fa',
   provider: 'avalai',
+  lastResponse: null, // stores the most recent chat response for PDF/Excel export
+  lastChart: null,    // Chart.js instance for PDF chart image
 };
 
 const langToggleBtn = document.getElementById('lang-toggle-btn');
@@ -15,6 +17,8 @@ const sendBtn = document.getElementById('send-btn');
 const historyList = document.getElementById('history-list');
 const historyEmpty = document.getElementById('history-empty');
 const historyRefreshBtn = document.getElementById('history-refresh-btn');
+const freqList = document.getElementById('freq-list');
+const freqEmpty = document.getElementById('freq-empty');
 const settingsModelBtn = document.getElementById('settings-model-btn');
 const settingsLangBtn = document.getElementById('settings-lang-btn');
 const settingsModelValue = document.getElementById('settings-model-value');
@@ -46,7 +50,8 @@ window.addEventListener('DOMContentLoaded', async () => {
   applyProviderUI(state.provider);
   applyLanguageUI(state.language);
   await loadHistorySidebar();
-  
+  await loadFrequentQuestions();
+
   // Check user role and show/hide admin buttons
   await checkUserRole();
 });
@@ -143,6 +148,97 @@ document.querySelectorAll('.quick-tile').forEach((btn) => {
 });
 
 sendBtn.addEventListener('click', sendMessage);
+
+function setExportButtonsEnabled(enabled) {
+  const pdfBtn = document.getElementById('export-pdf-btn');
+  const excelBtn = document.getElementById('export-excel-btn');
+  if (pdfBtn) pdfBtn.disabled = !enabled;
+  if (excelBtn) excelBtn.disabled = !enabled;
+}
+
+function captureChartImage() {
+  // Prefer the live Chart.js instance; fall back to the newest canvas in the page.
+  const chart = state.lastChart;
+  if (chart && typeof chart.toBase64Image === 'function') {
+    try {
+      // Force a synchronous draw so the bitmap is up to date.
+      if (typeof chart.draw === 'function') chart.draw();
+      const url = chart.toBase64Image('image/png', 1);
+      if (url && url.startsWith('data:image') && url.length > 100) return url;
+    } catch (_) { /* fall through */ }
+  }
+  const canvases = document.querySelectorAll('.chart-canvas-wrap canvas');
+  const canvas = canvases.length ? canvases[canvases.length - 1] : null;
+  if (canvas && canvas.width > 0 && canvas.height > 0) {
+    try {
+      return canvas.toDataURL('image/png');
+    } catch (_) { /* ignore */ }
+  }
+  return null;
+}
+
+function buildExportPayload() {
+  if (!state.lastResponse) return null;
+  const { explanation, data, analysis } = state.lastResponse;
+  return {
+    title: state.language === 'fa' ? 'گزارش هوش تجاری' : 'BI Report',
+    explanation: explanation || '',
+    data: data || [],
+    analysis: analysis || '',
+    chart_image: captureChartImage(),
+  };
+}
+
+async function downloadExport(endpoint, filename, includeChart) {
+  const payload = buildExportPayload();
+  if (!payload) return;
+  if (!includeChart) delete payload.chart_image;
+  try {
+    const res = await apiFetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      alert(err.error || `Failed to generate ${filename}`);
+      return;
+    }
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (e) {
+    alert(`Network error while generating ${filename}`);
+  }
+}
+
+const exportPdfBtn = document.getElementById('export-pdf-btn');
+if (exportPdfBtn) {
+  exportPdfBtn.addEventListener('click', () =>
+    downloadExport('/api/export_pdf', `report${exportStamp()}.pdf`, true)
+  );
+}
+const exportExcelBtn = document.getElementById('export-excel-btn');
+if (exportExcelBtn) {
+  exportExcelBtn.addEventListener('click', () =>
+    downloadExport('/api/export_excel', `report${exportStamp()}.xlsx`, false)
+  );
+}
+
+function exportStamp() {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, '0');
+  return (
+    `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}` +
+    `${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`
+  );
+}
 messageInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
@@ -163,6 +259,14 @@ function applyLanguageUI(language) {
   }
   if (typeof Chart !== 'undefined') {
     Chart.defaults.font.family = chartFontFamily();
+  }
+  const voiceBtn = document.getElementById('voice-input-btn');
+  if (voiceBtn && !voiceListening) {
+    voiceBtn.title =
+      language === 'fa' ? 'ورودی صوتی (فارسی/انگلیسی)' : 'Voice input (FA/EN)';
+  }
+  if (voiceRecognition && voiceListening) {
+    voiceRecognition.lang = speechLocale(language);
   }
 }
 
@@ -270,9 +374,7 @@ async function loadHistorySidebar() {
         <div class="history-meta">${escapeHtml(formatHistoryTime(entry.timestamp))}${entry.provider ? ' · ' + escapeHtml(entry.provider) : ''}</div>
       `;
       btn.addEventListener('click', () => {
-        messageInput.value = q;
-        messageInput.dir = isRtlText(q) ? 'rtl' : 'ltr';
-        messageInput.focus();
+        replayHistoryEntry(entry);
       });
       historyList.appendChild(btn);
     });
@@ -281,23 +383,202 @@ async function loadHistorySidebar() {
   }
 }
 
+async function loadFrequentQuestions() {
+  if (!freqList) return;
+  try {
+    const res = await apiFetch('/api/frequent-questions');
+    const json = await res.json();
+    const items = json.questions || [];
+    freqList.querySelectorAll('.freq-item').forEach((el) => el.remove());
+    if (!items.length) {
+      if (freqEmpty) freqEmpty.hidden = false;
+      return;
+    }
+    if (freqEmpty) freqEmpty.hidden = true;
+    items.forEach((item) => {
+      const q = item.question || '';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'history-item freq-item';
+      btn.innerHTML = `
+        <div class="history-q"${dirAttr(q)}>${escapeHtml(q)}</div>
+        <div class="history-meta">${item.count}×</div>
+      `;
+      btn.addEventListener('click', () => {
+        messageInput.value = q;
+        messageInput.dir = isRtlText(q) ? 'rtl' : 'ltr';
+        sendMessage();
+      });
+      freqList.appendChild(btn);
+    });
+  } catch (_) {
+    /* ignore */
+  }
+}
+
+function replayHistoryEntry(entry) {
+  if (!entry) return;
+  if (welcomeBlock && welcomeBlock.isConnected) welcomeBlock.remove();
+
+  const q = entry.user_question || '';
+  const stripId = 'strip-' + Math.random().toString(36).slice(2, 9);
+
+  const turn = document.createElement('div');
+  turn.className = 'turn';
+  turn.innerHTML = `
+    <div class="user-line"><div class="user-bubble"${dirAttr(q)}>${escapeHtml(q)}</div></div>
+    <div class="strip" id="${stripId}">
+      <div class="strip-section sql-draft-section">
+        <div class="strip-label"${dirAttr(chatUiText('sqlDraftTitle'))}>${escapeHtml(chatUiText('sqlDraftTitle'))}</div>
+        <p class="sql-hint"${dirAttr(chatUiText('sqlHint'))}>${escapeHtml(chatUiText('sqlHint'))}</p>
+        <textarea class="sql-editor" dir="ltr" spellcheck="false">${escapeHtml(entry.sql || '')}</textarea>
+        ${entry.explanation ? `<div class="sql-explanation"${dirAttr(entry.explanation)}>${escapeHtml(entry.explanation)}</div>` : ''}
+        <div class="sql-actions">
+          <button type="button" class="primary-btn run-sql-btn">${escapeHtml(chatUiText('runSqlBtn'))}</button>
+        </div>
+        <div class="run-error" hidden></div>
+        <div class="sql-autofix-note" hidden></div>
+      </div>
+      <div class="sql-run-results"></div>
+    </div>
+  `;
+  chatArea.appendChild(turn);
+
+  const stripEl = document.getElementById(stripId);
+  wireSqlRunner(stripEl, {
+    question: q,
+    explanation: entry.explanation || '',
+    provider: entry.provider || state.provider,
+    language: entry.language || state.language,
+  });
+
+  const resultsEl = stripEl.querySelector('.sql-run-results');
+  if (Array.isArray(entry.data)) {
+    renderRunResults(resultsEl, {
+      explanation: entry.explanation || '',
+      data: entry.data,
+      row_count: entry.row_count ?? entry.data.length,
+      timings: null,
+      sql: entry.sql,
+      provider: entry.provider,
+      language: entry.language,
+      message_id: entry.id,
+    }, q);
+
+    const resultEl = resultsEl.querySelector('.run-results-inner');
+    if (resultEl && entry.analysis) {
+      const placeholder = resultEl.querySelector('.analysis-placeholder');
+      const textEl = resultEl.querySelector('.analysis-text');
+      const analyzeBtn = resultEl.querySelector('.analyze-btn');
+      placeholder.hidden = true;
+      textEl.hidden = false;
+      textEl.className = 'analysis-text analysis-text--ready';
+      textEl.setAttribute('dir', isRtlText(entry.analysis) ? 'rtl' : 'ltr');
+      textEl.innerHTML = formatAnalysisHtml(entry.analysis);
+      if (analyzeBtn) analyzeBtn.textContent = chatUiText('analyzeAgain');
+      if (state.lastResponse) state.lastResponse.analysis = entry.analysis;
+    }
+    if (resultEl && entry.feedback && entry.feedback.rating) {
+      const btns = resultEl.querySelectorAll('.feedback-btn');
+      btns.forEach((b) => {
+        b.classList.toggle('is-selected', b.dataset.rating === entry.feedback.rating);
+        b.disabled = true;
+      });
+      const msgEl = resultEl.querySelector('.feedback-msg');
+      if (msgEl) {
+        msgEl.hidden = false;
+        msgEl.className = 'feedback-msg feedback-msg--ok';
+        msgEl.textContent = chatUiText('feedbackThanks');
+      }
+    }
+  } else {
+    resultsEl.innerHTML = `<p class="sql-hint"${dirAttr(chatUiText('replayNoData'))}>${escapeHtml(chatUiText('replayNoData'))}</p>`;
+  }
+
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
 function chatUiText(key) {
   const provider = providerLabel();
   const fa = {
-    loadingReport: `در حال تولید SQL و اجرای گزارش با ${provider}…`,
+    loadingReport: `در حال تولید SQL با ${provider}…`,
+    loadingRun: 'در حال اجرای SQL…',
+    sqlDraftTitle: 'SQL تولیدشده — قابل ویرایش',
+    sqlHint: 'در صورت نیاز SQL را ویرایش کنید، سپس اجرا را بزنید.',
+    runSqlBtn: 'اجرای SQL',
+    runningSql: 'در حال اجرا…',
+    runAgainBtn: 'اجرای مجدد',
+    resultTitle: 'نتیجه',
+    chartSectionTitle: 'نمودار',
     analysisTitle: 'تحلیل و پیش\u200cبینی',
     analyzeBtn: 'تحلیل نتایج',
     analyzing: `در حال تحلیل با ${provider}…`,
     analyzePrompt: 'برای تحلیل هوشمند نتایج، روی دکمه زیر کلیک کنید.',
     analyzeAgain: 'تحلیل مجدد',
+    discussTitle: 'بحث و بررسی',
+    discussHint: 'اگر بخشی از داده یا تحلیل اشتباه یا قابل‌بحث است، اینجا بنویسید. می‌توانید متن موردنظر را در کادر «مورد بحث» بچسبانید.',
+    discussFocusLabel: 'مورد بحث (اختیاری)',
+    discussFocusPlaceholder: 'مثلاً جمله‌ای از تحلیل یا نام یک مشتری…',
+    discussPlaceholder: 'نظر، اعتراض یا سؤال خود را بنویسید…',
+    discussSend: 'ارسال بحث',
+    discussSending: 'در حال پاسخ…',
+    discussEmpty: 'هنوز بحثی ثبت نشده است.',
+    discussApply: 'جایگزینی این بخش در تحلیل',
+    discussApplyNoFocus: 'متن «مورد بحث» در تحلیل پیدا نشد. همان بخش را از تحلیل انتخاب و دوباره امتحان کنید.',
+    discussYou: 'شما',
+    discussAi: 'دستیار',
+    discussEmptyInput: 'متن بحث خالی است. در یکی از دو کادر «مورد بحث» یا «پیام بحث» بنویسید.',
+    voiceListening: 'در حال شنیدن…',
+    voiceUnsupported: 'مرورگر از ورودی صوتی پشتیبانی نمی‌کند (Chrome/Edge را امتحان کنید).',
+    voiceMicDenied: 'دسترسی میکروفون رد شد.',
+    feedbackTitle: 'یادگیری از بازخورد',
+    feedbackHint: 'این پاسخ درست بود؟',
+    feedbackCorrect: 'درست',
+    feedbackWrong: 'نادرست',
+    feedbackThanks: 'بازخورد ثبت شد. ممنون!',
+    feedbackError: 'ثبت بازخورد ناموفق بود.',
+    replayNoData: 'داده‌ای برای این گفتگوی قدیمی ذخیره نشده است؛ برای مشاهده دوباره، SQL را اجرا کنید.',
+    sqlAutoFixed: 'اجرای SQL اولیه با خطا مواجه شد؛ هوش مصنوعی آن را به‌صورت خودکار اصلاح و دوباره اجرا کرد.',
   };
   const en = {
-    loadingReport: `Generating SQL and running your report with ${provider}…`,
+    loadingReport: `Generating SQL with ${provider}…`,
+    loadingRun: 'Running SQL…',
+    sqlDraftTitle: 'Generated SQL — editable',
+    sqlHint: 'Edit the SQL if needed, then run it.',
+    runSqlBtn: 'Run SQL',
+    runningSql: 'Running…',
+    runAgainBtn: 'Run again',
+    resultTitle: 'Result',
+    chartSectionTitle: 'Chart',
     analysisTitle: 'Analysis & prediction',
     analyzeBtn: 'Analyze results',
     analyzing: `Analyzing with ${provider}…`,
     analyzePrompt: 'Click the button below for AI analysis of these results.',
     analyzeAgain: 'Re-analyze',
+    discussTitle: 'Discuss',
+    discussHint: 'If part of the data or analysis looks wrong or debatable, write here. Optionally paste the snippet into Focus.',
+    discussFocusLabel: 'Focus (optional)',
+    discussFocusPlaceholder: 'e.g. a sentence from the analysis or a customer name…',
+    discussPlaceholder: 'Your challenge, correction, or question…',
+    discussSend: 'Send discussion',
+    discussSending: 'Replying…',
+    discussEmpty: 'No discussion yet.',
+    discussApply: 'Replace this part in analysis',
+    discussApplyNoFocus: 'Focus text was not found in the analysis. Select that part from the analysis and try again.',
+    discussYou: 'You',
+    discussAi: 'Assistant',
+    discussEmptyInput: 'Discussion text is empty. Fill either Focus or Discussion message.',
+    voiceListening: 'Listening…',
+    voiceUnsupported: 'Voice input is not supported in this browser (try Chrome/Edge).',
+    voiceMicDenied: 'Microphone access was denied.',
+    feedbackTitle: 'Feedback learning',
+    feedbackHint: 'Was this answer correct?',
+    feedbackCorrect: 'Correct',
+    feedbackWrong: 'Wrong',
+    feedbackThanks: 'Feedback saved. Thank you!',
+    feedbackError: 'Could not save feedback.',
+    replayNoData: 'No stored data for this older conversation; run the SQL again to see it.',
+    sqlAutoFixed: 'The initial SQL failed to run; AI automatically corrected it and re-ran it.',
   };
   const t = state.language === 'fa' ? fa : en;
   return t[key];
@@ -352,8 +633,7 @@ async function sendMessage() {
       renderError(loadingHolder, json, text);
       return;
     }
-    renderResult(loadingHolder, json, text);
-    loadHistorySidebar();
+    renderSqlDraft(loadingHolder, json, text);
   } catch (e) {
     renderError(loadingHolder, { error: 'Network error reaching the server.' }, text);
   } finally {
@@ -363,6 +643,7 @@ async function sendMessage() {
 }
 
 function renderError(container, json, originalQuestion) {
+  const sql = json.sql || '';
   container.innerHTML = `
     <div class="strip">
       <div class="strip-section">
@@ -370,22 +651,296 @@ function renderError(container, json, originalQuestion) {
         <div class="error-strip">${escapeHtml(json.error || 'Something went wrong.')}</div>
       </div>
       ${json.timings ? renderTimingsSection(json.timings) : ''}
-      ${json.sql ? `
-      <div class="strip-section">
-        <div class="strip-label">Attempted SQL</div>
-        <div class="sql-block visible">${escapeHtml(json.sql)}</div>
-      </div>` : ''}
+      ${sql ? `
+      <div class="strip-section sql-draft-section">
+        <div class="strip-label"${dirAttr(chatUiText('sqlDraftTitle'))}>${escapeHtml(chatUiText('sqlDraftTitle'))}</div>
+        <p class="sql-hint"${dirAttr(chatUiText('sqlHint'))}>${escapeHtml(chatUiText('sqlHint'))}</p>
+        <textarea class="sql-editor" dir="ltr" spellcheck="false">${escapeHtml(sql)}</textarea>
+        <div class="sql-actions">
+          <button type="button" class="primary-btn run-sql-btn">${escapeHtml(chatUiText('runSqlBtn'))}</button>
+        </div>
+        <div class="run-error" hidden></div>
+        <div class="sql-autofix-note" hidden></div>
+      </div>
+      <div class="sql-run-results"></div>` : ''}
     </div>
   `;
+  if (sql) {
+    const strip = container.querySelector('.strip');
+    wireSqlRunner(strip, {
+      question: originalQuestion || '',
+      explanation: json.explanation || '',
+      provider: json.provider || state.provider,
+      language: json.language || state.language,
+    });
+  }
+}
+
+function renderSqlDraft(container, json, originalQuestion) {
+  const sql = json.sql || '';
+  const explanation = json.explanation || '';
+  const stripId = 'strip-' + Math.random().toString(36).slice(2, 9);
+
+  container.innerHTML = `
+    <div class="strip" id="${stripId}">
+      ${renderTimingsSection(json.timings)}
+      <div class="strip-section sql-draft-section">
+        <div class="strip-label"${dirAttr(chatUiText('sqlDraftTitle'))}>${escapeHtml(chatUiText('sqlDraftTitle'))}</div>
+        <p class="sql-hint"${dirAttr(chatUiText('sqlHint'))}>${escapeHtml(chatUiText('sqlHint'))}</p>
+        <textarea class="sql-editor" dir="ltr" spellcheck="false">${escapeHtml(sql)}</textarea>
+        ${explanation ? `<div class="sql-explanation"${dirAttr(explanation)}>${escapeHtml(explanation)}</div>` : ''}
+        <div class="sql-actions">
+          <button type="button" class="primary-btn run-sql-btn">${escapeHtml(chatUiText('runSqlBtn'))}</button>
+        </div>
+        <div class="run-error" hidden></div>
+        <div class="sql-autofix-note" hidden></div>
+      </div>
+      <div class="sql-run-results"></div>
+    </div>
+  `;
+
+  const stripEl = document.getElementById(stripId);
+  wireSqlRunner(stripEl, {
+    question: originalQuestion,
+    explanation,
+    provider: json.provider || state.provider,
+    language: json.language || state.language,
+  });
+}
+
+function wireSqlRunner(stripEl, ctx) {
+  const runBtn = stripEl.querySelector('.run-sql-btn');
+  const editor = stripEl.querySelector('.sql-editor');
+  const errEl = stripEl.querySelector('.run-error');
+  const autofixEl = stripEl.querySelector('.sql-autofix-note');
+  const resultsEl = stripEl.querySelector('.sql-run-results');
+  if (!runBtn || !editor) return;
+
+  runBtn.addEventListener('click', async () => {
+    const sql = editor.value.trim();
+    if (!sql) return;
+
+    runBtn.disabled = true;
+    runBtn.textContent = chatUiText('runningSql');
+    if (errEl) {
+      errEl.hidden = true;
+      errEl.textContent = '';
+    }
+    if (autofixEl) autofixEl.hidden = true;
+    if (resultsEl) {
+      resultsEl.innerHTML = `
+        <div class="loading-strip">
+          <span class="dot-pulse"></span><span class="dot-pulse"></span><span class="dot-pulse"></span>
+          <span>${escapeHtml(chatUiText('loadingRun'))}</span>
+        </div>
+      `;
+    }
+
+    try {
+      const res = await apiFetch('/api/run_sql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sql,
+          message: ctx.question,
+          explanation: ctx.explanation || '',
+          language: ctx.language,
+          provider: ctx.provider,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (resultsEl) resultsEl.innerHTML = '';
+        if (errEl) {
+          errEl.hidden = false;
+          errEl.textContent = json.error || 'SQL execution failed.';
+        }
+        if (json.sql) editor.value = json.sql;
+        return;
+      }
+      if (json.sql) editor.value = json.sql;
+      if (autofixEl) {
+        if (json.auto_fixed) {
+          autofixEl.hidden = false;
+          autofixEl.textContent = chatUiText('sqlAutoFixed');
+        } else {
+          autofixEl.hidden = true;
+        }
+      }
+      renderRunResults(resultsEl, json, ctx.question);
+      loadHistorySidebar();
+      loadFrequentQuestions();
+    } catch (_) {
+      if (resultsEl) resultsEl.innerHTML = '';
+      if (errEl) {
+        errEl.hidden = false;
+        errEl.textContent = 'Network error while running SQL.';
+      }
+    } finally {
+      runBtn.disabled = false;
+      runBtn.textContent = chatUiText('runAgainBtn');
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
+  });
+}
+
+function renderRunResults(container, json, originalQuestion) {
+  if (!container) return;
+  const { explanation, data, row_count, timings } = json;
+  const language = json.language || state.language;
+  const resultId = 'result-' + Math.random().toString(36).slice(2, 9);
+  const analysisTitle = chatUiText('analysisTitle');
+
+  container.innerHTML = `
+    <div class="run-results-inner" id="${resultId}">
+      ${renderTimingsSection(timings)}
+      <div class="strip-section table-section">
+        <div class="strip-label"${dirAttr(chatUiText('resultTitle'))}>${escapeHtml(chatUiText('resultTitle'))}</div>
+        <div class="data-table-wrap"></div>
+        <div class="row-count">${row_count} row${row_count === 1 ? '' : 's'} returned</div>
+      </div>
+      <div class="strip-section chart-section">
+        <div class="strip-label"${dirAttr(chatUiText('chartSectionTitle'))}>${escapeHtml(chatUiText('chartSectionTitle'))}</div>
+        <div class="chart-wrap"></div>
+      </div>
+      <div class="strip-section analysis-section">
+        <div class="analysis-header">
+          <div class="analysis-title-wrap">
+            <span class="analysis-icon" aria-hidden="true">◆</span>
+            <div class="strip-label analysis-label"${dirAttr(analysisTitle)}>${escapeHtml(analysisTitle)}</div>
+          </div>
+          <button type="button" class="analyze-btn primary-btn">${escapeHtml(chatUiText('analyzeBtn'))}</button>
+        </div>
+        <div class="analysis-body-card">
+          <div class="analysis-placeholder analysis-state-msg"${dirAttr(chatUiText('analyzePrompt'))}>${escapeHtml(chatUiText('analyzePrompt'))}</div>
+          <div class="analysis-text" hidden></div>
+        </div>
+        <div class="analysis-timings"></div>
+      </div>
+      <div class="strip-section discuss-section">
+        <div class="discuss-header">
+          <div class="strip-label"${dirAttr(chatUiText('discussTitle'))}>${escapeHtml(chatUiText('discussTitle'))}</div>
+          <span class="discuss-toggle-icon" aria-hidden="true">▾</span>
+        </div>
+        <div class="discuss-body">
+          <p class="discuss-hint"${dirAttr(chatUiText('discussHint'))}>${escapeHtml(chatUiText('discussHint'))}</p>
+          <label class="discuss-focus-label"${dirAttr(chatUiText('discussFocusLabel'))}>
+            <span>${escapeHtml(chatUiText('discussFocusLabel'))}</span>
+            <textarea class="discuss-focus" rows="2" placeholder="${escapeHtml(chatUiText('discussFocusPlaceholder'))}"></textarea>
+          </label>
+          <div class="discuss-thread" data-empty="1">
+            <div class="discuss-empty"${dirAttr(chatUiText('discussEmpty'))}>${escapeHtml(chatUiText('discussEmpty'))}</div>
+          </div>
+          <div class="discuss-composer">
+            <textarea class="discuss-input" rows="2" placeholder="${escapeHtml(chatUiText('discussPlaceholder'))}"></textarea>
+            <button type="button" class="primary-btn discuss-send-btn">${escapeHtml(chatUiText('discussSend'))}</button>
+          </div>
+        </div>
+      </div>
+      <div class="strip-section feedback-section"${json.message_id ? '' : ' hidden'}>
+        <div class="feedback-header">
+          <div class="strip-label"${dirAttr(chatUiText('feedbackTitle'))}>${escapeHtml(chatUiText('feedbackTitle'))}</div>
+          <span class="feedback-hint"${dirAttr(chatUiText('feedbackHint'))}>${escapeHtml(chatUiText('feedbackHint'))}</span>
+        </div>
+        <div class="feedback-actions">
+          <button type="button" class="ghost-btn feedback-btn feedback-btn--up" data-rating="up" title="${escapeHtml(chatUiText('feedbackCorrect'))}">
+            <span aria-hidden="true">👍</span> ${escapeHtml(chatUiText('feedbackCorrect'))}
+          </button>
+          <button type="button" class="ghost-btn feedback-btn feedback-btn--down" data-rating="down" title="${escapeHtml(chatUiText('feedbackWrong'))}">
+            <span aria-hidden="true">👎</span> ${escapeHtml(chatUiText('feedbackWrong'))}
+          </button>
+        </div>
+        <div class="feedback-msg" hidden></div>
+      </div>
+    </div>
+  `;
+
+  const resultEl = document.getElementById(resultId);
+  mountPaginatedTable(resultEl.querySelector('.data-table-wrap'), data || []);
+  maybeRenderChart(resultEl.querySelector('.chart-wrap'), data || []);
+
+  const analyzeBtn = resultEl.querySelector('.analyze-btn');
+  const resultProvider = json.provider || state.provider;
+  analyzeBtn.addEventListener('click', () => {
+    requestAnalysis(resultEl, originalQuestion, data || [], language, analyzeBtn, resultProvider);
+  });
+
+  state.lastResponse = {
+    explanation: explanation || '',
+    data: data || [],
+    analysis: '',
+    sql: json.sql,
+  };
+  setExportButtonsEnabled(true);
+  wireDiscussPanel(resultEl, {
+    question: originalQuestion,
+    data: data || [],
+    language,
+    provider: resultProvider,
+  });
+  if (json.message_id) {
+    wireFeedbackBar(resultEl, json.message_id);
+  }
+}
+
+function wireFeedbackBar(stripEl, messageId) {
+  const section = stripEl.querySelector('.feedback-section');
+  if (!section || !messageId) return;
+
+  const msgEl = section.querySelector('.feedback-msg');
+  const buttons = section.querySelectorAll('.feedback-btn');
+
+  async function submit(rating) {
+    buttons.forEach((b) => { b.disabled = true; });
+    try {
+      const res = await apiFetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message_id: messageId, rating }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (msgEl) {
+          msgEl.hidden = false;
+          msgEl.className = 'feedback-msg feedback-msg--err';
+          msgEl.textContent = json.error || chatUiText('feedbackError');
+        }
+        buttons.forEach((b) => { b.disabled = false; });
+        return;
+      }
+      if (msgEl) {
+        msgEl.hidden = false;
+        msgEl.className = 'feedback-msg feedback-msg--ok';
+        msgEl.textContent = chatUiText('feedbackThanks');
+      }
+      buttons.forEach((b) => {
+        b.classList.toggle('is-selected', b.dataset.rating === rating);
+        b.disabled = true;
+      });
+    } catch (_) {
+      if (msgEl) {
+        msgEl.hidden = false;
+        msgEl.className = 'feedback-msg feedback-msg--err';
+        msgEl.textContent = chatUiText('feedbackError');
+      }
+      buttons.forEach((b) => { b.disabled = false; });
+    }
+  }
+
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => submit(btn.dataset.rating));
+  });
 }
 
 const TIMING_STEPS = [
   { key: 'sql_generation', labelFa: 'تولید SQL', labelEn: 'SQL generation' },
   { key: 'sql_normalize', labelFa: 'نرمال\u200cسازی SQL', labelEn: 'SQL normalization' },
   { key: 'sql_safety', labelFa: 'بررسی امنیت SQL', labelEn: 'SQL safety check' },
+  { key: 'sql_autofix', labelFa: 'اصلاح خودکار SQL', labelEn: 'SQL auto-fix' },
   { key: 'sql_execution', labelFa: 'اجرای پایگاه\u200cداده', labelEn: 'Database execution' },
   { key: 'memory_save', labelFa: 'ذخیره حافظه', labelEn: 'Memory save' },
   { key: 'analysis', labelFa: 'تحلیل', labelEn: 'Analysis' },
+  { key: 'discussion', labelFa: 'بحث', labelEn: 'Discussion' },
   { key: 'total', labelFa: 'مجموع', labelEn: 'Total' },
 ];
 
@@ -429,65 +984,6 @@ function renderTimingsSection(timings) {
   `;
 }
 
-function renderResult(container, json, originalQuestion) {
-  const { sql, explanation, data, row_count, timings } = json;
-  const language = json.language || state.language;
-  const stripId = 'strip-' + Math.random().toString(36).slice(2, 9);
-  const analysisTitle = chatUiText('analysisTitle');
-
-  container.innerHTML = `
-    <div class="strip" id="${stripId}">
-      ${renderTimingsSection(timings)}
-      <div class="strip-section">
-        <div class="strip-label sql-toggle">
-          <span><span class="chevron">▸</span> Generated SQL</span>
-        </div>
-        <div class="sql-block" dir="ltr">${escapeHtml(sql)}</div>
-        ${explanation ? `<div class="sql-explanation"${dirAttr(explanation)}>${escapeHtml(explanation)}</div>` : ''}
-      </div>
-      <div class="strip-section">
-        <div class="strip-label">Result</div>
-        <div class="data-table-wrap"></div>
-        <div class="row-count">${row_count} row${row_count === 1 ? '' : 's'} returned</div>
-        <div class="chart-wrap"></div>
-      </div>
-      <div class="strip-section analysis-section">
-        <div class="analysis-header">
-          <div class="analysis-title-wrap">
-            <span class="analysis-icon" aria-hidden="true">◆</span>
-            <div class="strip-label analysis-label"${dirAttr(analysisTitle)}>${escapeHtml(analysisTitle)}</div>
-          </div>
-          <button type="button" class="analyze-btn primary-btn">${escapeHtml(chatUiText('analyzeBtn'))}</button>
-        </div>
-        <div class="analysis-body-card">
-          <div class="analysis-placeholder analysis-state-msg"${dirAttr(chatUiText('analyzePrompt'))}>${escapeHtml(chatUiText('analyzePrompt'))}</div>
-          <div class="analysis-text" hidden></div>
-        </div>
-        <div class="analysis-timings"></div>
-      </div>
-    </div>
-  `;
-
-  const stripEl = document.getElementById(stripId);
-  const toggle = stripEl.querySelector('.sql-toggle');
-  const sqlBlock = stripEl.querySelector('.sql-block');
-  toggle.addEventListener('click', () => {
-    toggle.classList.toggle('open');
-    sqlBlock.classList.toggle('visible');
-  });
-
-  mountPaginatedTable(stripEl.querySelector('.data-table-wrap'), data || []);
-
-  const chartWrap = stripEl.querySelector('.chart-wrap');
-  maybeRenderChart(chartWrap, data);
-
-  const analyzeBtn = stripEl.querySelector('.analyze-btn');
-  const resultProvider = json.provider || state.provider;
-  analyzeBtn.addEventListener('click', () => {
-    requestAnalysis(stripEl, originalQuestion, data || [], language, analyzeBtn, resultProvider);
-  });
-}
-
 async function requestAnalysis(stripEl, question, data, language, btn, provider) {
   const placeholder = stripEl.querySelector('.analysis-placeholder');
   const textEl = stripEl.querySelector('.analysis-text');
@@ -507,7 +1003,7 @@ async function requestAnalysis(stripEl, question, data, language, btn, provider)
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: question,
-        data: data.slice(0, 20),
+        data: data.slice(0, 80),
         language,
         provider: provider || state.provider,
       }),
@@ -529,6 +1025,9 @@ async function requestAnalysis(stripEl, question, data, language, btn, provider)
     textEl.innerHTML = formatAnalysisHtml(json.analysis);
     timingsEl.innerHTML = json.timings ? renderTimingsSection(json.timings) : '';
     btn.textContent = chatUiText('analyzeAgain');
+    if (state.lastResponse) {
+      state.lastResponse.analysis = json.analysis;
+    }
   } catch (e) {
     placeholder.hidden = false;
     placeholder.className = 'analysis-placeholder analysis-state-msg analysis-error';
@@ -543,39 +1042,373 @@ async function requestAnalysis(stripEl, question, data, language, btn, provider)
   }
 }
 
+function extractCorrectedSnippet(aiContent) {
+  const text = String(aiContent || '').trim();
+  if (!text) return '';
+
+  const markerRe = /(?:^|\n)\s*(?:CORRECTED_SNIPPET|اصلاح|متن اصلاح‌شده|متن اصلاح شده)\s*:\s*/i;
+  const match = text.match(markerRe);
+  if (match) {
+    const idx = text.indexOf(match[0]);
+    return text.slice(idx + match[0].length).trim();
+  }
+
+  const parts = text.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+  return parts.length > 1 ? parts[parts.length - 1] : text;
+}
+
+function replaceSnippetInText(text, snippet, replacement) {
+  const source = String(text || '');
+  const focus = String(snippet || '').trim();
+  const repl = String(replacement || '').trim();
+  if (!source || !focus || !repl) return null;
+
+  if (source.includes(focus)) {
+    return source.replace(focus, repl);
+  }
+
+  const escaped = focus.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const flexRe = new RegExp(escaped.replace(/\s+/g, '\\s+'));
+  const flexMatch = source.match(flexRe);
+  if (flexMatch) {
+    return source.replace(flexMatch[0], repl);
+  }
+
+  return null;
+}
+
+function applySnippetToAnalysis(stripEl, focusSnippet, aiContent) {
+  const textEl = stripEl.querySelector('.analysis-text');
+  const placeholder = stripEl.querySelector('.analysis-placeholder');
+  if (!textEl) return false;
+
+  const focus = String(focusSnippet || '').trim();
+  if (!focus) {
+    alert(chatUiText('discussApplyNoFocus'));
+    return false;
+  }
+
+  const currentText =
+    (state.lastResponse && state.lastResponse.analysis) ||
+    (textEl.innerText || textEl.textContent || '').trim();
+  const replacement = extractCorrectedSnippet(aiContent);
+  if (!replacement) return false;
+
+  const newAnalysis = replaceSnippetInText(currentText, focus, replacement);
+  if (!newAnalysis) {
+    alert(chatUiText('discussApplyNoFocus'));
+    return false;
+  }
+
+  if (placeholder) placeholder.hidden = true;
+  textEl.hidden = false;
+  textEl.className = 'analysis-text analysis-text--ready';
+  textEl.setAttribute('dir', isRtlText(newAnalysis) ? 'rtl' : 'ltr');
+  textEl.innerHTML = formatAnalysisHtml(newAnalysis);
+  if (state.lastResponse) state.lastResponse.analysis = newAnalysis;
+  return true;
+}
+
+function wireDiscussPanel(stripEl, ctx) {
+  const section = stripEl.querySelector('.discuss-section');
+  if (!section) return;
+
+  const headerEl = section.querySelector('.discuss-header');
+  if (headerEl) {
+    headerEl.addEventListener('click', () => {
+      section.classList.toggle('is-open');
+    });
+  }
+
+  const threadEl = section.querySelector('.discuss-thread');
+  const inputEl = section.querySelector('.discuss-input');
+  const focusEl = section.querySelector('.discuss-focus');
+  const sendBtn = section.querySelector('.discuss-send-btn');
+  const history = [];
+
+  // Selecting text in the analysis fills the focus box
+  const analysisText = stripEl.querySelector('.analysis-text');
+  if (analysisText) {
+    analysisText.addEventListener('mouseup', () => {
+      const sel = window.getSelection();
+      if (!sel || sel.isCollapsed) return;
+      if (!analysisText.contains(sel.anchorNode)) return;
+      const selected = String(sel.toString() || '').trim();
+      if (selected.length < 3 || selected.length > 800) return;
+      if (focusEl) focusEl.value = selected;
+    });
+  }
+
+  function appendBubble(role, content, focusSnippet = '') {
+    if (threadEl.dataset.empty === '1') {
+      threadEl.innerHTML = '';
+      threadEl.dataset.empty = '0';
+    }
+    const isUser = role === 'user';
+    const label = isUser ? chatUiText('discussYou') : chatUiText('discussAi');
+    const bubble = document.createElement('div');
+    bubble.className = `discuss-bubble discuss-bubble--${isUser ? 'user' : 'ai'}`;
+    if (!isUser && focusSnippet) bubble.dataset.focus = focusSnippet;
+    bubble.innerHTML = `
+      <div class="discuss-meta">${escapeHtml(label)}</div>
+      <div class="discuss-content"${dirAttr(content)}>${isUser ? escapeHtml(content).replace(/\n/g, '<br>') : formatAnalysisHtml(content)}</div>
+      ${!isUser ? `<button type="button" class="ghost-btn tiny discuss-apply-btn">${escapeHtml(chatUiText('discussApply'))}</button>` : ''}
+    `;
+    threadEl.appendChild(bubble);
+    const applyBtn = bubble.querySelector('.discuss-apply-btn');
+    if (applyBtn) {
+      applyBtn.addEventListener('click', () => {
+        const focus = bubble.dataset.focus || (focusEl && focusEl.value) || '';
+        applySnippetToAnalysis(stripEl, focus, content);
+      });
+    }
+    threadEl.scrollTop = threadEl.scrollHeight;
+  }
+
+  async function sendDiscussion() {
+    const typedMessage = (inputEl.value || '').trim();
+    const focus = (focusEl.value || '').trim();
+    const message = typedMessage || focus;
+    if (!message) {
+      alert(chatUiText('discussEmptyInput'));
+      inputEl.focus();
+      return;
+    }
+    const analysis =
+      (state.lastResponse && state.lastResponse.analysis) ||
+      (stripEl.querySelector('.analysis-text')?.innerText || '').trim();
+
+    sendBtn.disabled = true;
+    sendBtn.textContent = chatUiText('discussSending');
+    const turnFocus = focus;
+    appendBubble('user', message);
+    inputEl.value = '';
+    history.push({ role: 'user', content: message });
+
+    try {
+      const res = await apiFetch('/api/discuss', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message,
+          focus,
+          analysis,
+          data: (ctx.data || []).slice(0, 80),
+          history: history.slice(0, -1), // prior turns only
+          original_question: ctx.question || '',
+          language: ctx.language || state.language,
+          provider: ctx.provider || state.provider,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        appendBubble('assistant', json.error || 'Discussion failed.');
+        return;
+      }
+      const reply = json.reply || '';
+      history.push({ role: 'assistant', content: reply });
+      appendBubble('assistant', reply, turnFocus);
+    } catch (_) {
+      appendBubble(
+        'assistant',
+        state.language === 'fa' ? 'خطا در ارتباط با سرور برای بحث.' : 'Network error during discussion.'
+      );
+    } finally {
+      sendBtn.disabled = false;
+      sendBtn.textContent = chatUiText('discussSend');
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
+  }
+
+  sendBtn.addEventListener('click', sendDiscussion);
+  inputEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendDiscussion();
+    }
+  });
+}
+
 const TABLE_PAGE_SIZES = [50, 100, 250, 500, 1000];
 const DEFAULT_TABLE_PAGE_SIZE = 250;
 
 const COLUMN_LABELS = {
-  category: 'دسته\u200cبندی',
-  category_id: 'شناسه دسته\u200cبندی',
-  category_name: 'نام دسته\u200cبندی',
-  merchant_name: 'نام پذیرنده',
-  merchant_id: 'شناسه پذیرنده',
+  // dim_date
+  date_key: 'کلید تاریخ',
+  full_date: 'تاریخ',
+  day_name: 'نام روز',
+  month_name: 'نام ماه',
+  year: 'سال',
+  month: 'ماه',
+  day: 'روز',
+  is_weekend: 'آخر هفته',
+  is_holiday: 'تعطیل',
+  // dim_customer
+  customer_id: 'شناسه مشتری',
   customer_name: 'نام مشتری',
+  access_key: 'کلید دسترسی',
+  role: 'نقش',
+  // dim_category
+  category_id: 'شناسه دسته‌بندی',
+  category_name: 'نام دسته‌بندی',
+  category: 'دسته‌بندی',
+  // dim_merchant
+  merchant_id: 'شناسه پذیرنده',
+  merchant_name: 'نام پذیرنده',
+  merchant_code: 'کد پذیرنده',
+  mcc: 'کد صنف (MCC)',
   city: 'شهر',
-  channel: 'کانال',
+  owner_customer_id: 'شناسه مشتری مالک',
+  is_active: 'فعال',
+  // dim_terminal
+  terminal_id: 'شناسه ترمینال',
+  terminal_serial: 'سریال ترمینال',
+  terminal_type: 'نوع ترمینال',
+  install_date: 'تاریخ نصب',
   status: 'وضعیت',
+  // fact_transactions
+  transaction_id: 'شناسه تراکنش',
+  transaction_time: 'زمان تراکنش',
   amount: 'مبلغ',
+  currency: 'واحد پول',
+  card_pan_masked: 'شماره کارت',
+  response_code: 'کد پاسخ',
+  settlement_date: 'تاریخ تسویه',
+  channel: 'کانال',
+  // common query aliases / aggregates
   transaction_count: 'تعداد تراکنش',
+  txn_count: 'تعداد تراکنش',
+  tx_count: 'تعداد تراکنش',
+  cnt: 'تعداد',
+  count: 'تعداد',
+  row_count: 'تعداد ردیف',
   total_amount: 'مجموع مبلغ',
+  sum_amount: 'مجموع مبلغ',
+  amount_sum: 'مجموع مبلغ',
   total_sales: 'مجموع فروش',
   total_volume: 'مجموع حجم تراکنش',
-  full_date: 'تاریخ',
+  avg_amount: 'میانگین مبلغ',
+  average_amount: 'میانگین مبلغ',
+  min_amount: 'حداقل مبلغ',
+  max_amount: 'حداکثر مبلغ',
   transaction_month: 'ماه تراکنش',
-  terminal_serial: 'سریال ترمینال',
-  merchant_code: 'کد پذیرنده',
+  txn_month: 'ماه تراکنش',
+  year_month: 'سال-ماه',
+  ym: 'سال-ماه',
   avg_growth: 'میانگین نرخ رشد',
   growth_rate: 'نرخ رشد',
-  row_count: 'تعداد ردیف',
+  growth: 'رشد',
+  sales: 'فروش',
+  volume: 'حجم',
+  name: 'نام',
+  id: 'شناسه',
+  rank: 'رتبه',
+  pct: 'درصد',
+  percent: 'درصد',
+  percentage: 'درصد',
+  share: 'سهم',
+  ratio: 'نسبت',
+};
+
+const COLUMN_WORD_FA = {
+  date: 'تاریخ',
+  key: 'کلید',
+  full: 'کامل',
+  day: 'روز',
+  name: 'نام',
+  month: 'ماه',
+  year: 'سال',
+  is: '',
+  weekend: 'آخر هفته',
+  holiday: 'تعطیل',
+  customer: 'مشتری',
+  id: 'شناسه',
+  access: 'دسترسی',
+  role: 'نقش',
+  category: 'دسته‌بندی',
+  merchant: 'پذیرنده',
+  code: 'کد',
+  mcc: 'MCC',
+  city: 'شهر',
+  owner: 'مالک',
+  active: 'فعال',
+  terminal: 'ترمینال',
+  serial: 'سریال',
+  type: 'نوع',
+  install: 'نصب',
+  status: 'وضعیت',
+  transaction: 'تراکنش',
+  txn: 'تراکنش',
+  tx: 'تراکنش',
+  time: 'زمان',
+  amount: 'مبلغ',
+  currency: 'واحد پول',
+  card: 'کارت',
+  pan: 'PAN',
+  masked: 'ماسک‌شده',
+  response: 'پاسخ',
+  settlement: 'تسویه',
+  channel: 'کانال',
+  count: 'تعداد',
+  cnt: 'تعداد',
+  total: 'مجموع',
+  sum: 'جمع',
+  avg: 'میانگین',
+  average: 'میانگین',
+  min: 'حداقل',
+  max: 'حداکثر',
+  growth: 'رشد',
+  rate: 'نرخ',
+  sales: 'فروش',
+  volume: 'حجم',
+  row: 'ردیف',
+  rank: 'رتبه',
+  pct: 'درصد',
+  percent: 'درصد',
+  percentage: 'درصد',
+  share: 'سهم',
+  ratio: 'نسبت',
+  num: 'تعداد',
+  number: 'تعداد',
+  qty: 'تعداد',
+  quantity: 'تعداد',
+  value: 'مقدار',
+  price: 'قیمت',
+  fee: 'کارمزد',
+  approved: 'موفق',
+  declined: 'ناموفق',
+  reversed: 'برگشتی',
 };
 
 function columnLabel(key) {
-  if (!key) return '';
-  if (COLUMN_LABELS[key]) return COLUMN_LABELS[key];
-  // Keep Persian SQL aliases and quoted headers as-is (full name, not shortened).
-  if (isRtlText(key) || key.includes('\u200c')) return key;
-  return key.replace(/_/g, ' ');
+  if (key === null || key === undefined) return '';
+  const raw = String(key).trim();
+  if (!raw) return '';
+  if (COLUMN_LABELS[raw]) return COLUMN_LABELS[raw];
+  const lower = raw.toLowerCase();
+  if (COLUMN_LABELS[lower]) return COLUMN_LABELS[lower];
+  // Keep Persian SQL aliases as-is.
+  if (isRtlText(raw) || raw.includes('\u200c')) return raw;
+
+  const spaced = raw.replace(/([a-z])([A-Z])/g, '$1_$2');
+  const parts = spaced.toLowerCase().split(/[_\s]+/).filter(Boolean);
+  if (!parts.length) return raw;
+
+  const translated = [];
+  let hasFa = false;
+  for (const part of parts) {
+    if (Object.prototype.hasOwnProperty.call(COLUMN_WORD_FA, part)) {
+      const fa = COLUMN_WORD_FA[part];
+      if (fa) {
+        translated.push(fa);
+        if (isRtlText(fa)) hasFa = true;
+      }
+    } else {
+      translated.push(part);
+    }
+  }
+  if (translated.length && hasFa) return translated.join(' ');
+  return raw.replace(/_/g, ' ');
 }
 
 function buildTableHtml(rows) {
@@ -702,6 +1535,9 @@ function chartUiText(key) {
     noColumns: 'ستون متنی (برچسب) و عددی (مقدار) برای رسم نمودار پیدا نشد.',
     labelColumn: 'ستون برچسب',
     valueColumn: 'ستون مقدار',
+    printChart: 'چاپ نمودار',
+    pieAbsNote: 'در نمودار دایره‌ای، اندازه (قدر مطلق) مقادیر نمایش داده می‌شود.',
+    pieAllZero: 'همه مقادیر صفر هستند؛ نمودار دایره‌ای قابل نمایش نیست.',
   };
   const en = {
     chartType: 'Chart type',
@@ -713,6 +1549,9 @@ function chartUiText(key) {
     noColumns: 'Could not find a text label column and numeric value column to chart.',
     labelColumn: 'Label column',
     valueColumn: 'Value column',
+    printChart: 'Print chart',
+    pieAbsNote: 'Pie chart shows the magnitude (absolute value) of each value.',
+    pieAllZero: 'All values are zero; a pie chart cannot be shown.',
   };
   const t = state.language === 'fa' ? fa : en;
   return typeof t[key] === 'function' ? t[key] : t[key];
@@ -831,10 +1670,13 @@ function createChartInstance(canvas, type, chartData) {
   const isLine = type === 'line';
   const chartType = isPie ? type : isLine ? 'line' : 'bar';
   const categoryTickCb = categoryAxisTickCallback(labels);
+  // Pie/doughnut slices can't represent negative values (Chart.js renders them as
+  // near-invisible or distorted slices); show magnitude there, keep signed values elsewhere.
+  const plotValues = isPie ? values.map((v) => Math.abs(v)) : values;
 
   const dataset = {
     label: valueTitle,
-    data: values,
+    data: plotValues,
     backgroundColor: isLine ? 'rgba(31, 111, 84, 0.15)' : colors,
     borderColor: isLine ? '#1f6f54' : colors.map((c) => c),
     borderWidth: isLine ? 2.5 : 1,
@@ -889,9 +1731,10 @@ function createChartInstance(canvas, type, chartData) {
           callbacks: {
             title: (items) => String(items[0]?.label ?? ''),
             label: (ctx) => {
-              const p = ctx.parsed;
-              const val =
-                typeof p === 'number' ? p : p?.y ?? p?.x ?? ctx.raw ?? 0;
+              // Read the original (signed) value by index rather than ctx.parsed.x/y,
+              // which swap meaning between vertical and horizontal bars and previously
+              // showed the wrong number (or the abs-valued slice) on hover.
+              const val = values[ctx.dataIndex] ?? ctx.raw ?? 0;
               return `${valueTitle}: ${Number(val).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
             },
           },
@@ -948,6 +1791,7 @@ function createChartInstance(canvas, type, chartData) {
 }
 
 function showChartUnavailable(container, message) {
+  state.lastChart = null;
   container.innerHTML = `
     <div class="chart-panel chart-panel--unavailable">
       <div class="chart-note"${dirAttr(message)}>${escapeHtml(message)}</div>
@@ -999,10 +1843,13 @@ function maybeRenderChart(container, data) {
           </label>
           <label${dirAttr(chartUiText('chartType'))}>
             <span>${escapeHtml(chartUiText('chartType'))}</span>
-            <select class="chart-type-select" aria-label="${escapeHtml(chartUiText('chartType'))}">
+            <select class="chart-type-select chart-kind-select" aria-label="${escapeHtml(chartUiText('chartType'))}">
               ${typeOptions}
             </select>
           </label>
+          <button type="button" class="ghost-btn chart-print-btn" title="${escapeHtml(chartUiText('printChart'))}">
+            <span aria-hidden="true">🖨️</span> ${escapeHtml(chartUiText('printChart'))}
+          </button>
         </div>
       </div>
       <div class="chart-canvas-wrap">
@@ -1014,37 +1861,20 @@ function maybeRenderChart(container, data) {
 
   const canvasWrap = container.querySelector('.chart-canvas-wrap');
   const canvas = container.querySelector('canvas');
-  const select = container.querySelector('.chart-type-select');
+  const select = container.querySelector('.chart-kind-select');
   const labelSelect = container.querySelector('.chart-label-col-select');
   const valueSelect = container.querySelector('.chart-value-col-select');
   const titleEl = container.querySelector('.chart-title');
+  const noteEl = container.querySelector('.chart-note');
+  const printBtn = container.querySelector('.chart-print-btn');
 
   fillColumnSelect(labelSelect, cols, data[0], labelCol, 'label', numericCol);
   fillColumnSelect(valueSelect, cols, data[0], numericCol, 'value', labelCol);
 
-  const defaultType =
-    (state.language === 'fa' || chartData.labels.some(isRtlText)) && chartData.shownRows > 6
-      ? 'barHorizontal'
-      : 'bar';
+  const defaultType = 'bar';
   select.value = defaultType;
-  let chartInstance = createChartInstance(canvas, defaultType, chartData);
 
-  function refreshChart() {
-    const next = prepareChartRows(data, labelSelect.value, valueSelect.value);
-    if (!next) return;
-    Object.assign(chartData, next);
-    titleEl.textContent = `${columnLabel(next.labelCol)} — ${columnLabel(next.numericCol)}`;
-    titleEl.setAttribute('dir', isRtlText(titleEl.textContent) ? 'rtl' : 'ltr');
-    chartInstance.destroy();
-    resizeWrap(select.value);
-    chartInstance = createChartInstance(canvas, select.value, chartData);
-  }
-
-  labelSelect.addEventListener('change', () => {
-    fillColumnSelect(valueSelect, cols, data[0], valueSelect.value, 'value', labelSelect.value);
-    refreshChart();
-  });
-  valueSelect.addEventListener('change', refreshChart);
+  let chartInstance = null;
 
   function resizeWrap(type) {
     const horizontal = type === 'barHorizontal';
@@ -1060,14 +1890,121 @@ function maybeRenderChart(container, data) {
     }
   }
 
-  select.addEventListener('change', () => {
-    const type = select.value;
-    chartInstance.destroy();
+  function updateChartNote(type, overrideText) {
+    if (!noteEl) return;
+    if (overrideText) {
+      noteEl.textContent = overrideText;
+      noteEl.setAttribute('dir', isRtlText(overrideText) ? 'rtl' : 'ltr');
+      return;
+    }
+    let text =
+      chartData.shownRows < chartData.totalRows
+        ? chartUiText('showingTop')(chartData.shownRows, chartData.totalRows)
+        : chartUiText('allRows')(chartData.shownRows);
+    const isPieType = type === 'pie' || type === 'doughnut';
+    if (isPieType && chartData.values.some((v) => v < 0)) {
+      text += ' · ' + chartUiText('pieAbsNote');
+    }
+    noteEl.textContent = text;
+    noteEl.setAttribute('dir', isRtlText(text) ? 'rtl' : 'ltr');
+  }
+
+  // Single entry point for every chart-type switch (initial render, type select,
+  // or column select) so bar/horizontal-bar/line/pie/doughnut never diverge.
+  function rebuildChart(type) {
+    if (chartInstance) {
+      chartInstance.destroy();
+      chartInstance = null;
+    }
     resizeWrap(type);
-    chartInstance = createChartInstance(canvas, type, chartData);
+
+    const isPieType = type === 'pie' || type === 'doughnut';
+    if (isPieType && chartData.values.every((v) => v === 0)) {
+      state.lastChart = null;
+      updateChartNote(type, chartUiText('pieAllZero'));
+      return;
+    }
+
+    try {
+      chartInstance = createChartInstance(canvas, type, chartData);
+    } catch (e) {
+      state.lastChart = null;
+      updateChartNote(type, chartUiText('noChart'));
+      return;
+    }
+    state.lastChart = chartInstance;
+    updateChartNote(type);
+  }
+
+  rebuildChart(defaultType);
+
+  function refreshChart() {
+    const next = prepareChartRows(data, labelSelect.value, valueSelect.value);
+    if (!next) return;
+    Object.assign(chartData, next);
+    titleEl.textContent = `${columnLabel(next.labelCol)} — ${columnLabel(next.numericCol)}`;
+    titleEl.setAttribute('dir', isRtlText(titleEl.textContent) ? 'rtl' : 'ltr');
+    rebuildChart(select.value);
+  }
+
+  labelSelect.addEventListener('change', () => {
+    fillColumnSelect(valueSelect, cols, data[0], valueSelect.value, 'value', labelSelect.value);
+    refreshChart();
+  });
+  valueSelect.addEventListener('change', refreshChart);
+
+  select.addEventListener('change', () => {
+    rebuildChart(select.value);
   });
 
-  resizeWrap(defaultType);
+  if (printBtn) {
+    printBtn.addEventListener('click', () => {
+      printChartAsImage(canvas, titleEl.textContent || titleText);
+    });
+  }
+}
+
+function printChartAsImage(canvas, titleText) {
+  if (!canvas) return;
+  let dataUrl;
+  try {
+    dataUrl = canvas.toDataURL('image/png', 1.0);
+  } catch (e) {
+    return;
+  }
+
+  const safeTitle = escapeHtml(titleText || '');
+  const rtl = isRtlText(titleText || '');
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentWindow.document;
+  doc.open();
+  doc.write(`<!DOCTYPE html>
+<html dir="${rtl ? 'rtl' : 'ltr'}">
+<head>
+<meta charset="utf-8">
+<title>${safeTitle}</title>
+<style>
+  html, body { margin: 0; padding: 24px; font-family: ${chartFontFamily()}; text-align: center; }
+  h1 { font-size: 16px; color: #15523e; margin: 0 0 16px; }
+  img { max-width: 100%; }
+</style>
+</head>
+<body>
+  <h1>${safeTitle}</h1>
+  <img src="${dataUrl}" />
+  <script>
+    window.onload = function () {
+      setTimeout(function () { window.focus(); window.print(); }, 60);
+    };
+  <\/script>
+</body>
+</html>`);
+  doc.close();
+
+  setTimeout(() => { iframe.remove(); }, 60000);
 }
 
 // ---------------------------------------------------------------------------
@@ -1150,6 +2087,106 @@ function isRtlText(str) {
 }
 function dirAttr(str) {
   return isRtlText(str) ? ' dir="rtl"' : ' dir="ltr"';
+}
+
+// ---------------------------------------------------------------------------
+// Voice: speech-to-text (microphone input only) — FA + EN
+// ---------------------------------------------------------------------------
+function speechLocale(langHint) {
+  const lang = langHint || state.language;
+  return lang === 'fa' ? 'fa-IR' : 'en-US';
+}
+
+const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+let voiceRecognition = null;
+let voiceListening = false;
+
+function updateVoiceInputUi(listening) {
+  const btn = document.getElementById('voice-input-btn');
+  if (!btn) return;
+  voiceListening = listening;
+  btn.classList.toggle('is-listening', listening);
+  btn.setAttribute('aria-pressed', listening ? 'true' : 'false');
+  btn.title = listening
+    ? chatUiText('voiceListening')
+    : state.language === 'fa'
+      ? 'ورودی صوتی (فارسی/انگلیسی)'
+      : 'Voice input (FA/EN)';
+  btn.textContent = listening ? '⏹' : '🎤';
+}
+
+function stopVoiceInput() {
+  if (voiceRecognition && voiceListening) {
+    try {
+      voiceRecognition.stop();
+    } catch (_) { /* ignore */ }
+  }
+  updateVoiceInputUi(false);
+}
+
+function startVoiceInput() {
+  if (!SpeechRecognitionAPI) {
+    alert(chatUiText('voiceUnsupported'));
+    return;
+  }
+  if (voiceListening) {
+    stopVoiceInput();
+    return;
+  }
+
+  voiceRecognition = new SpeechRecognitionAPI();
+  voiceRecognition.lang = speechLocale(state.language);
+  voiceRecognition.interimResults = true;
+  voiceRecognition.continuous = false;
+  voiceRecognition.maxAlternatives = 1;
+
+  let finalTranscript = '';
+
+  voiceRecognition.onstart = () => updateVoiceInputUi(true);
+  voiceRecognition.onend = () => {
+    updateVoiceInputUi(false);
+    delete messageInput.dataset.voiceBase;
+    messageInput.dir = isRtlText(messageInput.value) ? 'rtl' : 'ltr';
+    messageInput.style.height = 'auto';
+    messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+    messageInput.focus();
+  };
+  voiceRecognition.onerror = (ev) => {
+    updateVoiceInputUi(false);
+    delete messageInput.dataset.voiceBase;
+    if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') {
+      alert(chatUiText('voiceMicDenied'));
+    }
+  };
+  voiceRecognition.onresult = (event) => {
+    let interim = '';
+    for (let i = event.resultIndex; i < event.results.length; i += 1) {
+      const chunk = event.results[i][0].transcript;
+      if (event.results[i].isFinal) finalTranscript += `${chunk} `;
+      else interim += chunk;
+    }
+    const base = messageInput.dataset.voiceBase || '';
+    const preview = `${base}${finalTranscript}${interim}`.replace(/\s+/g, ' ').trim();
+    messageInput.value = preview;
+    messageInput.dir = isRtlText(preview) ? 'rtl' : 'ltr';
+  };
+
+  messageInput.dataset.voiceBase = messageInput.value ? `${messageInput.value.trim()} ` : '';
+  try {
+    voiceRecognition.start();
+  } catch (_) {
+    updateVoiceInputUi(false);
+  }
+}
+
+const voiceInputBtn = document.getElementById('voice-input-btn');
+if (voiceInputBtn) {
+  if (!SpeechRecognitionAPI) {
+    voiceInputBtn.disabled = true;
+    voiceInputBtn.title = 'Voice input unsupported';
+  } else {
+    voiceInputBtn.addEventListener('click', startVoiceInput);
+  }
 }
 
 // ---------------------------------------------------------------------------
