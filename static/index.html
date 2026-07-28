@@ -19,7 +19,7 @@
 
   <header class="topbar app-header">
     <h1 class="app-header-title">دستیار هوشمند هوش تجاری</h1>
-    <button id="lang-toggle-btn" class="ghost-btn app-header-lang" title="Toggle AI response language">FA</button>
+    <button id="lang-toggle-btn" class="ghost-btn app-header-lang" title="Toggle AI response language" aria-label="Toggle AI response language">FA</button>
     <a id="users-mgmt-btn" class="ghost-btn app-header-users" href="/users" hidden title="User management">کاربران</a>
     <button id="logout-btn" class="ghost-btn app-header-logout" type="button" title="Sign out">خروج</button>
   </header>
@@ -38,7 +38,7 @@
       <footer class="composer">
         <textarea id="message-input" placeholder="Ask a question about your transactions… (Persian or English)" rows="1"></textarea>
         <div class="composer-actions">
-          <button id="voice-input-btn" class="ghost-btn voice-btn" type="button" title="Voice input (FA/EN)" aria-pressed="false">🎤</button>
+          <button id="voice-input-btn" class="ghost-btn voice-btn" type="button" title="Voice input (FA/EN)" aria-label="Voice input (FA/EN)" aria-pressed="false">🎤</button>
           <button id="export-pdf-btn" class="ghost-btn" title="Export last result to PDF" disabled>PDF</button>
           <button id="export-excel-btn" class="ghost-btn" title="Export last result to Excel" disabled>Excel</button>
           <button id="send-btn" class="primary-btn">Send</button>
@@ -49,7 +49,7 @@
     <aside class="dash-sidebar" id="dash-sidebar">
       <div class="dash-card">
         <div class="dash-card-title">
-          <span>🕘</span>
+          <span aria-hidden="true">🕘</span>
           <span data-i18n="historyTitle">تاریخچه گفتگو</span>
         </div>
         <div class="history-list" id="history-list">
@@ -60,7 +60,7 @@
 
       <div class="dash-card">
         <div class="dash-card-title">
-          <span>❓</span>
+          <span aria-hidden="true">❓</span>
           <span>۱۰ سؤال پرتکرار</span>
         </div>
         <div class="history-list" id="freq-list">
@@ -70,7 +70,7 @@
 
       <div class="dash-card">
         <div class="dash-card-title">
-          <span>⚡</span>
+          <span aria-hidden="true">⚡</span>
           <span>اقدامات سریع</span>
 
         </div>
@@ -84,7 +84,7 @@
 
       <div class="dash-card">
         <div class="dash-card-title">
-          <span>⚙</span>
+          <span aria-hidden="true">⚙</span>
           <span>تنظیمات</span>
         </div>
         <button type="button" class="settings-row" id="settings-model-btn">
@@ -104,14 +104,14 @@
 
       <div class="dash-card poll-card" id="feature-poll-card">
         <div class="dash-card-title">
-          <span>🗳️</span>
+          <span aria-hidden="true">🗳️</span>
           <span>نظرسنجی قابلیت‌های آینده</span>
         </div>
         <p class="poll-hint">کدام قابلیت‌ها را زودتر می‌خواهید؟ (حداکثر ۳ مورد)</p>
         <div class="poll-options" id="poll-options"></div>
         <div class="poll-custom-wrap">
           <input type="text" id="poll-custom-input" class="poll-custom-input" placeholder="پیشنهاد خودت… (حداکثر ۱۰۰ کاراکتر)" maxlength="100" />
-          <button type="button" class="poll-custom-add-btn" id="poll-custom-add-btn" title="افزودن به لیست">+</button>
+          <button type="button" class="poll-custom-add-btn" id="poll-custom-add-btn" title="افزودن به لیست" aria-label="افزودن به لیست">+</button>
         </div>
         <button type="button" class="primary-btn poll-submit-btn" id="poll-submit-btn">ثبت رأی</button>
         <div class="poll-msg" id="poll-msg" hidden></div>
@@ -119,8 +119,8 @@
       </div>
     </aside>
 
-      <div class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="Collapse sidebar" aria-expanded="true">«</div>
-      <div class="sidebar-resize-handle" id="sidebar-resize-handle"></div>
+      <button type="button" class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="Collapse sidebar" aria-label="Collapse sidebar" aria-expanded="true">«</button>
+      <div class="sidebar-resize-handle" id="sidebar-resize-handle" aria-hidden="true"></div>
   </div>
 
 </div>

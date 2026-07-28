@@ -32,31 +32,31 @@ shape, file layout, prompts, and frontend — follows the brief as given.
 
 ```
 bichart/
-├── app.py                 # FastAPI entry: routes, auth middleware, chat/export APIs
+├── app.py                 # Composition root: middleware + module routers
+├── modules/               # Domain modules (modular monolith)
+│   ├── identity/          # Users, sessions, login/admin APIs
+│   ├── llm/               # AvalAI + Ollama providers + prompts
+│   ├── sql_guard/         # SELECT-only safety + SQL normalize
+│   ├── bi_data/           # SQLAlchemy engine + mock DB seed
+│   ├── chat/              # Text-to-SQL orchestration + chat APIs
+│   ├── conversation/      # History, preferences, feedback
+│   ├── reporting/         # PDF / Excel export
+│   └── polls/             # Feature poll
+├── shared/                # Cross-cutting paths/config
 ├── passenger_wsgi.py      # cPanel / Passenger ASGI wrapper
 ├── Dockerfile
+├── docker-compose.yml
 ├── requirements.txt
-├── database.py            # SQLAlchemy engine (SQLite under data/)
-├── db_mock.py             # Build mock schema + sample rows (run once)
-├── auth.py / users.py     # Session auth + app_users CRUD
-├── sql_safety.py          # SELECT-only validation
-├── ollama_client.py       # Local Ollama LLM client
-├── avalai_client.py       # AvalAI LLM client
-├── analysis_prompt.py     # Shared analysis / discussion prompts
-├── memory_manager.py      # Per-user history + preferences
-├── pdf_generator.py       # PDF export
-├── excel_generator.py     # Excel export
-├── column_labels.py       # Friendly column titles for exports
+├── auth.py, database.py…  # Thin shims → modules (compat)
 ├── data/                  # Runtime DB + history (gitignored)
 ├── exports/               # Generated PDF/Excel downloads (gitignored)
-├── docs/                  # Generated documentation & presentations
-├── scripts/               # One-off doc/presentation generators
-└── static/                # Frontend (first, login, app, users) + assets
-    ├── index.html / style.css / script.js
-    ├── first.html / login.html / users.html
-    ├── fonts/ / images/ / vendor/
-    └── favicon*.png / logo.png
+├── docs/                  # Docs + ARCHITECTURE.md
+├── scripts/               # One-off generators
+└── static/                # Frontend + assets
 ```
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the modular-monolith design
+and how modules map to future microservices.
 
 ## Pipeline (per chat message)
 

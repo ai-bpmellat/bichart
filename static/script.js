@@ -90,6 +90,7 @@ if (sidebarCollapseBtn && dashboardBody) {
     dashboardBody.classList.remove('sidebar-resizable');
     sidebarCollapseBtn.textContent = collapsed ? '»' : '«';
     sidebarCollapseBtn.title = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+    sidebarCollapseBtn.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
     sidebarCollapseBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
   });
 }
@@ -264,6 +265,7 @@ function applyLanguageUI(language) {
   if (voiceBtn && !voiceListening) {
     voiceBtn.title =
       language === 'fa' ? 'ورودی صوتی (فارسی/انگلیسی)' : 'Voice input (FA/EN)';
+    voiceBtn.setAttribute('aria-label', voiceBtn.title);
   }
   if (voiceRecognition && voiceListening) {
     voiceRecognition.lang = speechLocale(language);
@@ -352,13 +354,25 @@ function formatHistoryTime(iso) {
   }
 }
 
+function showListSkeleton(listEl, emptyEl, count) {
+  if (!listEl) return;
+  if (emptyEl) emptyEl.hidden = true;
+  listEl.querySelectorAll('.history-item, .skeleton-row').forEach((el) => el.remove());
+  for (let i = 0; i < count; i += 1) {
+    const row = document.createElement('div');
+    row.className = 'skeleton-row';
+    listEl.appendChild(row);
+  }
+}
+
 async function loadHistorySidebar() {
   if (!historyList) return;
+  showListSkeleton(historyList, historyEmpty, 3);
   try {
     const res = await apiFetch('/api/history');
     const json = await res.json();
     const items = (json.history || []).slice().reverse();
-    historyList.querySelectorAll('.history-item').forEach((el) => el.remove());
+    historyList.querySelectorAll('.history-item, .skeleton-row').forEach((el) => el.remove());
     if (!items.length) {
       if (historyEmpty) historyEmpty.hidden = false;
       return;
@@ -379,17 +393,19 @@ async function loadHistorySidebar() {
       historyList.appendChild(btn);
     });
   } catch (_) {
-    /* ignore */
+    historyList.querySelectorAll('.skeleton-row').forEach((el) => el.remove());
+    if (historyEmpty) historyEmpty.hidden = false;
   }
 }
 
 async function loadFrequentQuestions() {
   if (!freqList) return;
+  showListSkeleton(freqList, freqEmpty, 3);
   try {
     const res = await apiFetch('/api/frequent-questions');
     const json = await res.json();
     const items = json.questions || [];
-    freqList.querySelectorAll('.freq-item').forEach((el) => el.remove());
+    freqList.querySelectorAll('.freq-item, .skeleton-row').forEach((el) => el.remove());
     if (!items.length) {
       if (freqEmpty) freqEmpty.hidden = false;
       return;
@@ -412,7 +428,8 @@ async function loadFrequentQuestions() {
       freqList.appendChild(btn);
     });
   } catch (_) {
-    /* ignore */
+    freqList.querySelectorAll('.skeleton-row').forEach((el) => el.remove());
+    if (freqEmpty) freqEmpty.hidden = false;
   }
 }
 
@@ -2112,6 +2129,7 @@ function updateVoiceInputUi(listening) {
     : state.language === 'fa'
       ? 'ورودی صوتی (فارسی/انگلیسی)'
       : 'Voice input (FA/EN)';
+  btn.setAttribute('aria-label', btn.title);
   btn.textContent = listening ? '⏹' : '🎤';
 }
 
@@ -2308,6 +2326,15 @@ function applyPollState(json) {
 
 async function loadFeaturePoll() {
   if (!pollCard) return;
+  if (pollOptionsEl) {
+    pollOptionsEl.innerHTML = '';
+    for (let i = 0; i < 4; i += 1) {
+      const row = document.createElement('div');
+      row.className = 'skeleton-row';
+      row.style.height = '32px';
+      pollOptionsEl.appendChild(row);
+    }
+  }
   try {
     const res = await apiFetch('/api/feature-poll');
     if (!res.ok) throw new Error('poll load failed');
