@@ -47,75 +47,106 @@
     </section>
 
     <aside class="dash-sidebar" id="dash-sidebar">
-      <div class="dash-card">
-        <div class="dash-card-title">
-          <span aria-hidden="true">🕘</span>
-          <span data-i18n="historyTitle">تاریخچه گفتگو</span>
+      <div class="dash-card" id="card-history">
+        <div class="dash-card-title" role="button" tabindex="0" aria-expanded="false">
+          <div class="dash-card-title-main">
+            <span aria-hidden="true">🕘</span>
+            <span data-i18n="historyTitle">تاریخچه گفتگو</span>
+          </div>
+          <span class="dash-card-chevron" aria-hidden="true">▾</span>
         </div>
-        <div class="history-list" id="history-list">
-          <div class="history-empty" id="history-empty">هنوز گفتگویی ثبت نشده است.</div>
-        </div>
-        <button type="button" class="dash-link-btn" id="history-refresh-btn">به‌روزرسانی تاریخچه</button>
-      </div>
-
-      <div class="dash-card">
-        <div class="dash-card-title">
-          <span aria-hidden="true">❓</span>
-          <span>۱۰ سؤال پرتکرار</span>
-        </div>
-        <div class="history-list" id="freq-list">
-          <div class="history-empty" id="freq-empty">هنوز سؤالی ثبت نشده است.</div>
+        <div class="dash-card-body">
+          <div class="history-list" id="history-list">
+            <div class="history-empty" id="history-empty">هنوز گفتگویی ثبت نشده است.</div>
+          </div>
+          <button type="button" class="dash-link-btn" id="history-refresh-btn">به‌روزرسانی تاریخچه</button>
         </div>
       </div>
 
-      <div class="dash-card">
-        <div class="dash-card-title">
-          <span aria-hidden="true">⚡</span>
-          <span>اقدامات سریع</span>
-
+      <div class="dash-card" id="card-freq">
+        <div class="dash-card-title" role="button" tabindex="0" aria-expanded="false">
+          <div class="dash-card-title-main">
+            <span aria-hidden="true">❓</span>
+            <span>۱۰ سؤال پرتکرار</span>
+          </div>
+          <span class="dash-card-chevron" aria-hidden="true">▾</span>
         </div>
-        <div class="quick-grid">
-          <button type="button" class="quick-tile qt-green" data-q="۱۰ فروشنده برتر از نظر حجم تراکنش را نشان بده">Top Merchants</button>
-          <button type="button" class="quick-tile qt-blue" data-q="خلاصه تراکنش‌های امروز را بده">Today Summary</button>
-          <button type="button" class="quick-tile qt-purple" data-q="نمودار حجم تراکنش ماهانه">Transaction Chart</button>
-          <button type="button" class="quick-tile qt-orange" data-q="تراکنش‌های ناموفق دیروز را نشان بده">Advanced Search</button>
+        <div class="dash-card-body">
+          <div class="history-list" id="freq-list">
+            <div class="history-empty" id="freq-empty">هنوز سؤالی ثبت نشده است.</div>
+          </div>
         </div>
       </div>
 
-      <div class="dash-card">
-        <div class="dash-card-title">
-          <span aria-hidden="true">⚙</span>
-          <span>تنظیمات</span>
+      <div class="dash-card" id="card-quick">
+        <div class="dash-card-title" role="button" tabindex="0" aria-expanded="false">
+          <div class="dash-card-title-main">
+            <span aria-hidden="true">⚡</span>
+            <span>اقدامات سریع</span>
+          </div>
+          <span class="dash-card-chevron" aria-hidden="true">▾</span>
         </div>
-        <button type="button" class="settings-row" id="settings-model-btn">
-          <span>مدل</span>
-          <span class="settings-value" id="settings-model-value">AvalAI ›</span>
-        </button>
-        <button type="button" class="settings-row" id="settings-lang-btn">
-          <span>زبان</span>
-          <span class="settings-value" id="settings-lang-value">FA ›</span>
-        </button>
+        <div class="dash-card-body">
+          <div class="quick-grid">
+            <button type="button" class="quick-tile qt-green" data-q="۱۰ فروشنده برتر از نظر حجم تراکنش را نشان بده">Top Merchants</button>
+            <button type="button" class="quick-tile qt-blue" data-q="خلاصه تراکنش‌های امروز را بده">Today Summary</button>
+            <button type="button" class="quick-tile qt-purple" data-q="نمودار حجم تراکنش ماهانه">Transaction Chart</button>
+            <button type="button" class="quick-tile qt-orange" data-q="تراکنش‌های ناموفق دیروز را نشان بده">Advanced Search</button>
+          </div>
+        </div>
       </div>
 
-      <div class="dash-card about-card">
-        <div class="dash-card-title">درباره این دستیار</div>
-        <p>دستیار هوشمند هوش تجاری به شما کمک می‌کند داده‌های تراکنشی را تحلیل و درک کنید.</p>
+      <div class="dash-card" id="card-settings">
+        <div class="dash-card-title" role="button" tabindex="0" aria-expanded="false">
+          <div class="dash-card-title-main">
+            <span aria-hidden="true">⚙</span>
+            <span>تنظیمات</span>
+          </div>
+          <span class="dash-card-chevron" aria-hidden="true">▾</span>
+        </div>
+        <div class="dash-card-body">
+          <button type="button" class="settings-row" id="settings-model-btn">
+            <span>مدل</span>
+            <span class="settings-value" id="settings-model-value">AvalAI ›</span>
+          </button>
+          <button type="button" class="settings-row" id="settings-lang-btn">
+            <span>زبان</span>
+            <span class="settings-value" id="settings-lang-value">FA ›</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="dash-card about-card" id="card-about">
+        <div class="dash-card-title" role="button" tabindex="0" aria-expanded="false">
+          <div class="dash-card-title-main">
+            <span>درباره این دستیار</span>
+          </div>
+          <span class="dash-card-chevron" aria-hidden="true">▾</span>
+        </div>
+        <div class="dash-card-body">
+          <p>دستیار هوشمند هوش تجاری به شما کمک می‌کند داده‌های تراکنشی را تحلیل و درک کنید.</p>
+        </div>
       </div>
 
       <div class="dash-card poll-card" id="feature-poll-card">
-        <div class="dash-card-title">
-          <span aria-hidden="true">🗳️</span>
-          <span>نظرسنجی قابلیت‌های آینده</span>
+        <div class="dash-card-title" role="button" tabindex="0" aria-expanded="false">
+          <div class="dash-card-title-main">
+            <span aria-hidden="true">🗳️</span>
+            <span>نظرسنجی قابلیت‌های آینده</span>
+          </div>
+          <span class="dash-card-chevron" aria-hidden="true">▾</span>
         </div>
-        <p class="poll-hint">کدام قابلیت‌ها را زودتر می‌خواهید؟ (حداکثر ۳ مورد)</p>
-        <div class="poll-options" id="poll-options"></div>
-        <div class="poll-custom-wrap">
-          <input type="text" id="poll-custom-input" class="poll-custom-input" placeholder="پیشنهاد خودت… (حداکثر ۱۰۰ کاراکتر)" maxlength="100" />
-          <button type="button" class="poll-custom-add-btn" id="poll-custom-add-btn" title="افزودن به لیست" aria-label="افزودن به لیست">+</button>
+        <div class="dash-card-body">
+          <p class="poll-hint">کدام قابلیت‌ها را زودتر می‌خواهید؟ (حداکثر ۳ مورد)</p>
+          <div class="poll-options" id="poll-options"></div>
+          <div class="poll-custom-wrap">
+            <input type="text" id="poll-custom-input" class="poll-custom-input" placeholder="پیشنهاد خودت… (حداکثر ۱۰۰ کاراکتر)" maxlength="100" />
+            <button type="button" class="poll-custom-add-btn" id="poll-custom-add-btn" title="افزودن به لیست" aria-label="افزودن به لیست">+</button>
+          </div>
+          <button type="button" class="primary-btn poll-submit-btn" id="poll-submit-btn">ثبت رأی</button>
+          <div class="poll-msg" id="poll-msg" hidden></div>
+          <div class="poll-results" id="poll-results" hidden></div>
         </div>
-        <button type="button" class="primary-btn poll-submit-btn" id="poll-submit-btn">ثبت رأی</button>
-        <div class="poll-msg" id="poll-msg" hidden></div>
-        <div class="poll-results" id="poll-results" hidden></div>
       </div>
     </aside>
 
@@ -123,6 +154,72 @@
       <div class="sidebar-resize-handle" id="sidebar-resize-handle" aria-hidden="true"></div>
   </div>
 
+</div>
+
+<!-- What's New Modal -->
+<div class="whatsnew-overlay" id="whatsnew-overlay" role="dialog" aria-modal="true" aria-labelledby="whatsnew-title" hidden>
+  <div class="whatsnew-modal">
+    <div class="whatsnew-header">
+      <h2 class="whatsnew-title" id="whatsnew-title">✨ قابلیت‌های جدید</h2>
+      <button type="button" class="whatsnew-close" id="whatsnew-close" aria-label="بستن">&times;</button>
+    </div>
+    <div class="whatsnew-body">
+      <ul class="whatsnew-list">
+        <li class="whatsnew-item">
+          <span class="whatsnew-icon">📊</span>
+          <div class="whatsnew-text">
+            <strong>پوستر تحلیلی (اینفوگرافیک)</strong>
+            <p>بعد از تحلیل نتایج، یک پوستر تصویری داده‌محور با KPI و نمودار سهم تولید می‌شود که می‌توانید آن را دانلود کنید.</p>
+          </div>
+        </li>
+        <li class="whatsnew-item">
+          <span class="whatsnew-icon">🗂️</span>
+          <div class="whatsnew-text">
+            <strong>کارت‌های بازشونده در نوار کناری</strong>
+            <p>تمام بخش‌های نوار کناری (تاریخچه، سؤالات پرتکرار، تنظیمات و...) حالا جمع‌شونده هستند تا فضای خلوت‌تری داشته باشید.</p>
+          </div>
+        </li>
+        <li class="whatsnew-item">
+          <span class="whatsnew-icon">🔊</span>
+          <div class="whatsnew-text">
+            <strong>ورودی صوتی (فارسی و انگلیسی)</strong>
+            <p>با کلیک روی دکمه میکروفون، سؤال خود را به‌صورت صوتی بپرسید. از فارسی و انگلیسی پشتیبانی می‌کند.</p>
+          </div>
+        </li>
+        <li class="whatsnew-item">
+          <span class="whatsnew-icon">💬</span>
+          <div class="whatsnew-text">
+            <strong>بحث و بررسی نتایج</strong>
+            <p>بعد از تحلیل، می‌توانید روی بخش‌های خاصی از تحلیل بحث کنید، اصلاحیه بدهید و پاسخ هوشمند دریافت کنید.</p>
+          </div>
+        </li>
+        <li class="whatsnew-item">
+          <span class="whatsnew-icon">📈</span>
+          <div class="whatsnew-text">
+            <strong>نمودارهای حرفه‌ای با انتخاب نوع</strong>
+            <p>نمودارهای میله‌ای، خطی، دایره‌ای و حلقه‌ای با قابلیت تغییر ستون‌ها و چاپ نمودار.</p>
+          </div>
+        </li>
+        <li class="whatsnew-item">
+          <span class="whatsnew-icon">⏱️</span>
+          <div class="whatsnew-text">
+            <strong>زمان‌بندی سرویس‌ها</strong>
+            <p>مدت زمان هر مرحله (تولید SQL، اجرا، تحلیل و...) به‌صورت نمودار میله‌ای نمایش داده می‌شود.</p>
+          </div>
+        </li>
+        <li class="whatsnew-item">
+          <span class="whatsnew-icon">🗳️</span>
+          <div class="whatsnew-text">
+            <strong>نظرسنجی قابلیت‌های آینده</strong>
+            <p>در نوار کناری می‌توانید رأی دهید کدام قابلیت‌ها زودتر اضافه شوند.</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div class="whatsnew-footer">
+      <button type="button" class="primary-btn whatsnew-gotit" id="whatsnew-gotit">متوجه شدم</button>
+    </div>
+  </div>
 </div>
 
 <script src="/static/script.js"></script>

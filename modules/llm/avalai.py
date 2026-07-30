@@ -122,11 +122,19 @@ def generate_sql(user_question: str, schema_description: str, language: str = RE
         f"Do NOT add status filters unless the user explicitly asked (e.g. 'فعال فقط', 'موفق', 'ناموفق'). "
         f"If filtering terminal status, use lowercase: dim_terminal.status IN ('active','inactive'). "
         f"If filtering transaction status, use fact_transactions.status IN ('approved','declined','reversed'). "
+        f"If the question is ambiguous in any way (unclear metric, missing time period, vague scope, "
+        f"unspecified entity, or multiple reasonable interpretations), ask for clarification instead of "
+        f"guessing — offer concrete multiple-choice options. "
         f"{lang_instruction} The 'sql' value must remain valid SQL syntax regardless of language. "
         f"Respond with ONLY the JSON object, no other text."
     )
     raw = _chat(prompt, system=SQL_SYSTEM_PROMPT, temperature=0.1)
     parsed = _extract_json(raw)
+    if parsed.get("needs_clarification"):
+        return {
+            "needs_clarification": True,
+            "clarification_question": parsed.get("clarification_question", ""),
+        }
     if "sql" not in parsed:
         raise AvalAIError(f"Model JSON missing 'sql' key: {parsed}")
     parsed.setdefault("explanation", "")

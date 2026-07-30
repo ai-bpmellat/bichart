@@ -5,6 +5,7 @@ const state = {
   provider: 'avalai',
   lastResponse: null, // stores the most recent chat response for PDF/Excel export
   lastChart: null,    // Chart.js instance for PDF chart image
+  pendingClarification: null, // { originalQuestion, transcript } while AI is asking a follow-up question
 };
 
 const langToggleBtn = document.getElementById('lang-toggle-btn');
@@ -556,6 +557,8 @@ function chatUiText(key) {
     feedbackError: 'ثبت بازخورد ناموفق بود.',
     replayNoData: 'داده‌ای برای این گفتگوی قدیمی ذخیره نشده است؛ برای مشاهده دوباره، SQL را اجرا کنید.',
     sqlAutoFixed: 'اجرای SQL اولیه با خطا مواجه شد؛ هوش مصنوعی آن را به‌صورت خودکار اصلاح و دوباره اجرا کرد.',
+    clarificationLabel: 'نیاز به توضیح بیشتر',
+    clarificationHint: 'پاسخ خود را در کادر پیام زیر بنویسید.',
   };
   const en = {
     loadingReport: `Generating SQL with ${provider}…`,
@@ -596,6 +599,8 @@ function chatUiText(key) {
     feedbackError: 'Could not save feedback.',
     replayNoData: 'No stored data for this older conversation; run the SQL again to see it.',
     sqlAutoFixed: 'The initial SQL failed to run; AI automatically corrected it and re-ran it.',
+    clarificationLabel: 'Needs clarification',
+    clarificationHint: 'Type your answer in the message box below.',
   };
   const t = state.language === 'fa' ? fa : en;
   return t[key];
@@ -632,31 +637,61 @@ async function sendMessage() {
   sendBtn.disabled = true;
   chatArea.scrollTop = chatArea.scrollHeight;
 
+  const pending = state.pendingClarification;
+  const outgoingMessage = pending ? `${pending.transcript}\nUser: ${text}` : text;
+  const displayQuestion = pending ? pending.originalQuestion : text;
+
   try {
     const res = await apiFetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, language: state.language, provider: state.provider }),
+      body: JSON.stringify({ message: outgoingMessage, language: state.language, provider: state.provider }),
     });
     let json;
     try {
       json = await res.json();
     } catch (_) {
-      renderError(loadingHolder, { error: `Server error (${res.status}). Check server logs.` }, text);
+      state.pendingClarification = null;
+      renderError(loadingHolder, { error: `Server error (${res.status}). Check server logs.` }, displayQuestion);
       return;
     }
 
     if (!res.ok) {
-      renderError(loadingHolder, json, text);
+      state.pendingClarification = null;
+      renderError(loadingHolder, json, displayQuestion);
       return;
     }
-    renderSqlDraft(loadingHolder, json, text);
+
+    if (json.needs_clarification) {
+      state.pendingClarification = {
+        originalQuestion: displayQuestion,
+        transcript: `${outgoingMessage}\nAI: ${json.clarification_question || ''}`,
+      };
+      renderClarification(loadingHolder, json);
+      return;
+    }
+
+    state.pendingClarification = null;
+    renderSqlDraft(loadingHolder, json, displayQuestion);
   } catch (e) {
-    renderError(loadingHolder, { error: 'Network error reaching the server.' }, text);
+    renderError(loadingHolder, { error: 'Network error reaching the server.' }, displayQuestion);
   } finally {
     sendBtn.disabled = false;
     chatArea.scrollTop = chatArea.scrollHeight;
   }
+}
+
+function renderClarification(container, json) {
+  const question = json.clarification_question || '';
+  container.innerHTML = `
+    <div class="strip">
+      <div class="strip-section clarification-section">
+        <div class="strip-label"${dirAttr(chatUiText('clarificationLabel'))}>${escapeHtml(chatUiText('clarificationLabel'))}</div>
+        <div class="clarification-text"${dirAttr(question)}>${escapeHtml(question)}</div>
+        <p class="sql-hint"${dirAttr(chatUiText('clarificationHint'))}>${escapeHtml(chatUiText('clarificationHint'))}</p>
+      </div>
+    </div>
+  `;
 }
 
 function renderError(container, json, originalQuestion) {
@@ -1001,6 +1036,444 @@ function renderTimingsSection(timings) {
   `;
 }
 
+function toFaDigits(str) {
+  return String(str || '').replace(/[0-9]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[d]);
+}
+
+function formatPersianNumber(val) {
+  if (val === null || val === undefined || isNaN(val)) return '۰';
+  const num = Number(val);
+  if (num >= 1_000_000_000) {
+    return toFaDigits((num / 1_000_000_000).toFixed(1)) + ' میلیارد';
+  }
+  if (num >= 1_000_000) {
+    return toFaDigits((num / 1_000_000).toFixed(1)) + ' میلیون';
+  }
+  if (num >= 1_000) {
+    return toFaDigits((num / 1_000).toFixed(0)) + ' هزار';
+  }
+  return toFaDigits(num.toLocaleString('fa-IR'));
+}
+
+function buildInfographicData(data, analysisText, question) {
+  const rows = Array.isArray(data) ? data : [];
+
+  let headline = '';
+  if (analysisText) {
+    const boldMatch = analysisText.match(/\*\*(.+?)\*\*/);
+    if (boldMatch && boldMatch[1].length > 8 && boldMatch[1].length < 80) {
+      headline = boldMatch[1].trim();
+    } else {
+      const firstLine = analysisText.split('\n').map((s) => s.trim()).find((s) => s.length > 10);
+      if (firstLine) {
+        headline = firstLine.replace(/^[#\-*\d.\s]+/, '').replace(/[:：]$/, '').trim();
+      }
+    }
+  }
+  if (!headline || headline.length > 90) {
+    headline = question ? `تحلیل هوشمند: ${question}` : 'گزارش بصری و تحلیل داده‌ها';
+  }
+
+  let numericCol = null;
+  let labelCol = null;
+
+  if (rows.length > 0) {
+    const firstRow = rows[0];
+    for (const key of Object.keys(firstRow)) {
+      const val = firstRow[key];
+      if (typeof val === 'number') {
+        numericCol = numericCol || key;
+      } else if (typeof val === 'string' && !labelCol) {
+        labelCol = key;
+      }
+    }
+  }
+
+  let totalSum = 0;
+  let maxItem = null;
+  let maxValue = -Infinity;
+  const itemMap = [];
+
+  rows.forEach((r) => {
+    const numVal = numericCol && typeof r[numericCol] === 'number' ? r[numericCol] : 1;
+    totalSum += numVal;
+    const label = labelCol && r[labelCol] ? String(r[labelCol]) : `مورد ${itemMap.length + 1}`;
+    if (numVal > maxValue) {
+      maxValue = numVal;
+      maxItem = label;
+    }
+    itemMap.push({ label, value: numVal });
+  });
+
+  itemMap.sort((a, b) => b.value - a.value);
+
+  const topBreakdown = itemMap.slice(0, 4).map((it) => {
+    const pct = totalSum > 0 ? ((it.value / totalSum) * 100).toFixed(1) : (100 / Math.max(1, rows.length)).toFixed(1);
+    return {
+      label: it.label,
+      value: it.value,
+      pct: toFaDigits(pct) + '٪',
+      pctNum: Number(pct),
+    };
+  });
+
+  const kpi1 = {
+    label: numericCol ? 'حجم کل تراکنش‌ها / داده‌ها' : 'تعداد کل رکوردها',
+    value: numericCol ? formatPersianNumber(totalSum) : toFaDigits(rows.length),
+    subtext: 'رشد مثبت داده‌محور 📈',
+  };
+
+  const avgVal = rows.length > 0 ? totalSum / rows.length : 0;
+  const kpi2 = {
+    label: maxItem ? `برترین: ${maxItem}` : 'میانگین مقادیر',
+    value: maxItem ? formatPersianNumber(maxValue) : formatPersianNumber(avgVal),
+    subtext: maxItem ? 'بیشترین سهم ثبت‌شده ⚡' : 'میانگین محاسبه‌شده 🎯',
+  };
+
+  return {
+    headline,
+    subhead: 'روایت داده‌محور از تحلیل هوشمند هوش تجاری',
+    dateStr: toFaDigits(new Date().toLocaleDateString('fa-IR')),
+    kpi1,
+    kpi2,
+    topBreakdown,
+  };
+}
+
+function exportPosterAsPng(info, filename = 'analysis_poster.png') {
+  try {
+    const width = 800;
+    const items = (info && info.topBreakdown) || [];
+    const height = Math.max(540, 360 + items.length * 55 + 90);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width * 2;
+    canvas.height = height * 2;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(2, 2);
+
+    // Background Gradient Container
+    const gradient = ctx.createLinearGradient(0, 0, 0, height);
+    gradient.addColorStop(0, '#ffffff');
+    gradient.addColorStop(1, '#f4f9f6');
+
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(0, 0, width, height, 20);
+    } else {
+      ctx.rect(0, 0, width, height);
+    }
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(5, 150, 105, 0.2)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Topbar Brand
+    ctx.fillStyle = '#059669';
+    ctx.beginPath();
+    ctx.arc(width - 45, 40, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.font = 'bold 18px Vazirmatn, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#059669';
+    ctx.fillText('پلتفرم تحلیلی', width - 60, 46);
+
+    ctx.font = '13px Vazirmatn, sans-serif';
+    ctx.fillStyle = '#7a9e90';
+    ctx.fillText('دستیار هوش تجاری', width - 155, 46);
+
+    // Pill Badge
+    ctx.fillStyle = 'rgba(5, 150, 105, 0.1)';
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(35, 26, 220, 32, 16);
+    } else {
+      ctx.rect(35, 26, 220, 32);
+    }
+    ctx.fill();
+
+    ctx.font = 'bold 13px Vazirmatn, sans-serif';
+    ctx.fillStyle = '#047857';
+    ctx.textAlign = 'right';
+    ctx.fillText('📈 داده‌ها از رشد حکایت می‌کنند', 235, 47);
+
+    // Topbar Divider
+    ctx.strokeStyle = 'rgba(5, 150, 105, 0.12)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(35, 75);
+    ctx.lineTo(width - 35, 75);
+    ctx.stroke();
+
+    // Headline
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 21px Vazirmatn, sans-serif';
+    ctx.fillStyle = '#0f2a1f';
+    const headline = (info && info.headline) || 'گزارش تحلیلی داده‌محور';
+    ctx.fillText(headline, width / 2, 120);
+
+    // Subhead
+    ctx.font = '14px Vazirmatn, sans-serif';
+    ctx.fillStyle = '#5a7a6d';
+    const subtext = `${(info && info.subhead) || 'روایت داده‌محور از تحلیل هوشمند'}   |   ${(info && info.dateStr) || ''}`;
+    ctx.fillText(subtext, width / 2, 150);
+
+    // KPI Cards Grid (2 Cards)
+    const cardW = (width - 90) / 2;
+    const cardH = 120;
+    const cardY = 180;
+
+    // KPI Card 1 (Right)
+    const card1X = width - 35 - cardW;
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = 'rgba(5, 150, 105, 0.15)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(card1X, cardY, cardW, cardH, 16);
+    else ctx.rect(card1X, cardY, cardW, cardH);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.textAlign = 'right';
+    ctx.font = '14px Vazirmatn, sans-serif';
+    ctx.fillStyle = '#5a7a6d';
+    ctx.fillText(`📊  ${(info && info.kpi1 && info.kpi1.label) || ''}`, card1X + cardW - 20, cardY + 32);
+
+    ctx.font = 'bold 24px Vazirmatn, sans-serif';
+    ctx.fillStyle = '#059669';
+    ctx.fillText((info && info.kpi1 && info.kpi1.value) || '', card1X + cardW - 20, cardY + 70);
+
+    ctx.font = 'bold 12px Vazirmatn, sans-serif';
+    ctx.fillStyle = '#047857';
+    ctx.fillText(`↗  ${(info && info.kpi1 && info.kpi1.subtext) || ''}`, card1X + cardW - 20, cardY + 98);
+
+    // KPI Card 2 (Left)
+    const card2X = 35;
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = 'rgba(5, 150, 105, 0.15)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(card2X, cardY, cardW, cardH, 16);
+    else ctx.rect(card2X, cardY, cardW, cardH);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.textAlign = 'right';
+    ctx.font = '14px Vazirmatn, sans-serif';
+    ctx.fillStyle = '#5a7a6d';
+    ctx.fillText(`⚡  ${(info && info.kpi2 && info.kpi2.label) || ''}`, card2X + cardW - 20, cardY + 32);
+
+    ctx.font = 'bold 24px Vazirmatn, sans-serif';
+    ctx.fillStyle = '#059669';
+    ctx.fillText((info && info.kpi2 && info.kpi2.value) || '', card2X + cardW - 20, cardY + 70);
+
+    ctx.font = 'bold 12px Vazirmatn, sans-serif';
+    ctx.fillStyle = '#047857';
+    ctx.fillText(`↗  ${(info && info.kpi2 && info.kpi2.subtext) || ''}`, card2X + cardW - 20, cardY + 98);
+
+    // Dark Accent Box
+    if (items.length > 0) {
+      const darkY = 320;
+      const darkH = 60 + items.length * 52;
+      ctx.fillStyle = '#0f2a1f';
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(35, darkY, width - 70, darkH, 18);
+      else ctx.rect(35, darkY, width - 70, darkH);
+      ctx.fill();
+
+      ctx.textAlign = 'right';
+      ctx.font = 'bold 16px Vazirmatn, sans-serif';
+      ctx.fillStyle = '#a7f3d0';
+      ctx.fillText('🎯  برترین دسته‌ها و بیشترین سهم', width - 60, darkY + 35);
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(55, darkY + 48);
+      ctx.lineTo(width - 55, darkY + 48);
+      ctx.stroke();
+
+      let itemY = darkY + 82;
+      items.forEach((item) => {
+        ctx.textAlign = 'right';
+        ctx.font = '14px Vazirmatn, sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(`🔹 ${item.label}`, width - 60, itemY);
+
+        const barX = 140;
+        const barW = width - 390;
+        const barPctW = (barW * Math.min(100, Math.max(8, item.pctNum))) / 100;
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(barX, itemY - 11, barW, 8, 4);
+        else ctx.rect(barX, itemY - 11, barW, 8);
+        ctx.fill();
+
+        ctx.fillStyle = '#34d399';
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(barX, itemY - 11, barPctW, 8, 4);
+        else ctx.rect(barX, itemY - 11, barPctW, 8);
+        ctx.fill();
+
+        ctx.textAlign = 'right';
+        ctx.font = 'bold 15px Vazirmatn, sans-serif';
+        ctx.fillStyle = '#34d399';
+        ctx.fillText(item.pct, 125, itemY);
+
+        itemY += 50;
+      });
+    }
+
+    // Footer Stamp
+    const footerY = height - 30;
+    ctx.strokeStyle = 'rgba(5, 150, 105, 0.12)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(35, footerY - 15);
+    ctx.lineTo(width - 35, footerY - 15);
+    ctx.stroke();
+
+    ctx.textAlign = 'right';
+    ctx.font = '12px Vazirmatn, sans-serif';
+    ctx.fillStyle = '#7a9e90';
+    ctx.fillText('📄  منبع: دستیار هوشمند هوش تجاری', width - 35, footerY);
+
+    ctx.textAlign = 'left';
+    ctx.font = 'bold 12px Vazirmatn, sans-serif';
+    ctx.fillStyle = '#047857';
+    ctx.fillText('گزارش تصویری داده‌محور', 35, footerY);
+
+    // Canvas Data URL Export
+    const dataUrl = canvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.download = filename;
+    a.href = dataUrl;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } catch (err) {
+    console.error('Canvas poster export error:', err);
+    alert('خطا در تولید تصویر پوستر.');
+  }
+}
+
+function renderInfographicPoster(stripEl, question, data, analysisText) {
+  let posterWrap = stripEl.querySelector('.analysis-poster-wrapper');
+  if (!posterWrap) {
+    posterWrap = document.createElement('div');
+    posterWrap.className = 'analysis-poster-wrapper';
+    const textEl = stripEl.querySelector('.analysis-text');
+    if (textEl && textEl.parentNode) {
+      textEl.parentNode.insertBefore(posterWrap, textEl.nextSibling);
+    } else {
+      stripEl.appendChild(posterWrap);
+    }
+  }
+
+  const info = buildInfographicData(data, analysisText, question);
+
+  const breakdownRows = info.topBreakdown.map((item) => `
+    <div class="poster-dark-item">
+      <div class="poster-item-info">
+        <span>🔹</span>
+        <span class="poster-item-name">${escapeHtml(item.label)}</span>
+      </div>
+      <div class="poster-item-bar-wrap">
+        <div class="poster-item-bar" style="width: ${Math.min(100, Math.max(8, item.pctNum))}%"></div>
+      </div>
+      <span class="poster-item-pct">${escapeHtml(item.pct)}</span>
+    </div>
+  `).join('');
+
+  posterWrap.innerHTML = `
+    <div class="poster-actions">
+      <button type="button" class="poster-export-btn" title="دانلود تصویر پوستر با کیفیت بالا">
+        <span aria-hidden="true">📥</span>
+        <span>دانلود تصویر پوستر (PNG)</span>
+      </button>
+    </div>
+    <div class="analysis-infographic-poster" id="poster-${Date.now()}">
+      <div class="poster-topbar">
+        <div class="poster-brand">
+          <span class="poster-logo-dot"></span>
+          <span class="poster-brand-name">پلتفرم تحلیلی</span>
+          <span class="poster-brand-sub">دستیار هوش تجاری</span>
+        </div>
+        <div class="poster-badge">
+          <span class="poster-badge-icon">📈</span>
+          <span>داده‌ها از رشد حکایت می‌کنند</span>
+        </div>
+      </div>
+
+      <div class="poster-hero">
+        <h3 class="poster-headline"${dirAttr(info.headline)}>${escapeHtml(info.headline)}</h3>
+        <div class="poster-subhead">
+          <span>${escapeHtml(info.subhead)}</span>
+          <span class="poster-divider">|</span>
+          <span>${escapeHtml(info.dateStr)}</span>
+        </div>
+      </div>
+
+      <div class="poster-kpi-grid">
+        <div class="poster-kpi-card">
+          <div class="poster-kpi-header">
+            <span class="poster-kpi-icon">📊</span>
+            <span class="poster-kpi-label">${escapeHtml(info.kpi1.label)}</span>
+          </div>
+          <div class="poster-kpi-value">${escapeHtml(info.kpi1.value)}</div>
+          <div class="poster-kpi-trend">
+            <span class="poster-trend-arrow">↗</span>
+            <span>${escapeHtml(info.kpi1.subtext)}</span>
+          </div>
+        </div>
+
+        <div class="poster-kpi-card">
+          <div class="poster-kpi-header">
+            <span class="poster-kpi-icon">⚡</span>
+            <span class="poster-kpi-label">${escapeHtml(info.kpi2.label)}</span>
+          </div>
+          <div class="poster-kpi-value">${escapeHtml(info.kpi2.value)}</div>
+          <div class="poster-kpi-trend">
+            <span class="poster-trend-arrow">↗</span>
+            <span>${escapeHtml(info.kpi2.subtext)}</span>
+          </div>
+        </div>
+      </div>
+
+      ${breakdownRows ? `
+      <div class="poster-dark-box">
+        <div class="poster-dark-header">
+          <span class="poster-dark-icon">🎯</span>
+          <span>برترین دسته‌ها و بیشترین سهم</span>
+        </div>
+        <div class="poster-dark-list">
+          ${breakdownRows}
+        </div>
+      </div>
+      ` : ''}
+
+      <div class="poster-footer">
+        <div class="poster-source-stamp">
+          <span class="poster-stamp-icon">📄</span>
+          <span>منبع: دستیار هوشمند هوش تجاری</span>
+        </div>
+        <div class="poster-watermark">گزارش تصویری داده‌محور</div>
+      </div>
+    </div>
+  `;
+
+  const exportBtn = posterWrap.querySelector('.poster-export-btn');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', () => {
+      exportPosterAsPng(info, `analysis_poster_${Date.now()}.png`);
+    });
+  }
+}
+
 async function requestAnalysis(stripEl, question, data, language, btn, provider) {
   const placeholder = stripEl.querySelector('.analysis-placeholder');
   const textEl = stripEl.querySelector('.analysis-text');
@@ -1041,6 +1514,9 @@ async function requestAnalysis(stripEl, question, data, language, btn, provider)
     textEl.setAttribute('dir', isRtlText(json.analysis) ? 'rtl' : 'ltr');
     textEl.innerHTML = formatAnalysisHtml(json.analysis);
     timingsEl.innerHTML = json.timings ? renderTimingsSection(json.timings) : '';
+
+    renderInfographicPoster(stripEl, question, data, json.analysis);
+
     btn.textContent = chatUiText('analyzeAgain');
     if (state.lastResponse) {
       state.lastResponse.analysis = json.analysis;
@@ -1060,35 +1536,110 @@ async function requestAnalysis(stripEl, question, data, language, btn, provider)
 }
 
 function extractCorrectedSnippet(aiContent) {
-  const text = String(aiContent || '').trim();
+  let text = String(aiContent || '').trim();
   if (!text) return '';
 
-  const markerRe = /(?:^|\n)\s*(?:CORRECTED_SNIPPET|اصلاح|متن اصلاح‌شده|متن اصلاح شده)\s*:\s*/i;
+  const markerRe = /(?:^|\n)\s*(?:CORRECTED_SNIPPET|اصلاح|متن اصلاح‌شده|متن اصلاح شده|تکه اصلاح‌شده|تکه اصلاح شده|بخش اصلاح‌شده|بخش اصلاح شده)\s*:\s*/i;
   const match = text.match(markerRe);
   if (match) {
     const idx = text.indexOf(match[0]);
-    return text.slice(idx + match[0].length).trim();
+    text = text.slice(idx + match[0].length).trim();
   }
 
-  const parts = text.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
-  return parts.length > 1 ? parts[parts.length - 1] : text;
+  const codeBlockMatch = text.match(/```(?:markdown|text)?\s*([\s\S]+?)\s*```/i);
+  if (codeBlockMatch) {
+    text = codeBlockMatch[1].trim();
+  }
+
+  text = text.replace(/^[`"':«»\s]*?(?:markdown|text)\b/i, '');
+  text = text.replace(/^[`"':«»\s]+|[`"':«»\s]+$/g, '').trim();
+  return text;
 }
 
 function replaceSnippetInText(text, snippet, replacement) {
   const source = String(text || '');
   const focus = String(snippet || '').trim();
   const repl = String(replacement || '').trim();
-  if (!source || !focus || !repl) return null;
+  if (!source || !repl) return null;
 
+  if (!focus || focus === source.trim()) {
+    return repl;
+  }
+
+  // Stage 1: Exact literal match
   if (source.includes(focus)) {
     return source.replace(focus, repl);
   }
 
-  const escaped = focus.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const flexRe = new RegExp(escaped.replace(/\s+/g, '\\s+'));
-  const flexMatch = source.match(flexRe);
-  if (flexMatch) {
-    return source.replace(flexMatch[0], repl);
+  // Stage 2: Normalized whitespace & ZWNJ match
+  const normFocus = focus.replace(/[\s\u200c]+/g, ' ').trim();
+  const normSource = source.replace(/[\s\u200c]+/g, ' ');
+  const escapedNormFocus = normFocus.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const stage2Re = new RegExp(escapedNormFocus.replace(/ /g, '[\\s\\u200c]+'));
+  const stage2Match = source.match(stage2Re);
+  if (stage2Match) {
+    return source.replace(stage2Match[0], repl);
+  }
+
+  // Stage 3: Markdown-Flexible Word Sequence Match
+  const words = focus.match(/[\p{L}\p{N}]+/gu) || [];
+  if (words.length >= 2) {
+    const escapedWords = words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    const stage3Pattern = escapedWords.join('[\\*\\_\\#\\`\\-\\>\\:\\s\\u200c]*');
+    try {
+      const stage3Re = new RegExp(stage3Pattern, 'u');
+      const stage3Match = source.match(stage3Re);
+      if (stage3Match) {
+        return source.replace(stage3Match[0], repl);
+      }
+    } catch (_) {}
+  }
+
+  // Stage 4: Plain-Text Index Mapping
+  let plainSource = '';
+  const indexMap = [];
+  for (let i = 0; i < source.length; i++) {
+    const char = source[i];
+    if (char === '*' || char === '_' || char === '#' || char === '`') {
+      continue;
+    }
+    plainSource += char;
+    indexMap.push(i);
+  }
+
+  const plainFocus = focus.replace(/[\*\_\#\`]/g, '').trim();
+  if (plainFocus && plainSource.includes(plainFocus)) {
+    const plainIdx = plainSource.indexOf(plainFocus);
+    const srcStart = indexMap[plainIdx];
+    const srcEndIndex = plainIdx + plainFocus.length - 1;
+    const srcEnd = srcEndIndex < indexMap.length ? indexMap[srcEndIndex] + 1 : source.length;
+    return source.slice(0, srcStart) + repl + source.slice(srcEnd);
+  }
+
+  // Stage 5: Paragraph / Sentence Token Overlap
+  const paragraphs = source.split(/\n\s*\n/);
+  if (paragraphs.length > 1 && words.length >= 2) {
+    let bestParaIdx = -1;
+    let maxOverlap = 0;
+    const focusSet = new Set(words.map((w) => w.toLowerCase()));
+
+    for (let p = 0; p < paragraphs.length; p++) {
+      const paraWords = (paragraphs[p].match(/[\p{L}\p{N}]+/gu) || []).map((w) => w.toLowerCase());
+      let overlap = 0;
+      for (const w of paraWords) {
+        if (focusSet.has(w)) overlap++;
+      }
+      const score = overlap / Math.max(focusSet.size, 1);
+      if (score > maxOverlap && score >= 0.3) {
+        maxOverlap = score;
+        bestParaIdx = p;
+      }
+    }
+
+    if (bestParaIdx !== -1) {
+      paragraphs[bestParaIdx] = repl;
+      return paragraphs.join('\n\n');
+    }
   }
 
   return null;
@@ -1100,11 +1651,6 @@ function applySnippetToAnalysis(stripEl, focusSnippet, aiContent) {
   if (!textEl) return false;
 
   const focus = String(focusSnippet || '').trim();
-  if (!focus) {
-    alert(chatUiText('discussApplyNoFocus'));
-    return false;
-  }
-
   const currentText =
     (state.lastResponse && state.lastResponse.analysis) ||
     (textEl.innerText || textEl.textContent || '').trim();
@@ -1122,7 +1668,14 @@ function applySnippetToAnalysis(stripEl, focusSnippet, aiContent) {
   textEl.className = 'analysis-text analysis-text--ready';
   textEl.setAttribute('dir', isRtlText(newAnalysis) ? 'rtl' : 'ltr');
   textEl.innerHTML = formatAnalysisHtml(newAnalysis);
+
+  // Flash update animation for immediate user visual feedback
+  textEl.classList.remove('analysis-updated-flash');
+  void textEl.offsetWidth;
+  textEl.classList.add('analysis-updated-flash');
+
   if (state.lastResponse) state.lastResponse.analysis = newAnalysis;
+  renderInfographicPoster(stripEl, '', (state.lastResponse && state.lastResponse.data) || [], newAnalysis);
   return true;
 }
 
@@ -2406,4 +2959,104 @@ if (pollSubmitBtn) {
   });
 }
 
-window.addEventListener('DOMContentLoaded', loadFeaturePoll);
+function initDashboardAccordions() {
+  const sidebar = document.getElementById('dash-sidebar');
+  if (!sidebar) return;
+
+  const cards = sidebar.querySelectorAll('.dash-card');
+  cards.forEach((card) => {
+    const titleEl = card.querySelector('.dash-card-title');
+    if (!titleEl || titleEl.dataset.accordionWired === '1') return;
+    titleEl.dataset.accordionWired = '1';
+
+    // Start all cards collapsed for a clean sidebar
+    card.classList.add('is-collapsed');
+    titleEl.setAttribute('aria-expanded', 'false');
+
+    const toggle = () => {
+      const isCollapsed = card.classList.toggle('is-collapsed');
+      titleEl.setAttribute('aria-expanded', String(!isCollapsed));
+    };
+
+    titleEl.addEventListener('click', toggle);
+    titleEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggle();
+      }
+    });
+  });
+}
+
+/* ================================================================
+   What's New Modal
+   ================================================================ */
+function initWhatsNewModal() {
+  const overlay = document.getElementById('whatsnew-overlay');
+  const closeBtn = document.getElementById('whatsnew-close');
+  const gotItBtn = document.getElementById('whatsnew-gotit');
+
+  if (!overlay) return;
+
+  const STORAGE_KEY = 'bichart_whatsnew_seen';
+  const CURRENT_VERSION = 'v1';
+
+  function hideModal() {
+    overlay.setAttribute('hidden', '');
+    try {
+      localStorage.setItem(STORAGE_KEY, CURRENT_VERSION);
+    } catch (e) {
+      // localStorage unavailable — silently ignore
+    }
+  }
+
+  function showModal() {
+    overlay.removeAttribute('hidden');
+  }
+
+  // Check if user has already seen this version
+  let hasSeen = false;
+  try {
+    hasSeen = localStorage.getItem(STORAGE_KEY) === CURRENT_VERSION;
+  } catch (e) {
+    // localStorage unavailable — show modal anyway
+  }
+
+  if (!hasSeen) {
+    showModal();
+  }
+
+  // Close handlers
+  if (closeBtn) {
+    closeBtn.addEventListener('click', hideModal);
+  }
+  if (gotItBtn) {
+    gotItBtn.addEventListener('click', hideModal);
+  }
+
+  // Close on overlay click (clicking outside the modal)
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      hideModal();
+    }
+  });
+
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !overlay.hasAttribute('hidden')) {
+      hideModal();
+    }
+  });
+}
+
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', () => {
+    loadFeaturePoll();
+    initDashboardAccordions();
+    initWhatsNewModal();
+  });
+} else {
+  loadFeaturePoll();
+  initDashboardAccordions();
+  initWhatsNewModal();
+}

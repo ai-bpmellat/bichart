@@ -45,12 +45,23 @@ def generate_sql(user_question: str, language: str, provider: str) -> dict[str, 
     t = time.perf_counter()
     try:
         sql_result = llm.generate_sql(user_question, SCHEMA_DESCRIPTION, language=language)
-        explanation = sql_result.get("explanation", "")
     except Exception as e:
         timings["sql_generation"] = round((time.perf_counter() - t) * 1000, 1)
         timings["total"] = round((time.perf_counter() - t0) * 1000, 1)
         return {"error": f"SQL generation failed: {e}", "timings": timings, "status": 502}
     timings["sql_generation"] = round((time.perf_counter() - t) * 1000, 1)
+
+    if sql_result.get("needs_clarification"):
+        timings["total"] = round((time.perf_counter() - t0) * 1000, 1)
+        return {
+            "needs_clarification": True,
+            "clarification_question": sql_result.get("clarification_question", ""),
+            "language": language,
+            "provider": provider,
+            "timings": timings,
+        }
+
+    explanation = sql_result.get("explanation", "")
 
     t = time.perf_counter()
     raw_sql = normalize_generated_sql(strip_unrequested_limit(sql_result["sql"], user_question))

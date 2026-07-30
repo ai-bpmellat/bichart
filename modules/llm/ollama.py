@@ -34,8 +34,17 @@ REQUEST_TIMEOUT = 60
 DEBUG_SQL = os.environ.get("DEBUG_SQL", "0") == "1"
 
 SQL_SYSTEM_PROMPT = (
-    "You are a BI SQL expert. Return ONLY a valid JSON object with keys: "
-    "'sql' (the SQL query), and 'explanation' (brief description). "
+    "You are a BI SQL expert. Return ONLY a valid JSON object. "
+    "If the user's question is clear enough to translate directly into SQL, generate keys "
+    "'sql' (the SQL query) and 'explanation' (brief description). "
+    "If the question is genuinely ambiguous in any way — for example: the metric is unclear "
+    "(count vs amount vs both), the time period is unspecified, the scope or grouping is vague, "
+    "the entity (merchant/terminal/customer) is not named, or the question could be interpreted "
+    "in multiple reasonable ways — respond instead with keys 'needs_clarification' (true) and "
+    "'clarification_question' (one short question that names the concrete options the user can "
+    "pick between, formatted as a multiple-choice question). "
+    "Do not ask for clarification on questions that are already clear or that have an obvious "
+    "default; only ask when the ambiguity is genuine and would lead to different SQL queries. "
     "Do not use markdown, do not add extra text."
 )
 
@@ -45,8 +54,8 @@ SQL_SYSTEM_PROMPT = (
 RESPONSE_LANGUAGE = "fa"
 
 _LANGUAGE_INSTRUCTIONS = {
-    "fa": "Write your 'explanation' value in Persian (Farsi), using Persian script.",
-    "en": "Write your 'explanation' value in English.",
+    "fa": "Write your 'explanation' or 'clarification_question' value in Persian (Farsi), using Persian script.",
+    "en": "Write your 'explanation' or 'clarification_question' value in English.",
 }
 _ANALYSIS_LANGUAGE_INSTRUCTIONS = {
     "fa": "Respond entirely in Persian (Farsi), using Persian script. Do not use English.",
@@ -202,6 +211,9 @@ def generate_sql(user_question: str, schema_description: str, language: str = RE
         f"Do NOT add status filters unless the user explicitly asked (e.g. 'فعال فقط', 'موفق', 'ناموفق'). "
         f"If filtering terminal status, use lowercase: dim_terminal.status IN ('active','inactive'). "
         f"If filtering transaction status, use fact_transactions.status IN ('approved','declined','reversed'). "
+        f"If the question is ambiguous in any way (unclear metric, missing time period, vague scope, "
+        f"unspecified entity, or multiple reasonable interpretations), ask for clarification instead of "
+        f"guessing — offer concrete multiple-choice options. "
         f"{lang_instruction} The 'sql' value must remain valid SQL syntax regardless of language. "
         f"Respond with ONLY the JSON object, no other text."
     )
@@ -211,6 +223,12 @@ def generate_sql(user_question: str, schema_description: str, language: str = RE
         print(f"\n--- [ollama_client] RAW model output for SQL generation ---\n{raw}\n")
 
     parsed = _extract_json(raw)
+
+    if parsed.get("needs_clarification"):
+        return {
+            "needs_clarification": True,
+            "clarification_question": parsed.get("clarification_question", ""),
+        }
 
     if DEBUG_SQL:
         print(f"--- [ollama_client] Parsed SQL ---\n{parsed.get('sql')}\n")
