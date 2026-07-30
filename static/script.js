@@ -53,8 +53,20 @@ window.addEventListener('DOMContentLoaded', async () => {
   await loadHistorySidebar();
   await loadFrequentQuestions();
 
+  setupChartModal();
+  setupHelpModal();
+
   // Check user role and show/hide admin buttons
   await checkUserRole();
+
+  // Pre-fill query if coming from help page sample link (?q=...)
+  const params = new URLSearchParams(window.location.search);
+  const qParam = params.get('q');
+  if (qParam && messageInput) {
+    messageInput.value = qParam;
+    messageInput.dir = isRtlText(qParam) ? 'rtl' : 'ltr';
+    sendMessage();
+  }
 });
 
 langToggleBtn.addEventListener('click', () => toggleLanguage(true));
@@ -2164,7 +2176,25 @@ function chartFontFamily() {
     : '"IBM Plex Sans", "Segoe UI", sans-serif';
 }
 
-function prepareChartRows(data, labelColHint = null, numericColHint = null) {
+function formatCompactNumber(val) {
+  if (val === null || val === undefined) return '';
+  const num = Number(val);
+  if (Number.isNaN(num)) return String(val);
+  const abs = Math.abs(num);
+  if (abs >= 1000000000) {
+    return (num / 1000000000).toLocaleString(undefined, { maximumFractionDigits: 1 }) + 'B';
+  }
+  if (abs >= 1000000) {
+    return (num / 1000000).toLocaleString(undefined, { maximumFractionDigits: 1 }) + 'M';
+  }
+  if (abs >= 1000) {
+    return (num / 1000).toLocaleString(undefined, { maximumFractionDigits: 1 }) + 'K';
+  }
+  return num.toLocaleString();
+}
+
+function prepareChartRows(data, labelColHint = null, numericColHint = null, maxItemsLimit = CHART_MAX_ITEMS) {
+  if (!data || !data.length) return null;
   const cols = Object.keys(data[0]);
   const numericCol = numericColHint || pickNumericColumn(cols, data[0]);
   const labelCol = labelColHint || pickLabelColumn(cols, data[0], numericCol);
@@ -2173,7 +2203,8 @@ function prepareChartRows(data, labelColHint = null, numericColHint = null) {
   const sorted = [...data].sort(
     (a, b) => toNumeric(b[numericCol]) - toNumeric(a[numericCol])
   );
-  const limited = sorted.length > CHART_MAX_ITEMS ? sorted.slice(0, CHART_MAX_ITEMS) : sorted;
+  const limit = maxItemsLimit || CHART_MAX_ITEMS;
+  const limited = sorted.length > limit ? sorted.slice(0, limit) : sorted;
 
   return {
     labelCol,
@@ -2217,19 +2248,24 @@ function buildChartColors(count) {
   return Array.from({ length: count }, (_, i) => CHART_PALETTE[i % CHART_PALETTE.length]);
 }
 
-function categoryAxisTickCallback(labels) {
+function categoryAxisTickCallback(labels, isMini = false) {
   return (value, index) => {
+    let raw = '';
     if (labels[index] !== undefined && labels[index] !== null && labels[index] !== '') {
-      return String(labels[index]);
+      raw = String(labels[index]);
+    } else if (typeof value === 'string' && value !== '' && Number.isNaN(Number(value))) {
+      raw = value;
     }
-    if (typeof value === 'string' && value !== '' && Number.isNaN(Number(value))) {
-      return value;
+    if (!raw) return '';
+    if (isMini && raw.length > 12) {
+      return raw.slice(0, 10) + '…';
     }
-    return '';
+    return raw;
   };
 }
 
-function createChartInstance(canvas, type, chartData) {
+function createChartInstance(canvas, type, chartData, options = {}) {
+  const isMini = Boolean(options.isMini);
   const { labels, values, labelCol, numericCol } = chartData;
   const labelTitle = columnLabel(labelCol);
   const valueTitle = columnLabel(numericCol);
@@ -2239,9 +2275,7 @@ function createChartInstance(canvas, type, chartData) {
   const isPie = type === 'pie' || type === 'doughnut';
   const isLine = type === 'line';
   const chartType = isPie ? type : isLine ? 'line' : 'bar';
-  const categoryTickCb = categoryAxisTickCallback(labels);
-  // Pie/doughnut slices can't represent negative values (Chart.js renders them as
-  // near-invisible or distorted slices); show magnitude there, keep signed values elsewhere.
+  const categoryTickCb = categoryAxisTickCallback(labels, isMini);
   const plotValues = isPie ? values.map((v) => Math.abs(v)) : values;
 
   const dataset = {
@@ -2250,10 +2284,10 @@ function createChartInstance(canvas, type, chartData) {
     backgroundColor: isLine ? 'rgba(31, 111, 84, 0.15)' : colors,
     borderColor: isLine ? '#1f6f54' : colors.map((c) => c),
     borderWidth: isLine ? 2.5 : 1,
-    borderRadius: isPie || isLine ? 0 : 4,
+    borderRadius: isPie || isLine ? 0 : (isMini ? 4 : 6),
     fill: isLine,
     tension: 0.3,
-    pointRadius: isLine ? 4 : 0,
+    pointRadius: isLine ? (isMini ? 3 : 4) : 0,
     pointHoverRadius: isLine ? 6 : 0,
   };
 
@@ -2266,31 +2300,41 @@ function createChartInstance(canvas, type, chartData) {
       responsive: true,
       maintainAspectRatio: false,
       indexAxis: isHorizontal ? 'y' : 'x',
-      layout: { padding: { top: 8, right: rtl ? 12 : 8, bottom: 8, left: rtl ? 8 : 12 } },
+      layout: {
+        padding: isMini
+          ? { top: 6, right: 6, bottom: 6, left: 6 }
+          : { top: 8, right: rtl ? 12 : 8, bottom: 8, left: rtl ? 8 : 12 },
+      },
       plugins: {
         legend: {
           display: isPie,
           position: 'bottom',
           rtl,
           labels: {
-            font: { family: font, size: 12 },
+            font: { family: font, size: isMini ? 10 : 12 },
             color: '#1c2024',
-            padding: 14,
-            boxWidth: 14,
-            boxHeight: 14,
+            padding: isMini ? 6 : 14,
+            boxWidth: isMini ? 10 : 14,
+            boxHeight: isMini ? 10 : 14,
             usePointStyle: true,
             generateLabels(chart) {
               const ds = chart.data.datasets[0];
-              return chart.data.labels.map((text, i) => ({
-                text: String(text),
-                fillStyle: Array.isArray(ds.backgroundColor)
-                  ? ds.backgroundColor[i]
-                  : ds.backgroundColor,
-                strokeStyle: Array.isArray(ds.borderColor) ? ds.borderColor[i] : ds.borderColor,
-                lineWidth: 1,
-                hidden: false,
-                index: i,
-              }));
+              return chart.data.labels.map((text, i) => {
+                let labelStr = String(text);
+                if (isMini && labelStr.length > 10) {
+                  labelStr = labelStr.slice(0, 8) + '…';
+                }
+                return {
+                  text: labelStr,
+                  fillStyle: Array.isArray(ds.backgroundColor)
+                    ? ds.backgroundColor[i]
+                    : ds.backgroundColor,
+                  strokeStyle: Array.isArray(ds.borderColor) ? ds.borderColor[i] : ds.borderColor,
+                  lineWidth: 1,
+                  hidden: false,
+                  index: i,
+                };
+              });
             },
           },
         },
@@ -2301,9 +2345,6 @@ function createChartInstance(canvas, type, chartData) {
           callbacks: {
             title: (items) => String(items[0]?.label ?? ''),
             label: (ctx) => {
-              // Read the original (signed) value by index rather than ctx.parsed.x/y,
-              // which swap meaning between vertical and horizontal bars and previously
-              // showed the wrong number (or the abs-valued slice) on hover.
               const val = values[ctx.dataIndex] ?? ctx.raw ?? 0;
               return `${valueTitle}: ${Number(val).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
             },
@@ -2318,42 +2359,44 @@ function createChartInstance(canvas, type, chartData) {
               display: true,
               position: isHorizontal ? 'top' : 'bottom',
               title: {
-                display: true,
+                display: !isMini,
                 text: isHorizontal ? valueTitle : labelTitle,
-                font: { family: font, size: 13, weight: '600' },
+                font: { family: font, size: 12, weight: '600' },
                 color: '#15523e',
-                padding: { top: 8 },
+                padding: { top: 4 },
               },
               ticks: {
-                font: { family: font, size: 11 },
+                font: { family: font, size: isMini ? 10 : 11 },
                 color: '#5b6168',
-                autoSkip: false,
-                maxRotation: isHorizontal ? 0 : 45,
+                autoSkip: true,
+                maxTicksLimit: isMini ? 6 : 15,
+                maxRotation: 0,
                 minRotation: 0,
                 callback: isHorizontal
-                  ? (v) => Number(v).toLocaleString(undefined, { maximumFractionDigits: 0 })
+                  ? (v) => formatCompactNumber(v)
                   : categoryTickCb,
               },
-              grid: { color: 'rgba(216, 211, 197, 0.5)' },
+              grid: { color: isMini ? 'rgba(5, 150, 105, 0.05)' : 'rgba(216, 211, 197, 0.5)' },
             },
             y: {
               type: isHorizontal ? 'category' : 'linear',
               display: true,
               title: {
-                display: true,
+                display: !isMini,
                 text: isHorizontal ? labelTitle : valueTitle,
-                font: { family: font, size: 13, weight: '600' },
+                font: { family: font, size: 12, weight: '600' },
                 color: '#15523e',
               },
               ticks: {
-                font: { family: font, size: 11 },
+                font: { family: font, size: isMini ? 10 : 11 },
                 color: '#5b6168',
-                autoSkip: false,
+                autoSkip: true,
+                maxTicksLimit: isMini ? 5 : 10,
                 callback: isHorizontal
                   ? categoryTickCb
-                  : (v) => Number(v).toLocaleString(undefined, { maximumFractionDigits: 0 }),
+                  : (v) => formatCompactNumber(v),
               },
-              grid: { color: 'rgba(216, 211, 197, 0.5)' },
+              grid: { color: isMini ? 'rgba(5, 150, 105, 0.05)' : 'rgba(216, 211, 197, 0.5)' },
             },
           },
     },
@@ -2369,6 +2412,241 @@ function showChartUnavailable(container, message) {
   `;
 }
 
+// ---------------------------------------------------------------------------
+// Interactive Pop-up Zoom Modal System
+// ---------------------------------------------------------------------------
+const chartModalState = {
+  configs: [],
+  currentIndex: 0,
+  data: [],
+  instance: null,
+};
+
+function setupChartModal() {
+  const overlay = document.getElementById('chart-modal-overlay');
+  if (!overlay) return;
+
+  const closeBtn = document.getElementById('chart-modal-close');
+  const prevBtn = document.getElementById('chart-modal-prev');
+  const nextBtn = document.getElementById('chart-modal-next');
+  const kindSelect = document.getElementById('modal-kind-select');
+  const labelSelect = document.getElementById('modal-label-select');
+  const valueSelect = document.getElementById('modal-value-select');
+  const printBtn = document.getElementById('modal-print-btn');
+  const exportBtn = document.getElementById('modal-export-btn');
+
+  function closeModal() {
+    overlay.hidden = true;
+    document.body.style.overflow = '';
+    if (chartModalState.instance) {
+      chartModalState.instance.destroy();
+      chartModalState.instance = null;
+    }
+  }
+
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeModal();
+  });
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !overlay.hidden) closeModal();
+  });
+
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      if (!chartModalState.configs.length) return;
+      chartModalState.currentIndex =
+        (chartModalState.currentIndex - 1 + chartModalState.configs.length) %
+        chartModalState.configs.length;
+      renderModalChart();
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      if (!chartModalState.configs.length) return;
+      chartModalState.currentIndex =
+        (chartModalState.currentIndex + 1) % chartModalState.configs.length;
+      renderModalChart();
+    });
+  }
+
+  if (kindSelect) {
+    kindSelect.addEventListener('change', () => {
+      const cfg = chartModalState.configs[chartModalState.currentIndex];
+      if (cfg) {
+        cfg.type = kindSelect.value;
+        renderModalChart();
+      }
+    });
+  }
+
+  if (labelSelect) {
+    labelSelect.addEventListener('change', () => {
+      const cfg = chartModalState.configs[chartModalState.currentIndex];
+      if (cfg) {
+        cfg.labelCol = labelSelect.value;
+        fillColumnSelect(valueSelect, listChartColumns(chartModalState.data), chartModalState.data[0], cfg.numericCol, 'value', cfg.labelCol);
+        renderModalChart();
+      }
+    });
+  }
+
+  if (valueSelect) {
+    valueSelect.addEventListener('change', () => {
+      const cfg = chartModalState.configs[chartModalState.currentIndex];
+      if (cfg) {
+        cfg.numericCol = valueSelect.value;
+        renderModalChart();
+      }
+    });
+  }
+
+  if (printBtn) {
+    printBtn.addEventListener('click', () => {
+      const canvas = document.getElementById('chart-modal-canvas');
+      const titleEl = document.getElementById('chart-modal-title');
+      if (canvas) printChartAsImage(canvas, titleEl ? titleEl.textContent : '');
+    });
+  }
+
+  if (exportBtn) {
+    exportBtn.addEventListener('click', () => {
+      const canvas = document.getElementById('chart-modal-canvas');
+      if (canvas) {
+        try {
+          const url = canvas.toDataURL('image/png');
+          const a = document.createElement('a');
+          a.download = `chart_${Date.now()}.png`;
+          a.href = url;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        } catch (_) {}
+      }
+    });
+  }
+}
+
+function openInteractiveChartModal(configs, initialIndex, data) {
+  const overlay = document.getElementById('chart-modal-overlay');
+  if (!overlay) return;
+  chartModalState.configs = configs;
+  chartModalState.currentIndex = initialIndex || 0;
+  chartModalState.data = data;
+
+  overlay.hidden = false;
+  document.body.style.overflow = 'hidden';
+  renderModalChart();
+}
+
+function renderModalChart() {
+  const overlay = document.getElementById('chart-modal-overlay');
+  if (!overlay || overlay.hidden) return;
+
+  const cfg = chartModalState.configs[chartModalState.currentIndex];
+  const data = chartModalState.data;
+  if (!cfg || !data || !data.length) return;
+
+  const stepEl = document.getElementById('chart-modal-step');
+  const titleEl = document.getElementById('chart-modal-title');
+  const kindSelect = document.getElementById('modal-kind-select');
+  const labelSelect = document.getElementById('modal-label-select');
+  const valueSelect = document.getElementById('modal-value-select');
+  const canvas = document.getElementById('chart-modal-canvas');
+  const noteEl = document.getElementById('chart-modal-note');
+
+  if (stepEl) stepEl.textContent = `${chartModalState.currentIndex + 1} از ${chartModalState.configs.length}`;
+  if (titleEl) {
+    titleEl.textContent = cfg.title;
+    titleEl.setAttribute('dir', isRtlText(cfg.title) ? 'rtl' : 'ltr');
+  }
+
+  const cols = listChartColumns(data);
+  fillColumnSelect(labelSelect, cols, data[0], cfg.labelCol, 'label', cfg.numericCol);
+  fillColumnSelect(valueSelect, cols, data[0], cfg.numericCol, 'value', cfg.labelCol);
+  if (kindSelect) kindSelect.value = cfg.type;
+
+  if (chartModalState.instance) {
+    chartModalState.instance.destroy();
+    chartModalState.instance = null;
+  }
+
+  const chartData = prepareChartRows(data, cfg.labelCol, cfg.numericCol, 20);
+  if (!chartData) {
+    if (noteEl) noteEl.textContent = chartUiText('noColumns');
+    return;
+  }
+
+  try {
+    chartModalState.instance = createChartInstance(canvas, cfg.type, chartData, { isMini: false });
+    state.lastChart = chartModalState.instance;
+  } catch (e) {
+    if (noteEl) noteEl.textContent = chartUiText('noChart');
+    return;
+  }
+
+  if (noteEl) {
+    const text = chartData.shownRows < chartData.totalRows
+      ? chartUiText('showingTop')(chartData.shownRows, chartData.totalRows)
+      : chartUiText('allRows')(chartData.shownRows);
+    noteEl.textContent = text;
+    noteEl.setAttribute('dir', isRtlText(text) ? 'rtl' : 'ltr');
+  }
+}
+
+function prepareQuadChartConfigs(data) {
+  const cols = listChartColumns(data);
+  if (!cols || !cols.length) return null;
+  const row = data[0];
+  const primaryNumeric = pickNumericColumn(cols, row);
+  if (!primaryNumeric) return null;
+  const labelCol = pickLabelColumn(cols, row, primaryNumeric);
+  if (!labelCol) return null;
+
+  const otherNumerics = cols.filter((c) => isNumericColumnCandidate(c, row) && c !== primaryNumeric);
+  const secondaryNumeric = otherNumerics.length ? otherNumerics[0] : primaryNumeric;
+
+  const labelTitle = columnLabel(labelCol);
+  const primaryTitle = columnLabel(primaryNumeric);
+  const secondaryTitle = columnLabel(secondaryNumeric);
+
+  return [
+    {
+      id: 'quad-1',
+      title: `میله‌ای: ${labelTitle} / ${primaryTitle}`,
+      type: 'bar',
+      labelCol,
+      numericCol: primaryNumeric,
+      icon: '📊',
+    },
+    {
+      id: 'quad-2',
+      title: `روند خطی: ${labelTitle} / ${primaryTitle}`,
+      type: 'line',
+      labelCol,
+      numericCol: primaryNumeric,
+      icon: '📈',
+    },
+    {
+      id: 'quad-3',
+      title: `سهم دایره‌ای: ${labelTitle} / ${primaryTitle}`,
+      type: 'doughnut',
+      labelCol,
+      numericCol: primaryNumeric,
+      icon: '🍩',
+    },
+    {
+      id: 'quad-4',
+      title: `میله‌ای افقی: ${labelTitle} / ${secondaryTitle}`,
+      type: 'barHorizontal',
+      labelCol,
+      numericCol: secondaryNumeric,
+      icon: '📋',
+    },
+  ];
+}
+
 function maybeRenderChart(container, data) {
   if (!data || data.length < 1) {
     showChartUnavailable(container, chartUiText('noRows'));
@@ -2379,6 +2657,87 @@ function maybeRenderChart(container, data) {
     return;
   }
 
+  const quadConfigs = prepareQuadChartConfigs(data);
+  if (!quadConfigs) {
+    showChartUnavailable(container, chartUiText('noColumns'));
+    return;
+  }
+
+  let viewMode = 'quad';
+
+  function renderView() {
+    if (viewMode === 'quad') {
+      renderQuadGridView(container, data, quadConfigs, switchView);
+    } else {
+      renderSingleChartView(container, data, switchView);
+    }
+  }
+
+  function switchView(newMode) {
+    viewMode = newMode;
+    renderView();
+  }
+
+  renderView();
+}
+
+function renderQuadGridView(container, data, configs, onSwitchView) {
+  container.innerHTML = `
+    <div class="chart-panel">
+      <div class="chart-header">
+        <div class="chart-header-title-wrap">
+          <h3 class="chart-title" dir="rtl">📊 ۴ نمودار تحلیلی داده‌ها</h3>
+          <span class="chart-header-subtitle" dir="rtl">برای بزرگ‌نمایی تعاملی، روی هر مربع کلیک کنید</span>
+        </div>
+        <div class="chart-header-actions">
+          <div class="chart-view-toggle">
+            <button type="button" class="chart-view-btn chart-view-btn-quad is-active" title="نمایش ۴ نمودار هم‌زمان">۴ نمودار هم‌زمان</button>
+            <button type="button" class="chart-view-btn chart-view-btn-single" title="نمایش تک نمودار">تک نمودار</button>
+          </div>
+        </div>
+      </div>
+      <div class="chart-grid-quad">
+        ${configs.map((cfg, idx) => `
+          <div class="chart-card-quad" data-index="${idx}">
+            <div class="chart-card-quad-header">
+              <span class="chart-card-quad-title">
+                <span class="chart-card-icon">${cfg.icon}</span>
+                <span>${escapeHtml(cfg.title)}</span>
+              </span>
+              <span class="chart-card-zoom-hint">🔍 بزرگ‌نمایی</span>
+            </div>
+            <div class="chart-card-canvas-wrap">
+              <canvas id="quad-canvas-${idx}-${Math.random().toString(36).slice(2, 7)}"></canvas>
+            </div>
+            <div class="chart-card-quad-footer">کلیک کنید تا به صورت پاپ‌آپ تعاملی بزرگ شود</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  const singleBtn = container.querySelector('.chart-view-btn-single');
+  if (singleBtn) singleBtn.addEventListener('click', () => onSwitchView('single'));
+
+  const cards = container.querySelectorAll('.chart-card-quad');
+  cards.forEach((card, idx) => {
+    const cfg = configs[idx];
+    const canvas = card.querySelector('canvas');
+    // Top 5 items per mini card for maximum clarity and zero text overlap!
+    const chartData = prepareChartRows(data, cfg.labelCol, cfg.numericCol, 5);
+    if (canvas && chartData) {
+      try {
+        const inst = createChartInstance(canvas, cfg.type, chartData, { isMini: true });
+        if (idx === 0) state.lastChart = inst;
+      } catch (_) {}
+    }
+    card.addEventListener('click', () => {
+      openInteractiveChartModal(configs, idx, data);
+    });
+  });
+}
+
+function renderSingleChartView(container, data, onSwitchView) {
   const chartData = prepareChartRows(data);
   if (!chartData) {
     showChartUnavailable(container, chartUiText('noColumns'));
@@ -2402,24 +2761,30 @@ function maybeRenderChart(container, data) {
     <div class="chart-panel">
       <div class="chart-header">
         <h3 class="chart-title"${dirAttr(titleText)}>${escapeHtml(titleText)}</h3>
-        <div class="chart-controls">
-          <label${dirAttr(chartUiText('labelColumn'))}>
-            <span>${escapeHtml(chartUiText('labelColumn'))}</span>
-            <select class="chart-label-col-select chart-type-select"></select>
-          </label>
-          <label${dirAttr(chartUiText('valueColumn'))}>
-            <span>${escapeHtml(chartUiText('valueColumn'))}</span>
-            <select class="chart-value-col-select chart-type-select"></select>
-          </label>
-          <label${dirAttr(chartUiText('chartType'))}>
-            <span>${escapeHtml(chartUiText('chartType'))}</span>
-            <select class="chart-type-select chart-kind-select" aria-label="${escapeHtml(chartUiText('chartType'))}">
-              ${typeOptions}
-            </select>
-          </label>
-          <button type="button" class="ghost-btn chart-print-btn" title="${escapeHtml(chartUiText('printChart'))}">
-            <span aria-hidden="true">🖨️</span> ${escapeHtml(chartUiText('printChart'))}
-          </button>
+        <div class="chart-header-actions">
+          <div class="chart-view-toggle">
+            <button type="button" class="chart-view-btn chart-view-btn-quad" title="نمایش ۴ نمودار هم‌زمان">۴ نمودار هم‌زمان</button>
+            <button type="button" class="chart-view-btn chart-view-btn-single is-active" title="نمایش تک نمودار">تک نمودار</button>
+          </div>
+          <div class="chart-controls">
+            <label${dirAttr(chartUiText('labelColumn'))}>
+              <span>${escapeHtml(chartUiText('labelColumn'))}</span>
+              <select class="chart-label-col-select chart-type-select"></select>
+            </label>
+            <label${dirAttr(chartUiText('valueColumn'))}>
+              <span>${escapeHtml(chartUiText('valueColumn'))}</span>
+              <select class="chart-value-col-select chart-type-select"></select>
+            </label>
+            <label${dirAttr(chartUiText('chartType'))}>
+              <span>${escapeHtml(chartUiText('chartType'))}</span>
+              <select class="chart-type-select chart-kind-select" aria-label="${escapeHtml(chartUiText('chartType'))}">
+                ${typeOptions}
+              </select>
+            </label>
+            <button type="button" class="ghost-btn chart-print-btn" title="${escapeHtml(chartUiText('printChart'))}">
+              <span aria-hidden="true">🖨️</span> ${escapeHtml(chartUiText('printChart'))}
+            </button>
+          </div>
         </div>
       </div>
       <div class="chart-canvas-wrap">
@@ -2428,6 +2793,9 @@ function maybeRenderChart(container, data) {
       <div class="chart-note"${dirAttr(noteText)}>${escapeHtml(noteText)}</div>
     </div>
   `;
+
+  const quadBtn = container.querySelector('.chart-view-btn-quad');
+  if (quadBtn) quadBtn.addEventListener('click', () => onSwitchView('quad'));
 
   const canvasWrap = container.querySelector('.chart-canvas-wrap');
   const canvas = container.querySelector('canvas');
@@ -2479,8 +2847,6 @@ function maybeRenderChart(container, data) {
     noteEl.setAttribute('dir', isRtlText(text) ? 'rtl' : 'ltr');
   }
 
-  // Single entry point for every chart-type switch (initial render, type select,
-  // or column select) so bar/horizontal-bar/line/pie/doughnut never diverge.
   function rebuildChart(type) {
     if (chartInstance) {
       chartInstance.destroy();
@@ -3059,4 +3425,258 @@ if (document.readyState === 'loading') {
   loadFeaturePoll();
   initDashboardAccordions();
   initWhatsNewModal();
+}
+
+// ---------------------------------------------------------------------------
+// Bilingual System Help Panel Modal
+// ---------------------------------------------------------------------------
+const HELP_FEATURES = {
+  fa: {
+    title: 'راهنمای جامع دستیار هوش تجاری',
+    subtitle: 'آشنایی کامل با تمامی قابلیت‌ها و امکانات پیشرفته سیستم',
+    footerNote: '💡 نکته: برای شروع سریع، می‌توانید بر روی یکی از پیشنهادهای آزمایشی کلیک کنید.',
+    gotitBtn: 'متوجه شدم',
+    sampleTitle: 'پیشنهاد آزمایشی سریع:',
+    features: [
+      {
+        icon: '🤖',
+        title: '۱. پرسش و پاسخ هوشمند و SQL خودکار',
+        badge: 'هوش مصنوعی تعاملی',
+        desc: 'پرسش درباره داده‌ها به زبان فارسی یا انگلیسی. تولید خودکار و هوشمند queries SQL توسط مدل‌های هوش مصنوعی (AvalAI / Ollama) با قابلیت اصلاح خودکار خطاها (Auto-Fix) و ویرایش دستی کد.',
+        prompt: '۱۰ فروشنده برتر از نظر حجم تراکنش را نشان بده',
+      },
+      {
+        icon: '📊',
+        title: '۲. ۴ نمودار هم‌زمان و پاپ‌آپ بزرگ‌نمایی',
+        badge: 'تجسم پیشرفته داده‌ها',
+        desc: 'رسم خودکار ۴ نمودار متناسب با داده‌ها در ۴ مربع خلوت (میله‌ای، خطی، دایره‌ای، افقی). کلیک روی هر مربع، پنجره پاپ‌آپ بزرگ‌نمایی تعاملی با امکان تغییر نوع نمودار و ستون‌ها را باز می‌کند.',
+        prompt: 'نمودار حجم تراکنش ماهانه',
+      },
+      {
+        icon: '🖼️',
+        title: '۳. پوستر تصویری اینفوگرافیک',
+        badge: 'گزارش‌دهی تصویری',
+        desc: 'تولید خودکار پوستر داده‌محور شیک شامل شاخص‌های کلیدی عملکرد (KPIs) و برترین دسته‌ها پس از تحلیل، همراه با قابلیت دانلود تصویر کیفیت بالای PNG.',
+        prompt: 'خلاصه تراکنش‌های امروز را بده',
+      },
+      {
+        icon: '💬',
+        title: '۴. بحث و بررسی هوشمند نتایج',
+        badge: 'تحلیل تعاملی و اصلاحیه',
+        desc: 'امکان انتخاب یا هایلایت کردن هر بخش از متن تحلیل AI، ارسال سؤال، اعتراض یا چالش برای هوش مصنوعی و جایگزینی مستقیم پاسخ در گزارش اصلی.',
+        prompt: 'تراکنش‌های ناموفق دیروز را نشان بده',
+      },
+      {
+        icon: '🔊',
+        title: '۵. ورودی صوتی دو زبانه (FA/EN)',
+        badge: 'پردازش گفتار صوتی',
+        desc: 'پرسش سوالات تراکنشی به صورت صوتی با استفاده از دکمه میکروفون به هر دو زبان فارسی و انگلیسی بدون نیاز به تایپ کردن.',
+      },
+      {
+        icon: '📤',
+        title: '۶. خروجی PDF و Excel با یک کلیک',
+        badge: 'گزارش‌گیری استاندارد',
+        desc: 'دریافت خروجی کامل گزارش شامل متن تحلیل هوش مصنوعی، تصویر نمودار گرافیکی و جدول داده‌ها در قالب فایل‌های رسمی PDF و Excel.',
+      },
+      {
+        icon: '⏱️',
+        title: '۷. پایش زمان‌بندی سرویس‌ها (Timings)',
+        badge: 'شفافیت فرایند processing',
+        desc: 'مشاهده دقیق مدت زمان تفکیکی هر مرحله از فرایند پردازش (تولید SQL، بررسی امنیت، اجرای دیتابیس، تحلیل و بحث) به صورت نمودار میله‌ای.',
+      },
+      {
+        icon: '🕘',
+        title: '۸. تاریخچه، سؤالات پرتکرار و نظرسنجی',
+        badge: 'مدیریت و شخصی‌سازی',
+        desc: 'دسترسی سریع به ۱۰ سؤال پرتکرار، بازپخش کامل گفتگوی قدیمی، کارت‌های جمع‌شونده نوار کناری و مشارکت در نظرسنجی قابلیت‌های آتی.',
+      },
+    ],
+  },
+  en: {
+    title: 'Complete BI Assistant Guide',
+    subtitle: 'Explore all key features and advanced analytical capabilities of the platform',
+    footerNote: '💡 Tip: Click on any sample prompt to test it immediately.',
+    gotitBtn: 'Got it',
+    sampleTitle: 'Quick sample prompt:',
+    features: [
+      {
+        icon: '🤖',
+        title: '1. Conversational AI & Automatic SQL',
+        badge: 'Interactive AI Query',
+        desc: 'Ask transaction questions in natural Persian or English. AI automatically constructs SQL queries using AvalAI/Ollama with manual editing and automatic error self-healing (Auto-Fix).',
+        prompt: 'Show top 10 merchants by volume',
+      },
+      {
+        icon: '📊',
+        title: '2. Interactive 4-Chart Quad Grid & Modal Zoom',
+        badge: 'Data Visualization',
+        desc: 'Renders 4 clean analytical charts (Vertical Bar, Line, Pie, Horizontal Bar) in 4 square cards. Click any card to open an interactive pop-up zoom with chart type & column selectors.',
+        prompt: 'Show monthly transaction volume chart',
+      },
+      {
+        icon: '🖼️',
+        title: '3. Infographic Visual Poster',
+        badge: 'Visual Reporting',
+        desc: 'Automatic generation of data-driven infographic posters featuring Key Performance Indicators (KPIs) and top category shares, downloadable as high-resolution PNG images.',
+        prompt: 'Show today transaction summary',
+      },
+      {
+        icon: '💬',
+        title: '4. Discussion & Challenge Panel',
+        badge: 'Interactive Analysis Refinement',
+        desc: 'Highlight any sentence or text snippet in the AI analysis to challenge or clarify. Smart AI replies can be applied directly to update the original report text.',
+        prompt: 'Show yesterday failed transactions',
+      },
+      {
+        icon: '🔊',
+        title: '5. Bilingual Voice Input (FA/EN)',
+        badge: 'Speech Recognition',
+        desc: 'Ask transaction questions directly via speech recognition in Persian or English by clicking the microphone icon without typing.',
+      },
+      {
+        icon: '📤',
+        title: '6. One-Click PDF & Excel Exports',
+        badge: 'Standard Exporting',
+        desc: 'Export full reports containing AI analysis text, high-res chart visuals, and formatted data tables into standard PDF and Excel files.',
+      },
+      {
+        icon: '⏱️',
+        title: '7. Service Pipeline Timings',
+        badge: 'Processing Transparency',
+        desc: 'Inspect step-by-step performance timelines for SQL generation, safety checks, database queries, analysis, and discussion.',
+      },
+      {
+        icon: '🕘',
+        title: '8. History, Top Questions & Feature Poll',
+        badge: 'Management & Personalization',
+        desc: 'Quick access to top 10 frequent questions, historical conversation replay, collapsible sidebar panels, and community feature voting.',
+      },
+    ],
+  },
+};
+
+const helpModalState = {
+  lang: 'fa',
+};
+
+function openHelpModal() {
+  const overlay = document.getElementById('help-modal-overlay');
+  if (!overlay) return;
+  overlay.removeAttribute('hidden');
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  renderHelpContent();
+}
+
+function closeHelpModal() {
+  const overlay = document.getElementById('help-modal-overlay');
+  if (!overlay) return;
+  overlay.setAttribute('hidden', '');
+  overlay.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function setupHelpModal() {
+  const helpBtn = document.getElementById('help-btn');
+  const overlay = document.getElementById('help-modal-overlay');
+  if (!overlay) return;
+
+  const closeBtn = document.getElementById('help-modal-close');
+  const gotitBtn = document.getElementById('help-gotit-btn');
+  const faBtn = document.getElementById('help-lang-fa');
+  const enBtn = document.getElementById('help-lang-en');
+
+  if (helpBtn) helpBtn.addEventListener('click', openHelpModal);
+  if (closeBtn) closeBtn.addEventListener('click', closeHelpModal);
+  if (gotitBtn) gotitBtn.addEventListener('click', closeHelpModal);
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeHelpModal();
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !overlay.hasAttribute('hidden')) {
+      closeHelpModal();
+    }
+  });
+
+  if (faBtn) {
+    faBtn.addEventListener('click', () => {
+      helpModalState.lang = 'fa';
+      faBtn.classList.add('is-active');
+      if (enBtn) enBtn.classList.remove('is-active');
+      renderHelpContent();
+    });
+  }
+
+  if (enBtn) {
+    enBtn.addEventListener('click', () => {
+      helpModalState.lang = 'en';
+      enBtn.classList.add('is-active');
+      if (faBtn) faBtn.classList.remove('is-active');
+      renderHelpContent();
+    });
+  }
+}
+
+// Allow native navigation to /help page via <a href="/help">
+
+function renderHelpContent() {
+  const bodyEl = document.getElementById('help-modal-body');
+  const titleEl = document.getElementById('help-modal-title');
+  const subtitleEl = document.getElementById('help-modal-subtitle');
+  const noteEl = document.getElementById('help-footer-note');
+  const gotitBtn = document.getElementById('help-gotit-btn');
+  if (!bodyEl) return;
+
+  const lang = helpModalState.lang || 'fa';
+  const content = HELP_FEATURES[lang];
+
+  if (titleEl) {
+    titleEl.textContent = content.title;
+    titleEl.setAttribute('dir', lang === 'fa' ? 'rtl' : 'ltr');
+  }
+  if (subtitleEl) {
+    subtitleEl.textContent = content.subtitle;
+    subtitleEl.setAttribute('dir', lang === 'fa' ? 'rtl' : 'ltr');
+  }
+  if (noteEl) {
+    noteEl.textContent = content.footerNote;
+    noteEl.setAttribute('dir', lang === 'fa' ? 'rtl' : 'ltr');
+  }
+  if (gotitBtn) {
+    gotitBtn.textContent = content.gotitBtn;
+  }
+
+  const cardsHtml = content.features.map((item) => `
+    <div class="help-card" dir="${lang === 'fa' ? 'rtl' : 'ltr'}">
+      <div class="help-card-header">
+        <span class="help-card-icon">${item.icon}</span>
+        <div class="help-card-title-wrap">
+          <h3 class="help-card-title">${escapeHtml(item.title)}</h3>
+          <span class="help-card-badge">${escapeHtml(item.badge)}</span>
+        </div>
+      </div>
+      <p class="help-card-desc">${escapeHtml(item.desc)}</p>
+      ${item.prompt ? `
+        <div class="help-prompts-wrap">
+          <span class="help-prompts-title">${escapeHtml(content.sampleTitle)}</span>
+          <button type="button" class="help-prompt-tag" data-prompt="${escapeHtml(item.prompt)}">${escapeHtml(item.prompt)}</button>
+        </div>
+      ` : ''}
+    </div>
+  `).join('');
+
+  bodyEl.innerHTML = `<div class="help-grid">${cardsHtml}</div>`;
+
+  bodyEl.querySelectorAll('.help-prompt-tag').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const q = btn.getAttribute('data-prompt');
+      if (!q) return;
+      closeHelpModal();
+      messageInput.value = q;
+      messageInput.dir = isRtlText(q) ? 'rtl' : 'ltr';
+      sendMessage();
+    });
+  });
 }

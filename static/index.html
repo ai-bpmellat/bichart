@@ -19,6 +19,7 @@
 
   <header class="topbar app-header">
     <h1 class="app-header-title">دستیار هوشمند هوش تجاری</h1>
+    <a id="help-btn" class="ghost-btn app-header-help" href="/static/help.html" title="راهنمای جامع سیستم و قابلیت‌ها">📖 راهنما</a>
     <button id="lang-toggle-btn" class="ghost-btn app-header-lang" title="Toggle AI response language" aria-label="Toggle AI response language">FA</button>
     <a id="users-mgmt-btn" class="ghost-btn app-header-users" href="/users" hidden title="User management">کاربران</a>
     <button id="logout-btn" class="ghost-btn app-header-logout" type="button" title="Sign out">خروج</button>
@@ -218,6 +219,89 @@
     </div>
     <div class="whatsnew-footer">
       <button type="button" class="primary-btn whatsnew-gotit" id="whatsnew-gotit">متوجه شدم</button>
+    </div>
+  </div>
+</div>
+
+<!-- Interactive Chart Zoom Modal -->
+<div class="chart-modal-overlay" id="chart-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="chart-modal-title" hidden>
+  <div class="chart-modal-dialog">
+    <div class="chart-modal-header">
+      <div class="chart-modal-title-wrap">
+        <span class="chart-modal-icon">📊</span>
+        <h2 class="chart-modal-title" id="chart-modal-title">نمای بزرگ‌نمایی تعاملی نمودار</h2>
+      </div>
+      <div class="chart-modal-header-actions">
+        <div class="chart-modal-nav">
+          <button type="button" class="ghost-btn chart-modal-prev" id="chart-modal-prev" title="نمودار قبلی">← قبلی</button>
+          <span class="chart-modal-step" id="chart-modal-step">۱ از ۴</span>
+          <button type="button" class="ghost-btn chart-modal-next" id="chart-modal-next" title="نمودار بعدی">بعدی →</button>
+        </div>
+        <button type="button" class="chart-modal-close" id="chart-modal-close" aria-label="بستن">&times;</button>
+      </div>
+    </div>
+    <div class="chart-modal-toolbar">
+      <div class="chart-modal-controls">
+        <label>
+          <span>ستون برچسب:</span>
+          <select class="chart-type-select" id="modal-label-select"></select>
+        </label>
+        <label>
+          <span>ستون مقدار:</span>
+          <select class="chart-type-select" id="modal-value-select"></select>
+        </label>
+        <label>
+          <span>نوع نمودار:</span>
+          <select class="chart-type-select" id="modal-kind-select">
+            <option value="bar">میله‌ای عمودی</option>
+            <option value="barHorizontal">میله‌ای افقی</option>
+            <option value="line">خطی</option>
+            <option value="pie">دایره‌ای (پای)</option>
+            <option value="doughnut">حلقه‌ای</option>
+          </select>
+        </label>
+      </div>
+      <div class="chart-modal-actions">
+        <button type="button" class="ghost-btn" id="modal-print-btn" title="چاپ نمودار">
+          <span aria-hidden="true">🖨️</span> چاپ
+        </button>
+        <button type="button" class="primary-btn tiny-btn" id="modal-export-btn" title="دانلود تصویر نمودار">
+          <span aria-hidden="true">📥</span> دانلود PNG
+        </button>
+      </div>
+    </div>
+    <div class="chart-modal-body">
+      <div class="chart-modal-canvas-wrap">
+        <canvas id="chart-modal-canvas"></canvas>
+      </div>
+      <div class="chart-modal-note" id="chart-modal-note"></div>
+    </div>
+  </div>
+<!-- Interactive System Help Panel Modal -->
+<div class="help-modal-overlay" id="help-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="help-modal-title" hidden>
+  <div class="help-modal-dialog">
+    <div class="help-modal-header">
+      <div class="help-modal-title-wrap">
+        <span class="help-modal-icon">📖</span>
+        <div class="help-title-block">
+          <h2 class="help-modal-title" id="help-modal-title">راهنمای جامع دستیار هوش تجاری</h2>
+          <span class="help-modal-subtitle" id="help-modal-subtitle">آشنایی کامل با تمامی قابلیت‌ها و امکانات پیشرفته سیستم</span>
+        </div>
+      </div>
+      <div class="help-modal-header-actions">
+        <div class="help-lang-switch">
+          <button type="button" class="help-lang-btn is-active" id="help-lang-fa" data-lang="fa">🇮🇷 فارسی</button>
+          <button type="button" class="help-lang-btn" id="help-lang-en" data-lang="en">🇬🇧 English</button>
+        </div>
+        <button type="button" class="help-modal-close" id="help-modal-close" aria-label="بستن">&times;</button>
+      </div>
+    </div>
+    <div class="help-modal-body" id="help-modal-body">
+      <!-- Content populated dynamically via JS -->
+    </div>
+    <div class="help-modal-footer">
+      <span class="help-footer-note" id="help-footer-note">💡 نکته: جهت تست سریع می‌توانید روی پیش‌فرض‌های آزمایشی کلیک کنید.</span>
+      <button type="button" class="primary-btn help-gotit-btn" id="help-gotit-btn">متوجه شدم</button>
     </div>
   </div>
 </div>

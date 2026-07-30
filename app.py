@@ -25,7 +25,7 @@ from modules.polls.router import router as polls_router
 from modules.reporting.router import router as reporting_router
 from shared.paths import STATIC_DIR
 
-PUBLIC_PATHS = frozenset({"/", "/login", "/api/login", "/favicon.ico"})
+PUBLIC_PATHS = frozenset({"/", "/login", "/help", "/api/login", "/favicon.ico"})
 PUBLIC_PREFIXES = ("/static/",)
 
 app = FastAPI(title="PSP BI Conversational Report Builder")
@@ -68,6 +68,12 @@ def favicon():
 def landing():
     """Marketing first page (no login required)."""
     return FileResponse(os.path.join(STATIC_DIR, "first.html"))
+
+
+@app.get("/help")
+def help_page():
+    """Bilingual system help & documentation page."""
+    return FileResponse(os.path.join(STATIC_DIR, "help.html"))
 
 
 @app.get("/app")
