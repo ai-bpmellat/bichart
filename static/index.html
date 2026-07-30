@@ -3,31 +3,307 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>دستیار هوشمند هوش تجاری به پرداخت ملت</title>
+<title>دستیار هوشمند هوش تجاری</title>
+<link rel="icon" type="image/png" sizes="512x512" href="/static/favicon-512.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="/static/favicon-192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png" />
+<link rel="apple-touch-icon" sizes="192x192" href="/static/favicon-192.png" />
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/style.css" />
 <script src="/static/vendor/chart.umd.min.js"></script>
 </head>
 <body>
 
-<div class="app-shell">
+<div class="app-shell dashboard-layout">
 
   <header class="topbar app-header">
-    <h1 class="app-header-title">دستیار هوشمند هوش تجاری به پرداخت ملت</h1>
-    <button id="lang-toggle-btn" class="ghost-btn app-header-lang" title="Toggle AI response language">FA</button>
+    <h1 class="app-header-title">دستیار هوشمند هوش تجاری</h1>
+    <a id="help-btn" class="ghost-btn app-header-help" href="/static/help.html" title="راهنمای جامع سیستم و قابلیت‌ها">📖 راهنما</a>
+    <button id="lang-toggle-btn" class="ghost-btn app-header-lang" title="Toggle AI response language" aria-label="Toggle AI response language">FA</button>
+    <a id="users-mgmt-btn" class="ghost-btn app-header-users" href="/users" hidden title="User management">کاربران</a>
+    <button id="logout-btn" class="ghost-btn app-header-logout" type="button" title="Sign out">خروج</button>
   </header>
 
-  <main class="chat-area" id="chat-area">
-    <div class="welcome-block" id="welcome-block">
-      <h2>Ask about your transactions</h2>
-      <p>Try: <em>"Show top 10 merchants by volume"</em> or <em>"نمایش تراکنش های دیروز"</em></p>
+  <div class="dashboard-body">
+    <section class="chat-column">
+      <main class="chat-area" id="chat-area">
+        <div class="welcome-block" id="welcome-block">
+          <div class="welcome-bot" aria-hidden="true">🤖</div>
+          <h2>Ask about your transactions</h2>
+          <p class="welcome-hint">برای شروع، سؤال خود را بپرسید یا از پیشنهادهای زیر استفاده کنید.</p>
+          <p>Try: <em>"Show top 10 merchants by volume"</em> یا <em>"نمایش تراکنش های دیروز"</em></p>
+        </div>
+      </main>
+
+      <footer class="composer">
+        <textarea id="message-input" placeholder="Ask a question about your transactions… (Persian or English)" rows="1"></textarea>
+        <div class="composer-actions">
+          <button id="voice-input-btn" class="ghost-btn voice-btn" type="button" title="Voice input (FA/EN)" aria-label="Voice input (FA/EN)" aria-pressed="false">🎤</button>
+          <button id="export-pdf-btn" class="ghost-btn" title="Export last result to PDF" disabled>PDF</button>
+          <button id="export-excel-btn" class="ghost-btn" title="Export last result to Excel" disabled>Excel</button>
+          <button id="send-btn" class="primary-btn">Send</button>
+        </div>
+      </footer>
+    </section>
+
+    <aside class="dash-sidebar" id="dash-sidebar">
+      <div class="dash-card" id="card-history">
+        <div class="dash-card-title" role="button" tabindex="0" aria-expanded="false">
+          <div class="dash-card-title-main">
+            <span aria-hidden="true">🕘</span>
+            <span data-i18n="historyTitle">تاریخچه گفتگو</span>
+          </div>
+          <span class="dash-card-chevron" aria-hidden="true">▾</span>
+        </div>
+        <div class="dash-card-body">
+          <div class="history-list" id="history-list">
+            <div class="history-empty" id="history-empty">هنوز گفتگویی ثبت نشده است.</div>
+          </div>
+          <button type="button" class="dash-link-btn" id="history-refresh-btn">به‌روزرسانی تاریخچه</button>
+        </div>
+      </div>
+
+      <div class="dash-card" id="card-freq">
+        <div class="dash-card-title" role="button" tabindex="0" aria-expanded="false">
+          <div class="dash-card-title-main">
+            <span aria-hidden="true">❓</span>
+            <span>۱۰ سؤال پرتکرار</span>
+          </div>
+          <span class="dash-card-chevron" aria-hidden="true">▾</span>
+        </div>
+        <div class="dash-card-body">
+          <div class="history-list" id="freq-list">
+            <div class="history-empty" id="freq-empty">هنوز سؤالی ثبت نشده است.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-card" id="card-quick">
+        <div class="dash-card-title" role="button" tabindex="0" aria-expanded="false">
+          <div class="dash-card-title-main">
+            <span aria-hidden="true">⚡</span>
+            <span>اقدامات سریع</span>
+          </div>
+          <span class="dash-card-chevron" aria-hidden="true">▾</span>
+        </div>
+        <div class="dash-card-body">
+          <div class="quick-grid">
+            <button type="button" class="quick-tile qt-green" data-q="۱۰ فروشنده برتر از نظر حجم تراکنش را نشان بده">Top Merchants</button>
+            <button type="button" class="quick-tile qt-blue" data-q="خلاصه تراکنش‌های امروز را بده">Today Summary</button>
+            <button type="button" class="quick-tile qt-purple" data-q="نمودار حجم تراکنش ماهانه">Transaction Chart</button>
+            <button type="button" class="quick-tile qt-orange" data-q="تراکنش‌های ناموفق دیروز را نشان بده">Advanced Search</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-card" id="card-settings">
+        <div class="dash-card-title" role="button" tabindex="0" aria-expanded="false">
+          <div class="dash-card-title-main">
+            <span aria-hidden="true">⚙</span>
+            <span>تنظیمات</span>
+          </div>
+          <span class="dash-card-chevron" aria-hidden="true">▾</span>
+        </div>
+        <div class="dash-card-body">
+          <button type="button" class="settings-row" id="settings-model-btn">
+            <span>مدل</span>
+            <span class="settings-value" id="settings-model-value">AvalAI ›</span>
+          </button>
+          <button type="button" class="settings-row" id="settings-lang-btn">
+            <span>زبان</span>
+            <span class="settings-value" id="settings-lang-value">FA ›</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="dash-card about-card" id="card-about">
+        <div class="dash-card-title" role="button" tabindex="0" aria-expanded="false">
+          <div class="dash-card-title-main">
+            <span>درباره این دستیار</span>
+          </div>
+          <span class="dash-card-chevron" aria-hidden="true">▾</span>
+        </div>
+        <div class="dash-card-body">
+          <p>دستیار هوشمند هوش تجاری به شما کمک می‌کند داده‌های تراکنشی را تحلیل و درک کنید.</p>
+        </div>
+      </div>
+
+      <div class="dash-card poll-card" id="feature-poll-card">
+        <div class="dash-card-title" role="button" tabindex="0" aria-expanded="false">
+          <div class="dash-card-title-main">
+            <span aria-hidden="true">🗳️</span>
+            <span>نظرسنجی قابلیت‌های آینده</span>
+          </div>
+          <span class="dash-card-chevron" aria-hidden="true">▾</span>
+        </div>
+        <div class="dash-card-body">
+          <p class="poll-hint">کدام قابلیت‌ها را زودتر می‌خواهید؟ (حداکثر ۳ مورد)</p>
+          <div class="poll-options" id="poll-options"></div>
+          <div class="poll-custom-wrap">
+            <input type="text" id="poll-custom-input" class="poll-custom-input" placeholder="پیشنهاد خودت… (حداکثر ۱۰۰ کاراکتر)" maxlength="100" />
+            <button type="button" class="poll-custom-add-btn" id="poll-custom-add-btn" title="افزودن به لیست" aria-label="افزودن به لیست">+</button>
+          </div>
+          <button type="button" class="primary-btn poll-submit-btn" id="poll-submit-btn">ثبت رأی</button>
+          <div class="poll-msg" id="poll-msg" hidden></div>
+          <div class="poll-results" id="poll-results" hidden></div>
+        </div>
+      </div>
+    </aside>
+
+      <button type="button" class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="Collapse sidebar" aria-label="Collapse sidebar" aria-expanded="true">«</button>
+      <div class="sidebar-resize-handle" id="sidebar-resize-handle" aria-hidden="true"></div>
+  </div>
+
+</div>
+
+<!-- What's New Modal -->
+<div class="whatsnew-overlay" id="whatsnew-overlay" role="dialog" aria-modal="true" aria-labelledby="whatsnew-title" hidden>
+  <div class="whatsnew-modal">
+    <div class="whatsnew-header">
+      <h2 class="whatsnew-title" id="whatsnew-title">✨ قابلیت‌های جدید</h2>
+      <button type="button" class="whatsnew-close" id="whatsnew-close" aria-label="بستن">&times;</button>
     </div>
-  </main>
+    <div class="whatsnew-body">
+      <ul class="whatsnew-list">
+        <li class="whatsnew-item">
+          <span class="whatsnew-icon">📊</span>
+          <div class="whatsnew-text">
+            <strong>پوستر تحلیلی (اینفوگرافیک)</strong>
+            <p>بعد از تحلیل نتایج، یک پوستر تصویری داده‌محور با KPI و نمودار سهم تولید می‌شود که می‌توانید آن را دانلود کنید.</p>
+          </div>
+        </li>
+        <li class="whatsnew-item">
+          <span class="whatsnew-icon">🗂️</span>
+          <div class="whatsnew-text">
+            <strong>کارت‌های بازشونده در نوار کناری</strong>
+            <p>تمام بخش‌های نوار کناری (تاریخچه، سؤالات پرتکرار، تنظیمات و...) حالا جمع‌شونده هستند تا فضای خلوت‌تری داشته باشید.</p>
+          </div>
+        </li>
+        <li class="whatsnew-item">
+          <span class="whatsnew-icon">🔊</span>
+          <div class="whatsnew-text">
+            <strong>ورودی صوتی (فارسی و انگلیسی)</strong>
+            <p>با کلیک روی دکمه میکروفون، سؤال خود را به‌صورت صوتی بپرسید. از فارسی و انگلیسی پشتیبانی می‌کند.</p>
+          </div>
+        </li>
+        <li class="whatsnew-item">
+          <span class="whatsnew-icon">💬</span>
+          <div class="whatsnew-text">
+            <strong>بحث و بررسی نتایج</strong>
+            <p>بعد از تحلیل، می‌توانید روی بخش‌های خاصی از تحلیل بحث کنید، اصلاحیه بدهید و پاسخ هوشمند دریافت کنید.</p>
+          </div>
+        </li>
+        <li class="whatsnew-item">
+          <span class="whatsnew-icon">📈</span>
+          <div class="whatsnew-text">
+            <strong>نمودارهای حرفه‌ای با انتخاب نوع</strong>
+            <p>نمودارهای میله‌ای، خطی، دایره‌ای و حلقه‌ای با قابلیت تغییر ستون‌ها و چاپ نمودار.</p>
+          </div>
+        </li>
+        <li class="whatsnew-item">
+          <span class="whatsnew-icon">⏱️</span>
+          <div class="whatsnew-text">
+            <strong>زمان‌بندی سرویس‌ها</strong>
+            <p>مدت زمان هر مرحله (تولید SQL، اجرا، تحلیل و...) به‌صورت نمودار میله‌ای نمایش داده می‌شود.</p>
+          </div>
+        </li>
+        <li class="whatsnew-item">
+          <span class="whatsnew-icon">🗳️</span>
+          <div class="whatsnew-text">
+            <strong>نظرسنجی قابلیت‌های آینده</strong>
+            <p>در نوار کناری می‌توانید رأی دهید کدام قابلیت‌ها زودتر اضافه شوند.</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div class="whatsnew-footer">
+      <button type="button" class="primary-btn whatsnew-gotit" id="whatsnew-gotit">متوجه شدم</button>
+    </div>
+  </div>
+</div>
 
-  <footer class="composer">
-    <textarea id="message-input" placeholder="Ask a question about your transactions… (Persian or English)" rows="1"></textarea>
-    <button id="send-btn" class="primary-btn">Send</button>
-  </footer>
-
+<!-- Interactive Chart Zoom Modal -->
+<div class="chart-modal-overlay" id="chart-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="chart-modal-title" hidden>
+  <div class="chart-modal-dialog">
+    <div class="chart-modal-header">
+      <div class="chart-modal-title-wrap">
+        <span class="chart-modal-icon">📊</span>
+        <h2 class="chart-modal-title" id="chart-modal-title">نمای بزرگ‌نمایی تعاملی نمودار</h2>
+      </div>
+      <div class="chart-modal-header-actions">
+        <div class="chart-modal-nav">
+          <button type="button" class="ghost-btn chart-modal-prev" id="chart-modal-prev" title="نمودار قبلی">← قبلی</button>
+          <span class="chart-modal-step" id="chart-modal-step">۱ از ۴</span>
+          <button type="button" class="ghost-btn chart-modal-next" id="chart-modal-next" title="نمودار بعدی">بعدی →</button>
+        </div>
+        <button type="button" class="chart-modal-close" id="chart-modal-close" aria-label="بستن">&times;</button>
+      </div>
+    </div>
+    <div class="chart-modal-toolbar">
+      <div class="chart-modal-controls">
+        <label>
+          <span>ستون برچسب:</span>
+          <select class="chart-type-select" id="modal-label-select"></select>
+        </label>
+        <label>
+          <span>ستون مقدار:</span>
+          <select class="chart-type-select" id="modal-value-select"></select>
+        </label>
+        <label>
+          <span>نوع نمودار:</span>
+          <select class="chart-type-select" id="modal-kind-select">
+            <option value="bar">میله‌ای عمودی</option>
+            <option value="barHorizontal">میله‌ای افقی</option>
+            <option value="line">خطی</option>
+            <option value="pie">دایره‌ای (پای)</option>
+            <option value="doughnut">حلقه‌ای</option>
+          </select>
+        </label>
+      </div>
+      <div class="chart-modal-actions">
+        <button type="button" class="ghost-btn" id="modal-print-btn" title="چاپ نمودار">
+          <span aria-hidden="true">🖨️</span> چاپ
+        </button>
+        <button type="button" class="primary-btn tiny-btn" id="modal-export-btn" title="دانلود تصویر نمودار">
+          <span aria-hidden="true">📥</span> دانلود PNG
+        </button>
+      </div>
+    </div>
+    <div class="chart-modal-body">
+      <div class="chart-modal-canvas-wrap">
+        <canvas id="chart-modal-canvas"></canvas>
+      </div>
+      <div class="chart-modal-note" id="chart-modal-note"></div>
+    </div>
+  </div>
+<!-- Interactive System Help Panel Modal -->
+<div class="help-modal-overlay" id="help-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="help-modal-title" hidden>
+  <div class="help-modal-dialog">
+    <div class="help-modal-header">
+      <div class="help-modal-title-wrap">
+        <span class="help-modal-icon">📖</span>
+        <div class="help-title-block">
+          <h2 class="help-modal-title" id="help-modal-title">راهنمای جامع دستیار هوش تجاری</h2>
+          <span class="help-modal-subtitle" id="help-modal-subtitle">آشنایی کامل با تمامی قابلیت‌ها و امکانات پیشرفته سیستم</span>
+        </div>
+      </div>
+      <div class="help-modal-header-actions">
+        <div class="help-lang-switch">
+          <button type="button" class="help-lang-btn is-active" id="help-lang-fa" data-lang="fa">🇮🇷 فارسی</button>
+          <button type="button" class="help-lang-btn" id="help-lang-en" data-lang="en">🇬🇧 English</button>
+        </div>
+        <button type="button" class="help-modal-close" id="help-modal-close" aria-label="بستن">&times;</button>
+      </div>
+    </div>
+    <div class="help-modal-body" id="help-modal-body">
+      <!-- Content populated dynamically via JS -->
+    </div>
+    <div class="help-modal-footer">
+      <span class="help-footer-note" id="help-footer-note">💡 نکته: جهت تست سریع می‌توانید روی پیش‌فرض‌های آزمایشی کلیک کنید.</span>
+      <button type="button" class="primary-btn help-gotit-btn" id="help-gotit-btn">متوجه شدم</button>
+    </div>
+  </div>
 </div>
 
 <script src="/static/script.js"></script>

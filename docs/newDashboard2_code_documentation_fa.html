@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مستند کد newDashboard2</title>
+<style>
+  @page { size: A4; margin: 16mm 14mm 17mm; }
+  * { box-sizing: border-box; }
+  body { margin: 0; color: #17231f; background: #fff; font-family: Tahoma, Arial, sans-serif; font-size: 10.3pt; line-height: 1.85; }
+  .page { break-before: page; }
+  .cover { break-before: auto; min-height: 255mm; display: flex; flex-direction: column; justify-content: center; padding: 12mm; border: 2px solid #0b7654; }
+  .cover-mark, .kicker { color: #0b7654; letter-spacing: .08em; font-size: 8.5pt; font-weight: bold; }
+  h1 { font-size: 29pt; line-height: 1.45; margin: 18mm 0 7mm; color: #103b2e; }
+  h1 span { color: #0b7654; }
+  .lead { font-size: 14pt; color: #48635a; max-width: 145mm; }
+  .meta { margin-top: 16mm; display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; }
+  .meta div { background: #eef7f3; padding: 3mm 4mm; border-right: 3px solid #0b7654; }
+  .meta span { display: block; color: #688078; font-size: 8pt; }
+  .scope { margin-top: 16mm; font-size: 8.5pt; color: #5a6d66; border-top: 1px solid #cbdad4; padding-top: 4mm; }
+  .section-head { margin: 0 0 8mm; border-bottom: 2px solid #0b7654; padding-bottom: 3mm; }
+  h2 { margin: 1mm 0 0; font-size: 20pt; color: #103b2e; }
+  h3 { color: #145b45; margin: 0 0 2mm; font-size: 12.5pt; }
+  p { margin: 1.5mm 0 3mm; }
+  ul { margin: 2mm 0 3mm; padding-right: 6mm; }
+  li { margin-bottom: 1.2mm; }
+  code { font-family: Consolas, "Courier New", monospace; direction: ltr; unicode-bidi: embed; background: #edf3f0; color: #184f3e; border-radius: 3px; padding: .2mm 1mm; font-size: 8.6pt; overflow-wrap: anywhere; }
+  .flow { display: flex; align-items: stretch; justify-content: center; gap: 2mm; margin: 8mm 0; }
+  .flow div { border: 1px solid #8fb8aa; background: #f4faf7; padding: 4mm 3mm; text-align: center; flex: 1; border-radius: 5px; font-weight: bold; color: #15523e; }
+  .flow small { display: block; font-weight: normal; color: #60766f; }
+  .flow b { align-self: center; color: #0b7654; }
+  .callout { background: #eef7f3; border-right: 4px solid #0b7654; padding: 4mm 5mm; margin: 5mm 0; break-inside: avoid; }
+  .table-wrap { width: 100%; margin: 4mm 0 8mm; }
+  table { border-collapse: collapse; width: 100%; font-size: 8.8pt; }
+  th { background: #145b45; color: white; text-align: right; padding: 2.4mm; }
+  td { border: 1px solid #cad9d3; padding: 2.2mm; vertical-align: top; }
+  tr:nth-child(even) td { background: #f6faf8; }
+  td.ltr { direction: ltr; text-align: left; font-family: Consolas, monospace; font-size: 8.2pt; }
+  .file-block { break-inside: avoid; margin: 0 0 6mm; border: 1px solid #c9d9d3; border-radius: 6px; padding: 4mm 5mm; }
+  .file-title { display: flex; justify-content: space-between; gap: 4mm; align-items: center; border-bottom: 1px solid #dbe6e2; padding-bottom: 2mm; }
+  .file-title h3 { margin: 0; direction: ltr; text-align: left; }
+  .file-title span { color: #667a73; font-size: 8pt; white-space: nowrap; }
+  .role { font-weight: bold; color: #314c43; }
+  .code-list { margin-top: 3mm; display: grid; gap: 1.5mm; }
+  .code-list > div { display: grid; grid-template-columns: 48mm 1fr; gap: 3mm; align-items: start; background: #f7faf9; padding: 2mm; }
+  .code-list code { text-align: left; }
+  .risk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+  .risk { break-inside: avoid; border: 1px solid #ccd8d4; border-top-width: 4px; padding: 4mm; }
+  .risk.high { border-top-color: #a43a32; }
+  .risk.med { border-top-color: #d08b24; }
+  .risk.low { border-top-color: #3b7d69; }
+  .risk p { font-size: 9pt; }
+  .steps li { margin-bottom: 4mm; }
+  .sequence h3 { margin-top: 5mm; padding-bottom: 1mm; border-bottom: 1px solid #c9d9d3; }
+  .sequence p { direction: ltr; text-align: left; font-family: Consolas, Tahoma, sans-serif; background: #f5f9f7; padding: 3mm; }
+  .summary { font-size: 13pt; line-height: 2.1; padding: 12mm 8mm; border: 1px solid #9cbeb2; }
+  .stamp { margin-top: 16mm; color: #0b7654; font-weight: bold; text-align: center; }
+  @media print {
+    a { color: inherit; text-decoration: none; }
+    .file-block, .callout, tr { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<section class="cover page">
+  <div class="cover-mark">RAYAMATE · CODE DOCUMENTATION</div>
+  <h1>مستند فنی فارسی<br>برنچ <span dir="ltr">newDashboard2</span></h1>
+  <p class="lead">شرح معماری، جریان اجرا، APIها، مدل داده، تمام فایل‌های tracked و منطق کدهای اصلی</p>
+  <div class="meta">
+    <div><span>Commit</span><code dir="ltr">7643d0fd45</code></div>
+    <div><span>تاریخ commit</span><b dir="ltr">2026-07-15T18:09:00+03:30</b></div>
+    <div><span>عنوان</span><b>Change first page of DashboardCreate</b></div>
+    <div><span>تعداد فایل‌ها</span><b>30 فایل</b></div>
+  </div>
+  <p class="scope">منبع این سند مستقیماً از Git objectهای branch خوانده شده است، نه از تغییرات ثبت‌نشده working tree. مقادیر secret عمداً در سند بازنشر نشده‌اند.</p>
+</section>
+
+
+    <section class="page">
+      <header class="section-head">
+        <div class="kicker">۱ · نمای کلان</div>
+        <h2>خلاصه سامانه</h2>
+      </header>
+      
+<div class="flow" dir="ltr">
+  <div>Browser<br><small>Landing / Login / Dashboard</small></div><b>→</b>
+  <div>FastAPI<br><small>Session + Routes</small></div><b>→</b>
+  <div>LLM Provider<br><small>AvalAI or Ollama</small></div><b>→</b>
+  <div>SQL Normalizer<br><small>Safety checks</small></div><b>→</b>
+  <div>SQLAlchemy<br><small>SQLite / external DB</small></div>
+</div>
+<div class="callout">
+  <strong>مسیر اصلی سؤال:</strong>
+  مرورگر سؤال و تنظیمات زبان/مدل را به <code>/api/chat</code> می‌فرستد؛ مدل یک JSON شامل SQL و توضیح می‌سازد؛
+  SQL اصلاح و ایمن‌سازی می‌شود؛ با Pandas/SQLAlchemy اجرا می‌گردد؛ نتیجه و زمان هر مرحله به رابط برمی‌گردد.
+  تحلیل هوشمند عمداً در درخواست جداگانه <code>/api/analyze</code> و با اقدام کاربر اجرا می‌شود.
+</div>
+<ul><li><strong>هدف:</strong> پرسش فارسی/انگلیسی درباره تراکنش‌ها، تبدیل به SQL و نمایش جدول/نمودار/تحلیل.</li><li><strong>Backend:</strong> FastAPI، Pydantic، SQLAlchemy و Pandas.</li><li><strong>مدل زبانی:</strong> AvalAI ابری یا Ollama محلی با interface یکسان.</li><li><strong>Frontend:</strong> HTML/CSS/JavaScript خالص و Chart.js.</li><li><strong>هویت:</strong> session امضاشده، حساب app_users و نقش admin/user.</li><li><strong>داده:</strong> star schema آزمایشی PSP روی SQLite با قابلیت تغییر DATABASE_URL.</li></ul>
+    </section>
+    
+
+
+    <section class="page">
+      <header class="section-head">
+        <div class="kicker">۲ · API</div>
+        <h2>مسیرهای HTTP و سطح دسترسی</h2>
+      </header>
+      <div class="table-wrap"><table><thead><tr><th>مسیر</th><th>دسترسی</th><th>وظیفه</th></tr></thead><tbody><tr><td class="ltr">GET /</td><td>عمومی</td><td>نمایش صفحه معرفی <code>static/first.html</code></td></tr><tr><td class="ltr">GET /login</td><td>عمومی</td><td>نمایش فرم ورود؛ کاربر واردشده به <code>/app</code> منتقل می‌شود.</td></tr><tr><td class="ltr">POST /api/login</td><td>عمومی</td><td>بررسی چک‌باکس کپچا، نام کاربری و گذرواژه؛ ایجاد نشست.</td></tr><tr><td class="ltr">POST /api/logout</td><td>واردشده</td><td>پاک‌کردن کامل داده‌های نشست.</td></tr><tr><td class="ltr">GET /api/me</td><td>واردشده</td><td>اطلاعات کاربر جاری به‌همراه تنظیمات مدل و زبان.</td></tr><tr><td class="ltr">GET /app</td><td>واردشده</td><td>نمایش داشبورد گفتگو از <code>static/index.html</code>.</td></tr><tr><td class="ltr">GET /users</td><td>مدیر</td><td>صفحه مدیریت کاربران.</td></tr><tr><td class="ltr">GET /api/users</td><td>مدیر</td><td>فهرست حساب‌های برنامه.</td></tr><tr><td class="ltr">POST /api/users</td><td>مدیر</td><td>ساخت حساب و هش‌کردن گذرواژه.</td></tr><tr><td class="ltr">PUT /api/users/{id}</td><td>مدیر</td><td>ویرایش حساب، نقش، وضعیت و گذرواژه.</td></tr><tr><td class="ltr">DELETE /api/users/{id}</td><td>مدیر</td><td>حذف حساب با محافظت از آخرین مدیر و حذف خود.</td></tr><tr><td class="ltr">GET /api/health</td><td>واردشده</td><td>بررسی پایگاه داده، Ollama و AvalAI.</td></tr><tr><td class="ltr">GET /api/avalai/credit</td><td>واردشده</td><td>پروکسی سمت سرور برای مانده اعتبار AvalAI.</td></tr><tr><td class="ltr">POST /api/chat</td><td>واردشده</td><td>تبدیل سؤال به SQL، نرمال‌سازی، کنترل ایمنی، اجرا و ثبت تاریخچه.</td></tr><tr><td class="ltr">POST /api/analyze</td><td>واردشده</td><td>تحلیل اختیاری حداکثر ۲۰ ردیف اول نتیجه توسط مدل انتخاب‌شده.</td></tr><tr><td class="ltr">GET /api/history</td><td>واردشده</td><td>۵۰ پیام اخیر همان نام کاربری.</td></tr><tr><td class="ltr">GET /api/preferences</td><td>واردشده</td><td>خواندن مدل و زبان ذخیره‌شده کاربر.</td></tr><tr><td class="ltr">PUT /api/preferences</td><td>واردشده</td><td>ذخیره provider و language معتبر.</td></tr></tbody></table></div>
+    </section>
+    
+
+
+    <section class="page">
+      <header class="section-head">
+        <div class="kicker">۳ · پایگاه داده</div>
+        <h2>مدل داده</h2>
+      </header>
+      <div class="table-wrap"><table><thead><tr><th>جدول</th><th>نقش</th><th>ستون‌ها/رابطه‌های مهم</th></tr></thead><tbody><tr><td class="ltr">app_users</td><td>حساب‌های ورود</td><td>id، username، password_hash، mobile، display_name، role، is_active، زمان‌ها</td></tr><tr><td class="ltr">dim_date</td><td>بعد تاریخ</td><td>date_key به‌شکل YYYYMMDD، full_date، روز/ماه/سال، تعطیلی و آخرهفته</td></tr><tr><td class="ltr">dim_category</td><td>بعد صنف</td><td>شناسه و عنوان فارسی ۱۵ صنف استاندارد</td></tr><tr><td class="ltr">dim_customer</td><td>مشتری قراردادی PSP</td><td>نام، access_key نمایشی و نقش customer/admin؛ با حساب app_users متفاوت است.</td></tr><tr><td class="ltr">dim_merchant</td><td>پذیرنده</td><td>نام/کد، MCC، صنف، شهر، مالک مشتری و وضعیت فعال</td></tr><tr><td class="ltr">dim_terminal</td><td>پایانه</td><td>سریال، پذیرنده، نوع POS/mPOS/Online، تاریخ نصب و وضعیت</td></tr><tr><td class="ltr">fact_transactions</td><td>فکت تراکنش</td><td>تاریخ، پایانه، پذیرنده، مبلغ، وضعیت، PAN ماسک‌شده، پاسخ، تسویه و کانال</td></tr></tbody></table></div>
+<div class="callout">
+<strong>قاعده حیاتی تاریخ:</strong> <code>fact_transactions.date_key</code> یک عدد YYYYMMDD است؛ برای فیلتر تقویمی باید
+<code>dim_date</code> join شود و از <code>full_date</code> استفاده گردد. هم prompt مدل و هم sql_safety این قاعده را تقویت می‌کنند.
+</div>
+
+    </section>
+    
+
+
+    <section class="page">
+      <header class="section-head">
+        <div class="kicker">۴ · Python</div>
+        <h2>فایل‌های Backend</h2>
+      </header>
+      
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">app.py</code></h3>
+        <span>557 خط</span>
+      </div>
+      <p class="role">مرکز اتصال تمام اجزای برنامه و تعریف FastAPI، middlewareها، مدل‌های ورودی و endpointها.</p>
+      <ul><li>دو provider با مجموعه <code>VALID_PROVIDERS</code> کنترل می‌شوند و <code>get_llm_client</code> ماژول AvalAI یا Ollama را برمی‌گرداند.</li><li>ترتیب middlewareها طوری است که SessionMiddleware بیرونی باشد و نشست قبل از RequireLoginMiddleware در دسترس قرار گیرد.</li><li>رشته <code>SCHEMA_DESCRIPTION</code> ساختار دقیق جداول و قواعد تاریخ/وضعیت را به مدل می‌دهد تا SQL سازگار با SQLite تولید شود.</li><li>در <code>/api/chat</code> زمان تولید SQL، نرمال‌سازی، کنترل ایمنی، اجرا و ذخیره حافظه جداگانه اندازه‌گیری می‌شود.</li><li>اجرای SQL با <code>pandas.read_sql_query(text(...))</code> انجام و DataFrame به رکورد JSON تبدیل می‌شود.</li><li>مدیریت کاربران فقط با نقش admin در دسترس است و حذف خودِ مدیر در route نیز مسدود می‌شود.</li></ul>
+      <div class="code-list"><div><code dir="ltr">get_llm_client(provider)</code><span>انتخاب پیاده‌سازی مشترک generate_sql/generate_analysis.</span></div><div><code dir="ltr">RequireLoginMiddleware.dispatch</code><span>تفکیک مسیرهای عمومی، API بدون نشست و صفحات نیازمند ورود.</span></div><div><code dir="ltr">_startup_init_users</code><span>ساخت جدول app_users و مدیر آغازین هنگام startup.</span></div><div><code dir="ltr">require_admin</code><span>تولید پاسخ 401 یا 403 برای عملیات مدیریتی.</span></div><div><code dir="ltr">chat</code><span>خط لوله اصلی Text-to-SQL و اجرای گزارش.</span></div><div><code dir="ltr">analyze</code><span>تحلیل ثانویه و ثبت تحلیل روی آخرین پیام متناظر.</span></div><div><code dir="ltr">get_history / get_preferences / put_preferences</code><span>APIهای حافظه و تنظیمات شخصی.</span></div></div>
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">database.py</code></h3>
+        <span>52 خط</span>
+      </div>
+      <p class="role">تنظیم مرکزی SQLAlchemy؛ تنها نقطه انتخاب SQLite یا پایگاه داده خارجی.</p>
+      <ul><li><code>DATABASE_URL</code> از environment خوانده می‌شود و در حالت پیش‌فرض به <code>psp_bi_mock.db</code> اشاره دارد.</li><li>برای SQLite گزینه <code>check_same_thread=False</code> فعال است؛ برای سایر DBها connect_args خالی است.</li><li><code>pool_pre_ping=True</code> اتصال مرده را پیش از استفاده تشخیص می‌دهد.</li></ul>
+      <div class="code-list"><div><code dir="ltr">engine</code><span>موتور مشترک SQLAlchemy.</span></div><div><code dir="ltr">SessionLocal</code><span>کارخانه نشست با autocommit/autoflush خاموش.</span></div><div><code dir="ltr">Base</code><span>پایه declarative مدل‌های ORM.</span></div><div><code dir="ltr">get_db</code><span>dependency مولد که نشست را در finally می‌بندد.</span></div></div>
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">db_mock.py</code></h3>
+        <span>391 خط</span>
+      </div>
+      <p class="role">تعریف star schema آزمایشی و ساخت داده واقع‌گرایانه تراکنش‌های پرداخت ایران.</p>
+      <ul><li>شش مدل داده BI، رابطه‌های ORM، ۱۵ صنف، MCCهای متناظر، پذیرندگان فارسی، شهرها و مشتریان نمونه را تعریف می‌کند.</li><li>seed ثابت ۴۲ باعث بازتولیدپذیری داده‌های تصادفی می‌شود.</li><li><code>build_database</code> فایل/جداول را بازسازی، ابعاد را درج و تراکنش‌ها را با توزیع مبلغ، وضعیت و کانال تولید می‌کند.</li><li>اجرای دوباره این فایل مخرب است: دیتابیس mock را از نو می‌سازد.</li></ul>
+      <div class="code-list"><div><code dir="ltr">DimDate / DimCategory</code><span>ابعاد تقویم و صنف.</span></div><div><code dir="ltr">DimCustomer / DimMerchant / DimTerminal</code><span>مالکیت تجاری، پذیرنده و پایانه.</span></div><div><code dir="ltr">FactTransaction</code><span>جدول رخدادهای مالی.</span></div><div><code dir="ltr">weighted_choice</code><span>انتخاب احتمالی وزن‌دار برای داده طبیعی‌تر.</span></div><div><code dir="ltr">mask_pan</code><span>تولید شماره کارت ماسک‌شده نمایشی.</span></div><div><code dir="ltr">build_database(n_transactions=1000)</code><span>ساخت کامل schema و داده نمونه.</span></div></div>
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">auth.py</code></h3>
+        <span>56 خط</span>
+      </div>
+      <p class="role">توابع کوچک و متمرکز برای احراز هویت مبتنی بر session.</p>
+      <ul><li>کلیدهای username، user_id، role و display_name را در کوکی نشست امضاشده نگه می‌دارد.</li><li>اعتبارسنجی واقعی گذرواژه به users.py واگذار می‌شود.</li><li><code>SESSION_SECRET</code> قابل تنظیم با environment است.</li></ul>
+      <div class="code-list"><div><code dir="ltr">verify_credentials</code><span>wrapper روی authenticate_user.</span></div><div><code dir="ltr">set_session_user</code><span>نوشتن داده عمومی کاربر در نشست.</span></div><div><code dir="ltr">is_authenticated / is_admin</code><span>کنترل سریع وضعیت و نقش.</span></div><div><code dir="ltr">current_user</code><span>ساخت dict عمومی از session.</span></div></div>
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">users.py</code></h3>
+        <span>245 خط</span>
+      </div>
+      <p class="role">مدل و عملیات CRUD حساب‌های ورود برنامه؛ مستقل از dim_customer تحلیلی.</p>
+      <ul><li>گذرواژه با PBKDF2-HMAC-SHA256، salt تصادفی و ۱۲۰هزار iteration ذخیره می‌شود.</li><li>مقایسه digest با <code>hmac.compare_digest</code> انجام می‌شود.</li><li>مدیر bootstrap از environment یا مقادیر پیش‌فرض ساخته و همیشه فعال/admin نگه داشته می‌شود.</li><li>کد از حذف، غیرفعال‌سازی یا تنزل آخرین مدیر فعال جلوگیری می‌کند.</li></ul>
+      <div class="code-list"><div><code dir="ltr">AppUser</code><span>مدل ORM حساب، نقش و وضعیت.</span></div><div><code dir="ltr">hash_password / verify_password</code><span>هش و بررسی گذرواژه.</span></div><div><code dir="ltr">init_users_table / seed_bootstrap_admin</code><span>راه‌اندازی اولیه حساب‌ها.</span></div><div><code dir="ltr">authenticate_user</code><span>بررسی وجود، فعال بودن و رمز.</span></div><div><code dir="ltr">list_users / create_user / update_user / delete_user</code><span>عملیات مدیریت کاربران با کنترل‌های کسب‌وکار.</span></div></div>
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">memory_manager.py</code></h3>
+        <span>149 خط</span>
+      </div>
+      <p class="role">حافظه گفتگو و ترجیحات جداگانه برای هر username با persistence در history.json.</p>
+      <ul><li>ساختار دیسک شامل users، preferences و messages است.</li><li>Lock درون‌پردازه‌ای از هم‌زمانی threadها هنگام خواندن/نوشتن جلوگیری می‌کند.</li><li>فرمت قدیمی که یک list ساده بوده به bucket کاربر anonymous مهاجرت داده می‌شود.</li><li>history.json در Git نیست و به‌وسیله .gitignore حذف شده است.</li></ul>
+      <div class="code-list"><div><code dir="ltr">_ensure_user</code><span>ساخت bucket و تکمیل preferenceهای پیش‌فرض.</span></div><div><code dir="ltr">add_message / get_context</code><span>ثبت پیام و دریافت n پیام پایانی.</span></div><div><code dir="ltr">update_last_analysis</code><span>افزودن تحلیل به آخرین سؤال مطابق.</span></div><div><code dir="ltr">get_preferences / set_preferences</code><span>مدیریت provider و language.</span></div><div><code dir="ltr">save_to_disk / load_from_disk</code><span>serialization فارسی با JSON و بازیابی مقاوم به خطا.</span></div></div>
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">sql_safety.py</code></h3>
+        <span>233 خط</span>
+      </div>
+      <p class="role">لایه اصلاح خطاهای رایج مدل و رد SQLهای غیرخواندنی پیش از اجرا.</p>
+      <ul><li>عبارت‌های date_key اشتباه را به join با dim_date و full_date تبدیل می‌کند.</li><li>modifierهای نادرست ماه و حروف وضعیت Active/Inactive را برای SQLite اصلاح می‌کند.</li><li>LIMIT ناخواسته مدل را فقط وقتی کاربر تعداد مشخص نخواسته حذف می‌کند.</li><li>فقط یک SELECT یا WITH را می‌پذیرد، semicolon میانی و keywordهای مخرب را رد می‌کند و LIMIT بیش از ۱۰۰هزار را کاهش می‌دهد.</li></ul>
+      <div class="code-list"><div><code dir="ltr">fix_date_key_sql</code><span>بازنویسی تاریخ integer به بعد تاریخ.</span></div><div><code dir="ltr">fix_sqlite_date_modifiers</code><span>اصلاح first/last day of month.</span></div><div><code dir="ltr">fix_status_literals</code><span>نرمال‌سازی active/inactive.</span></div><div><code dir="ltr">normalize_generated_sql</code><span>اجرای زنجیره تمام fixها.</span></div><div><code dir="ltr">user_requested_row_limit / strip_unrequested_limit</code><span>تشخیص درخواست تعداد به فارسی/انگلیسی.</span></div><div><code dir="ltr">validate_select_only</code><span>دروازه نهایی SQL خواندنی.</span></div></div>
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">ollama_client.py</code></h3>
+        <span>243 خط</span>
+      </div>
+      <p class="role">کلاینت HTTP مدل محلی Ollama با قرارداد عمومی مشترک با AvalAI.</p>
+      <ul><li>به 127.0.0.1:11434 متصل می‌شود و trust_env را خاموش می‌کند تا proxy سیستم در Windows دخالت نکند.</li><li>خروجی SQL باید JSON با کلیدهای sql و explanation باشد.</li><li>زنجیره parsing خروجی مستقیم، code fence، اولین بلوک آکولادی، quoteهای تکی، comma پایانی و newline داخل string را تحمل می‌کند.</li><li>تولید تحلیل متن آزاد با temperature بالاتر و زبان فارسی/انگلیسی انجام می‌شود.</li></ul>
+      <div class="code-list"><div><code dir="ltr">_post</code><span>فراخوانی /api/generate و تبدیل خطاهای شبکه به OllamaError.</span></div><div><code dir="ltr">_escape_literal_control_chars_in_strings</code><span>تعمیر newline/tab غیرمجاز در JSON مدل.</span></div><div><code dir="ltr">_try_parse / _extract_json</code><span>استخراج مقاوم JSON.</span></div><div><code dir="ltr">generate_sql</code><span>ساخت prompt دقیق SQLite و بازگرداندن dict.</span></div><div><code dir="ltr">generate_analysis</code><span>تحلیل ۲۰ ردیف نمونه به زبان انتخابی.</span></div></div>
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">avalai_client.py</code></h3>
+        <span>141 خط</span>
+      </div>
+      <p class="role">کلاینت API سازگار با OpenAI برای AvalAI با همان interface ماژول Ollama.</p>
+      <ul><li>مدل از <code>AVALAI_MODEL</code> و کلید از <code>AVALAI_API_KEY</code> خوانده می‌شود.</li><li>درخواست chat/completions با Bearer token و timeout شصت‌ثانیه‌ای ارسال می‌شود.</li><li>prompt و parser از ollama_client بازاستفاده می‌شوند تا رفتار دو provider همسان بماند.</li><li>تابع check_credit به endpoint حساب AvalAI متصل می‌شود؛ مقدار کلید در مرورگر ارسال نمی‌شود.</li></ul>
+      <div class="code-list"><div><code dir="ltr">_chat</code><span>فراخوانی chat/completions و مدیریت Connection/Timeout/HTTP/Format.</span></div><div><code dir="ltr">check_credit</code><span>دریافت اعتبار حساب از سمت سرور.</span></div><div><code dir="ltr">generate_sql</code><span>تولید JSON SQL با قواعد schema.</span></div><div><code dir="ltr">generate_analysis</code><span>تحلیل متنی داده نمونه.</span></div></div>
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">passenger_wsgi.py</code></h3>
+        <span>20 خط</span>
+      </div>
+      <p class="role">نقطه ورود میزبانی cPanel/Phusion Passenger.</p>
+      <ul><li>دایرکتوری برنامه را به sys.path اضافه می‌کند.</li><li>FastAPI که ASGI است با <code>a2wsgi.ASGIMiddleware</code> به application سازگار با WSGI تبدیل می‌شود.</li></ul>
+      <div class="code-list"><div><code dir="ltr">application</code><span>شیء entry point مورد انتظار Passenger.</span></div></div>
+    </article>
+    
+    </section>
+    
+
+    <section class="page">
+      <header class="section-head">
+        <div class="kicker">۵ · HTML / CSS / JavaScript</div>
+        <h2>فایل‌های Frontend</h2>
+      </header>
+      
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">static/first.html</code></h3>
+        <span>701 خط</span>
+      </div>
+      <p class="role">صفحه عمومی معرفی Rayamate که route ریشه آن را نمایش می‌دهد.</p>
+      <ul><li>Tailwind CDN، Iconify و Google Fonts را از اینترنت می‌گیرد و CSS تکمیلی را inline نگه می‌دارد.</li><li>بخش‌های hero، آمار، نمایش محصول، قابلیت‌ها، CTA و footer دارد.</li><li>Canvas ذرات متحرک و خطوط ارتباطی، شمارنده آماری با IntersectionObserver، اسکرول نرم و tilt کارت‌ها با JavaScript inline پیاده شده‌اند.</li><li>لینک‌های ورود هنگام اجرا با hostname جاری و پورت ۸۰۰۰ بازنویسی می‌شوند.</li></ul>
+      <div class="code-list"><div><code dir="ltr">Particle.reset/update/draw</code><span>مدل هر ذره پس‌زمینه.</span></div><div><code dir="ltr">resizeCanvas / animateParticles</code><span>انطباق canvas و حلقه انیمیشن.</span></div><div><code dir="ltr">animateStats</code><span>افزایش نرم اعداد هنگام ورود به viewport.</span></div><div><code dir="ltr">setAppLinks IIFE</code><span>ساخت URL صفحه login.</span></div></div>
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">static/login.html</code></h3>
+        <span>629 خط</span>
+      </div>
+      <p class="role">صفحه ورود راست‌به‌چپ با CSS کامل inline و اتصال به login.js.</p>
+      <ul><li>طرح دو ستونه معرفی محصول و فرم ورود؛ در موبایل تک‌ستونه می‌شود.</li><li>ورودی نام کاربری، رمز، remember me، چک‌باکس «من ربات نیستم»، نمایش رمز و پیام خطا دارد.</li><li>بازیابی رمز و ورود سازمانی در UI حضور دارند ولی در این نسخه فقط پیام «به‌زودی» نشان می‌دهند.</li></ul>
+      
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">static/login.js</code></h3>
+        <span>100 خط</span>
+      </div>
+      <p class="role">کنترل رفتار فرم ورود در مرورگر.</p>
+      <ul><li>فقط username را در localStorage نگه می‌دارد و هرگز password را ذخیره نمی‌کند.</li><li>قبل از ارسال، خالی نبودن فیلدها و فعال بودن checkbox کپچا را بررسی می‌کند.</li><li>درخواست JSON به <code>/api/login</code> می‌فرستد و پس از موفقیت به <code>/app</code> می‌رود.</li></ul>
+      <div class="code-list"><div><code dir="ltr">submit handler</code><span>اعتبارسنجی، disable موقت دکمه و مدیریت پاسخ/خطا.</span></div><div><code dir="ltr">toggle password handler</code><span>تغییر type بین password و text.</span></div><div><code dir="ltr">showError</code><span>نمایش پیام خطای فارسی.</span></div></div>
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">static/index.html</code></h3>
+        <span>97 خط</span>
+      </div>
+      <p class="role">پوسته داشبورد احراز‌شده و فایل واقعی سرو‌شده در route /app.</p>
+      <ul><li>header شامل عنوان، انتخاب AvalAI/Ollama، زبان، لینک مدیریت کاربران برای admin و خروج است.</li><li>ستون گفتگو شامل welcome، chat-area، textarea و Send است.</li><li>sidebar شامل تاریخچه، چهار اقدام سریع، تنظیمات مدل/زبان و درباره دستیار است.</li><li>Chart.js محلی و static/script.js در پایان صفحه بارگذاری می‌شوند.</li></ul>
+      
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">static/script.js</code></h3>
+        <span>1,110 خط</span>
+      </div>
+      <p class="role">منطق اصلی کلاینت داشبورد؛ بدون framework و مبتنی بر DOM API.</p>
+      <ul><li>در startup از /api/me هویت و preferenceها را می‌خواند؛ لینک کاربران را فقط برای admin آشکار می‌کند.</li><li>ارسال سؤال، loading strip، خطا، SQL جمع‌شونده، توضیح، جدول صفحه‌بندی‌شده، نمودار و تحلیل را مدیریت می‌کند.</li><li>جدول اندازه صفحه ۵۰ تا ۱۰۰۰ دارد و برچسب ستون‌های رایج را فارسی می‌کند.</li><li>برای نمودار، ستون عددی و برچسب را هوشمند انتخاب و bar/line/pie/doughnut/horizontal را پشتیبانی می‌کند.</li><li>متن تحلیل مدل escape می‌شود و سپس heading/list/عددها به HTML کنترل‌شده تبدیل می‌شوند.</li></ul>
+      <div class="code-list"><div><code dir="ltr">applyLanguageUI / applyProviderUI</code><span>همگام‌سازی state و دکمه‌ها.</span></div><div><code dir="ltr">apiFetch / logout / savePreferences</code><span>ارتباط session-aware با backend.</span></div><div><code dir="ltr">loadHistorySidebar</code><span>نمایش معکوس تاریخچه و بازگرداندن سؤال به composer.</span></div><div><code dir="ltr">refreshAvalaiCredit</code><span>نمایش اختیاری مانده اعتبار کنار provider.</span></div><div><code dir="ltr">sendMessage / renderError / renderResult</code><span>چرخه کامل هر turn گفتگو.</span></div><div><code dir="ltr">renderTimingsSection</code><span>نمایش سهم زمانی مراحل backend.</span></div><div><code dir="ltr">requestAnalysis</code><span>فراخوانی جداگانه /api/analyze.</span></div><div><code dir="ltr">buildTableHtml / mountPaginatedTable</code><span>ساخت امن و صفحه‌بندی جدول.</span></div><div><code dir="ltr">pickNumericColumn / pickLabelColumn / prepareChartRows</code><span>استنباط ساختار نمودار.</span></div><div><code dir="ltr">createChartInstance / maybeRenderChart</code><span>ساخت و تعویض نمودار Chart.js.</span></div><div><code dir="ltr">escapeHtml / formatAnalysisHtml / isRtlText</code><span>ایمنی خروجی و پشتیبانی دو‌جهته.</span></div></div>
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">static/style.css</code></h3>
+        <span>1,476 خط</span>
+      </div>
+      <p class="role">سامانه طراحی مشترک داشبورد و صفحه کاربران.</p>
+      <ul><li>متغیرهای رنگ، کاغذ، accent، danger، فونت sans/mono/RTL و قواعد پایه را تعریف می‌کند.</li><li>layout داشبورد، sidebar قابل جمع‌شدن، کارت‌ها، تاریخچه، composer و message turnها را پوشش می‌دهد.</li><li>استایل result strip، SQL، جدول pagination، نمودار، تحلیل، timing bar، loading و responsive breakpoints را دارد.</li><li>قواعد <code>[dir=rtl]</code> برای جای‌گذاری دکمه‌ها و متن فارسی استفاده شده‌اند.</li></ul>
+      
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">static/users.html</code></h3>
+        <span>205 خط</span>
+      </div>
+      <p class="role">صفحه CRUD کاربران برای مدیر.</p>
+      <ul><li>style اختصاصی صفحه را inline و style.css مشترک را جداگانه بارگذاری می‌کند.</li><li>جدول کاربران، حالت خالی، پیام عملیات و modal افزودن/ویرایش دارد.</li><li>فرم شامل نام نمایشی، username، موبایل، password، role و وضعیت فعال است.</li></ul>
+      
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">static/users.js</code></h3>
+        <span>179 خط</span>
+      </div>
+      <p class="role">اتصال UI مدیریت کاربران به APIهای admin.</p>
+      <ul><li>wrapper مشترک api پاسخ‌های 401/403 را مدیریت و برای 401 به login هدایت می‌کند.</li><li>ردیف‌های جدول با escapeHtml ساخته و دکمه ویرایش/حذف به هر کاربر متصل می‌شوند.</li><li>در create رمز الزامی و در edit اختیاری است؛ modal بیرونی قابل بستن است.</li><li>ابتدا /api/me نقش را کنترل و سپس کاربران را بارگذاری می‌کند.</li></ul>
+      <div class="code-list"><div><code dir="ltr">api</code><span>fetch و تبدیل پاسخ خطا به exception.</span></div><div><code dir="ltr">openModal / closeModal</code><span>حالت create/edit فرم.</span></div><div><code dir="ltr">renderUsers / loadUsers</code><span>رندر و دریافت فهرست.</span></div><div><code dir="ltr">removeUser</code><span>تأیید و DELETE.</span></div><div><code dir="ltr">form submit handler</code><span>POST یا PUT بر اساس user-id.</span></div></div>
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">static/vendor/chart.umd.min.js</code></h3>
+        <span>20 خط</span>
+      </div>
+      <p class="role">نسخه minified و vendored کتابخانه Chart.js برای ترسیم نمودار بدون وابستگی runtime به CDN.</p>
+      <ul><li>کد third-party تولیدشده است و نگهداری دستی آن توصیه نمی‌شود.</li><li>از طریق global به نام <code>Chart</code> در static/script.js مصرف می‌شود.</li></ul>
+      
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">static/images/login-template.png</code></h3>
+        <span>74,539 بایت (دودویی)</span>
+      </div>
+      <p class="role">دارایی تصویری دودویی مربوط به الگو/مرجع طراحی صفحه ورود.</p>
+      <ul><li>فایل PNG کد اجرایی ندارد؛ در مستند فقط نقش و اندازه آن ثبت می‌شود.</li></ul>
+      
+    </article>
+    
+    </section>
+    
+
+    <section class="page">
+      <header class="section-head">
+        <div class="kicker">۶ · سایر فایل‌ها</div>
+        <h2>فایل‌های پیکربندی، مستند و legacy</h2>
+      </header>
+      
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">Dockerfile</code></h3>
+        <span>17 خط</span>
+      </div>
+      <p class="role">ساخت image سبک Python 3.11 برای اجرا در container/Hugging Face Spaces.</p>
+      <ul><li>dependencyها را پیش از COPY کل پروژه نصب می‌کند تا cache لایه‌ها بهتر استفاده شود.</li><li>پورت ۷۸۶۰ را expose می‌کند؛ در startup اگر DB وجود نداشته باشد db_mock.py را اجرا می‌کند و سپس Uvicorn را بالا می‌آورد.</li></ul>
+      
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">requirements.txt</code></h3>
+        <span>8 خط</span>
+      </div>
+      <p class="role">فهرست dependencyهای runtime پایتون.</p>
+      <ul><li>FastAPI/Uvicorn برای وب، SQLAlchemy/Pandas برای داده، Requests برای مدل‌ها، python-multipart و itsdangerous برای وب و a2wsgi برای Passenger.</li><li>بعضی packageها pin نشده‌اند؛ build آینده می‌تواند نسخه متفاوتی دریافت کند.</li></ul>
+      
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">README.md</code></h3>
+        <span>178 خط</span>
+      </div>
+      <p class="role">راهنمای پروژه، معماری اولیه، setup و توضیح تعویض پایگاه داده.</p>
+      <ul><li>بخش‌هایی از README با کد جدید همگام نیست: هنوز auth مبتنی بر access_key و endpointهای قدیمی را توصیف می‌کند، در حالی که branch حساب app_users و session دارد.</li><li>راهنمای Ollama، ساخت DB، اجرای Uvicorn و تنظیم DATABASE_URL همچنان مفید است.</li></ul>
+      
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">.gitignore</code></h3>
+        <span>28 خط</span>
+      </div>
+      <p class="role">حذف فایل‌های Python، محیط مجازی، DB/history/env، archive و تنظیمات IDE از Git.</p>
+      <ul><li>به‌درستی <code>.env</code> و <code>*.db</code> را حذف می‌کند؛ اما secretی که مستقیماً در سورس نوشته شود با .gitignore محافظت نمی‌شود.</li></ul>
+      
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">.test_cookies.txt</code></h3>
+        <span>4 خط</span>
+      </div>
+      <p class="role">cookie jar با قالب Netscape که curl ساخته است.</p>
+      <ul><li>در commit حاضر فقط header دارد و cookie فعال ذخیره نکرده است.</li><li>اصولاً فایل‌های cookie واقعی نباید commit شوند، چون ممکن است session حساس داشته باشند.</li></ul>
+      
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">create_presentation.py</code></h3>
+        <span>436 خط</span>
+      </div>
+      <p class="role">اسکریپت ساخت خودکار ارائه فارسی PowerPoint درباره پروژه.</p>
+      <ul><li>با python-pptx شکل‌ها، textboxها، bulletها، footer و ۱۱ اسلاید را تولید می‌کند.</li><li>فونت فارسی، جهت و رنگ سازمانی را روی runهای PowerPoint اعمال می‌کند.</li><li>dependency python-pptx در requirements.txt حاضر نیست و برای بازتولید ارائه باید جداگانه نصب شود.</li></ul>
+      <div class="code-list"><div><code dir="ltr">set_run_font / set_textbox</code><span>تنظیم فونت و پاراگراف فارسی.</span></div><div><code dir="ltr">add_rect / add_round_rect</code><span>ساخت عناصر هندسی.</span></div><div><code dir="ltr">add_bullets / footer</code><span>لیست و شماره صفحه.</span></div><div><code dir="ltr">build</code><span>تولید کل deck و ذخیره فایل.</span></div></div>
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">Rayamate_Presentation.pptx</code></h3>
+        <span>46,614 بایت (دودویی)</span>
+      </div>
+      <p class="role">خروجی دودویی ارائه ساخته‌شده برای معرفی معماری و قابلیت‌ها.</p>
+      <ul><li>کد نیست و محتوای داخلی OOXML در این مستند line-by-line بررسی نمی‌شود؛ منبع قابل نگهداری آن create_presentation.py است.</li></ul>
+      
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">index.html</code></h3>
+        <span>35 خط</span>
+      </div>
+      <p class="role">نسخه قدیمی/مرجع پوسته گفتگو در ریشه repository.</p>
+      <ul><li>FastAPI این فایل را سرو نمی‌کند؛ route فعال به static/index.html اشاره دارد.</li><li>نسخه ریشه sidebar، نشست و مدیریت کاربران جدید را ندارد و احتمالاً artifact باقی‌مانده از طراحی قبلی است.</li></ul>
+      
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">script.js</code></h3>
+        <span>351 خط</span>
+      </div>
+      <p class="role">JavaScript قدیمی رابط access_key در ریشه.</p>
+      <ul><li>DOMهایی مانند login-gate و APIهایی مانند /api/customers را انتظار دارد که با app.py فعلی هماهنگ نیستند.</li><li>در صفحات فعال load نمی‌شود و بهتر است در آینده حذف، archive یا صریحاً به‌عنوان legacy علامت‌گذاری شود.</li></ul>
+      
+    </article>
+    
+    <article class="file-block">
+      <div class="file-title">
+        <h3><code dir="ltr">style.css</code></h3>
+        <span>426 خط</span>
+      </div>
+      <p class="role">CSS قدیمی رابط تک‌ستونه در ریشه.</p>
+      <ul><li>صفحات فعال <code>/static/style.css</code> را می‌خوانند؛ این فایل توسط FastAPI mount نشده است.</li><li>توکن‌های visual identity اولیه و login-gate قدیمی را نگه می‌دارد.</li></ul>
+      
+    </article>
+    
+    </section>
+    
+
+    <section class="page">
+      <header class="section-head">
+        <div class="kicker">۷ · End-to-End</div>
+        <h2>جریان‌های اجرایی مهم</h2>
+      </header>
+      
+<div class="sequence">
+  <h3>ورود</h3><p>login.js → POST /api/login → users.authenticate_user → verify_password → set_session_user → cookie session → redirect /app</p>
+  <h3>گفتگو</h3><p>sendMessage → POST /api/chat → provider.generate_sql → strip/fix/validate SQL → read_sql_query → memory.add_message → renderResult</p>
+  <h3>تحلیل</h3><p>Analyze button → POST /api/analyze → provider.generate_analysis(first 20 rows) → memory.update_last_analysis → formatAnalysisHtml</p>
+  <h3>مدیریت کاربر</h3><p>/users → require_admin → users.js CRUD → /api/users → users.py → SQLAlchemy app_users</p>
+  <h3>تغییر تنظیمات</h3><p>دکمه مدل/زبان → PUT /api/preferences → MemoryManager per-user → بارگذاری مجدد از /api/me</p>
+</div>
+
+    </section>
+    
+
+    <section class="page">
+      <header class="section-head">
+        <div class="kicker">۸ · بازبینی</div>
+        <h2>ریسک‌ها و پیشنهادهای فنی</h2>
+      </header>
+      
+<div class="risk-grid">
+  <div class="risk high"><h3>بحرانی — کلید API در سورس</h3><p>در commit این branch برای AvalAI یک مقدار پیش‌فرض واقعی‌نما داخل کد وجود دارد. مقدار در این سند عمداً بازنشر نشده است. کلید باید فوراً revoke/rotate شود و فقط از secret manager یا environment دریافت گردد؛ default باید خالی باشد.</p></div>
+  <div class="risk high"><h3>بالا — credentialهای پیش‌فرض</h3><p>نام کاربری/گذرواژه مدیر bootstrap و SESSION_SECRET دارای default ثابت هستند. در production باید startup بدون environment امن fail شود و secret قوی تزریق گردد.</p></div>
+  <div class="risk med"><h3>متوسط — کپچای نمایشی</h3><p>captcha فقط یک boolean ارسالی از مرورگر است و اثبات ضدربات نیست. برای محیط عمومی باید سرویس captcha واقعی و rate limiting اضافه شود.</p></div>
+  <div class="risk med"><h3>متوسط — CSRF و cookie</h3><p>عملیات POST/PUT/DELETE token ضد-CSRF ندارند. تنظیم secure/https-only کوکی نیز صریح نیست. SameSite=Lax کمک می‌کند اما جایگزین کامل CSRF protection نیست.</p></div>
+  <div class="risk med"><h3>متوسط — اعتبارسنجی SQL regex</h3><p>لایه فعلی برای prototype مفید است ولی parser کامل SQL نیست. اجازه WITH/SELECT، نبود timeout/query-cost و حذف LIMIT می‌تواند query سنگین ایجاد کند. کاربر DB باید read-only و محدود باشد.</p></div>
+  <div class="risk med"><h3>متوسط — نبود row-level scope</h3><p>README از محدودسازی داده مشتری صحبت می‌کند، اما app.py فعلی سؤال کاربر واردشده را بدون scope مبتنی بر مشتری روی DB اجرا می‌کند. app_users نیز به dim_customer متصل نیست.</p></div>
+  <div class="risk low"><h3>پایین — persistence چندپردازه</h3><p>Lock حافظه فقط داخل یک process معتبر است. چند worker می‌توانند history.json را هم‌زمان بازنویسی کنند. برای production از DB یا storage تراکنشی استفاده شود.</p></div>
+  <div class="risk low"><h3>پایین — dependency و CDN</h3><p>چند dependency بدون version pin و صفحه اول وابسته به CDN است. برای build تکرارپذیر و شبکه بسته، lockfile و asset محلی توصیه می‌شود.</p></div>
+</div>
+
+    </section>
+    
+
+    <section class="page">
+      <header class="section-head">
+        <div class="kicker">۹ · عملیات</div>
+        <h2>راه‌اندازی و استقرار</h2>
+      </header>
+      
+<ol class="steps">
+  <li><strong>محیط:</strong> Python 3.11 و virtualenv ایجاد کنید؛ سپس <code>pip install -r requirements.txt</code>.</li>
+  <li><strong>تنظیم secrets:</strong> حداقل <code>SESSION_SECRET</code>، <code>AUTH_USERNAME</code>، <code>AUTH_PASSWORD</code> و در صورت استفاده <code>AVALAI_API_KEY</code> را در محیط امن قرار دهید.</li>
+  <li><strong>مدل محلی:</strong> برای Ollama مدل تنظیم‌شده در <code>MODEL_NAME</code> را pull و <code>ollama serve</code> را اجرا کنید.</li>
+  <li><strong>داده mock:</strong> یک بار <code>python db_mock.py</code>؛ توجه کنید اجرای مجدد DB را بازسازی می‌کند.</li>
+  <li><strong>اجرا:</strong> <code>uvicorn app:app --host 0.0.0.0 --port 8000</code> و سپس بازکردن route ریشه.</li>
+  <li><strong>استقرار:</strong> Dockerfile برای container و passenger_wsgi.py برای cPanel دو مسیر مستقل استقرار هستند.</li>
+</ol>
+
+    </section>
+    
+
+    <section class="page">
+      <header class="section-head">
+        <div class="kicker">۱۰ · پوشش</div>
+        <h2>فهرست کامل فایل‌های بررسی‌شده</h2>
+      </header>
+      <div class="table-wrap"><table><thead><tr><th>ردیف</th><th>مسیر</th><th>نوع</th><th>اندازه</th></tr></thead><tbody><tr><td>1</td><td><code>.gitignore</code></td><td>متنی/کد</td><td>28 خط</td></tr><tr><td>2</td><td><code>.test_cookies.txt</code></td><td>متنی/کد</td><td>4 خط</td></tr><tr><td>3</td><td><code>Dockerfile</code></td><td>متنی/کد</td><td>17 خط</td></tr><tr><td>4</td><td><code>README.md</code></td><td>متنی/کد</td><td>178 خط</td></tr><tr><td>5</td><td><code>Rayamate_Presentation.pptx</code></td><td>دودویی</td><td>46,614 بایت</td></tr><tr><td>6</td><td><code>app.py</code></td><td>متنی/کد</td><td>557 خط</td></tr><tr><td>7</td><td><code>auth.py</code></td><td>متنی/کد</td><td>56 خط</td></tr><tr><td>8</td><td><code>avalai_client.py</code></td><td>متنی/کد</td><td>141 خط</td></tr><tr><td>9</td><td><code>create_presentation.py</code></td><td>متنی/کد</td><td>436 خط</td></tr><tr><td>10</td><td><code>database.py</code></td><td>متنی/کد</td><td>52 خط</td></tr><tr><td>11</td><td><code>db_mock.py</code></td><td>متنی/کد</td><td>391 خط</td></tr><tr><td>12</td><td><code>index.html</code></td><td>متنی/کد</td><td>35 خط</td></tr><tr><td>13</td><td><code>memory_manager.py</code></td><td>متنی/کد</td><td>149 خط</td></tr><tr><td>14</td><td><code>ollama_client.py</code></td><td>متنی/کد</td><td>243 خط</td></tr><tr><td>15</td><td><code>passenger_wsgi.py</code></td><td>متنی/کد</td><td>20 خط</td></tr><tr><td>16</td><td><code>requirements.txt</code></td><td>متنی/کد</td><td>8 خط</td></tr><tr><td>17</td><td><code>script.js</code></td><td>متنی/کد</td><td>351 خط</td></tr><tr><td>18</td><td><code>sql_safety.py</code></td><td>متنی/کد</td><td>233 خط</td></tr><tr><td>19</td><td><code>static/first.html</code></td><td>متنی/کد</td><td>701 خط</td></tr><tr><td>20</td><td><code>static/images/login-template.png</code></td><td>دودویی</td><td>74,539 بایت</td></tr><tr><td>21</td><td><code>static/index.html</code></td><td>متنی/کد</td><td>97 خط</td></tr><tr><td>22</td><td><code>static/login.html</code></td><td>متنی/کد</td><td>629 خط</td></tr><tr><td>23</td><td><code>static/login.js</code></td><td>متنی/کد</td><td>100 خط</td></tr><tr><td>24</td><td><code>static/script.js</code></td><td>متنی/کد</td><td>1,110 خط</td></tr><tr><td>25</td><td><code>static/style.css</code></td><td>متنی/کد</td><td>1,476 خط</td></tr><tr><td>26</td><td><code>static/users.html</code></td><td>متنی/کد</td><td>205 خط</td></tr><tr><td>27</td><td><code>static/users.js</code></td><td>متنی/کد</td><td>179 خط</td></tr><tr><td>28</td><td><code>static/vendor/chart.umd.min.js</code></td><td>متنی/کد</td><td>20 خط</td></tr><tr><td>29</td><td><code>style.css</code></td><td>متنی/کد</td><td>426 خط</td></tr><tr><td>30</td><td><code>users.py</code></td><td>متنی/کد</td><td>245 خط</td></tr></tbody></table></div>
+    </section>
+    
+
+    <section class="page">
+      <header class="section-head">
+        <div class="kicker">۱۱ · نتیجه</div>
+        <h2>جمع‌بندی</h2>
+      </header>
+      
+<div class="summary">
+  <p>برنچ <code>newDashboard2</code> یک prototype نسبتاً کامل BI مکالمه‌ای است: صفحه معرفی، ورود، داشبورد، مدیریت کاربران،
+  انتخاب دو مدل، تولید و اصلاح SQL، جدول و نمودار، تحلیل ثانویه و تاریخچه شخصی را یک‌جا دارد.</p>
+  <p>مهم‌ترین کارهای پیش از production عبارت‌اند از حذف و rotate تمام secretهای commit‌شده، اجباری‌کردن تنظیمات امن،
+  افزودن row-level authorization واقعی، CSRF/rate-limit، استفاده از DB برای history، parser/timeout قوی‌تر SQL،
+  همگام‌سازی README و حذف نسخه‌های legacy ریشه.</p>
+  <div class="stamp">پایان سند · commit <span dir="ltr">{commit_short}</span></div>
+</div>
+
+    </section>
+    
+</body>
+</html>

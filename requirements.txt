@@ -4,3 +4,8 @@ sqlalchemy==2.0.51
 pandas
 requests
 python-multipart
+itsdangerous
+a2wsgi
+fpdf2
+uharfbuzz
+openpyxl

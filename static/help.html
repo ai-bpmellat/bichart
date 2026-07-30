@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>راهنمای جامع سیستم — دستیار هوش تجاری</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png" />
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css" />
+<style>
+  body {
+    background: #f4f8f6;
+    color: #0f2a1f;
+    font-family: 'Vazirmatn', -apple-system, sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+  }
+
+  .help-page-header {
+    background: linear-gradient(180deg, #ffffff 0%, #f0faf6 100%);
+    border-bottom: 1px solid rgba(5, 150, 105, 0.16);
+    padding: 18px 32px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(5, 150, 105, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .help-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .help-brand-logo {
+    width: 44px;
+    height: 44px;
+    background: rgba(5, 150, 105, 0.12);
+    border: 1px solid #059669;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #047857;
+  }
+
+  .help-brand-text h1 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #047857;
+    margin: 0;
+  }
+
+  .help-brand-text p {
+    font-size: 0.8rem;
+    color: #5a7a6d;
+    margin: 0;
+  }
+
+  .help-nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .help-page-lang-switch {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #ffffff;
+    border: 1px solid rgba(5, 150, 105, 0.2);
+    border-radius: 30px;
+    padding: 4px;
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.08);
+  }
+
+  .help-page-lang-btn {
+    border: none;
+    background: transparent;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #5a7a6d;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .help-page-lang-btn.is-active {
+    background: #059669;
+    color: #ffffff;
+    box-shadow: 0 2px 10px rgba(5, 150, 105, 0.3);
+  }
+
+  .back-to-app-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #059669;
+    color: #ffffff;
+    text-decoration: none;
+    padding: 9px 20px;
+    border-radius: 12px;
+    font-size: 13.5px;
+    font-weight: 600;
+    transition: background 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+  }
+
+  .back-to-app-btn:hover {
+    background: #047857;
+    transform: translateY(-1px);
+  }
+
+  .help-hero {
+    max-width: 1100px;
+    margin: 36px auto 24px;
+    padding: 0 24px;
+    text-align: center;
+  }
+
+  .help-hero-badge {
+    display: inline-block;
+    background: rgba(5, 150, 105, 0.1);
+    color: #047857;
+    border: 1px solid rgba(5, 150, 105, 0.2);
+    padding: 6px 16px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+
+  .help-hero h2 {
+    font-size: clamp(1.6rem, 3.5vw, 2.3rem);
+    font-weight: 800;
+    color: #0f2a1f;
+    margin: 0 0 12px;
+  }
+
+  .help-hero p {
+    font-size: 1.05rem;
+    color: #5a7a6d;
+    max-width: 780px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  .help-container {
+    max-width: 1180px;
+    margin: 32px auto 60px;
+    padding: 0 24px;
+  }
+
+  .help-features-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  @media (max-width: 840px) {
+    .help-features-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .help-feature-card {
+    background: #ffffff;
+    border: 1px solid rgba(5, 150, 105, 0.16);
+    border-radius: 22px;
+    padding: 24px;
+    box-shadow: 0 6px 24px rgba(5, 150, 105, 0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 16px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+
+  .help-feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 36px rgba(5, 150, 105, 0.12);
+    border-color: #059669;
+  }
+
+  .help-feature-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .help-feature-icon-box {
+    width: 52px;
+    height: 52px;
+    background: rgba(5, 150, 105, 0.08);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    flex-shrink: 0;
+    color: #047857;
+  }
+
+  .help-feature-title-wrap h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f2a1f;
+    margin: 0 0 4px;
+  }
+
+  .help-feature-tag {
+    display: inline-block;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #047857;
+    background: rgba(5, 150, 105, 0.12);
+    padding: 2px 10px;
+    border-radius: 20px;
+  }
+
+  .help-feature-body p {
+    font-size: 0.92rem;
+    color: #5a7a6d;
+    line-height: 1.7;
+    margin: 0 0 12px;
+  }
+
+  .help-feature-highlights {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .help-feature-highlights li {
+    font-size: 0.86rem;
+    color: #0f2a1f;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .help-feature-highlights li::before {
+    content: "✓";
+    color: #059669;
+    font-weight: 800;
+  }
+
+  .help-sample-box {
+    background: #f4f8f6;
+    border: 1px solid rgba(5, 150, 105, 0.15);
+    border-radius: 14px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .help-sample-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #0f2a1f;
+  }
+
+  .help-sample-btn {
+    background: #059669;
+    color: white;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 8px;
+    white-space: nowrap;
+    transition: background 0.15s ease;
+  }
+
+  .help-sample-btn:hover {
+    background: #047857;
+  }
+
+  .help-faq-section {
+    margin-top: 56px;
+    background: #ffffff;
+    border: 1px solid rgba(5, 150, 105, 0.16);
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: 0 6px 24px rgba(5, 150, 105, 0.05);
+  }
+
+  .help-faq-title {
+    text-align: center;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #0f2a1f;
+    margin-bottom: 24px;
+  }
+
+  .faq-item {
+    border-bottom: 1px solid rgba(5, 150, 105, 0.1);
+    padding: 16px 0;
+  }
+
+  .faq-item:last-child {
+    border-bottom: none;
+  }
+
+  .faq-question {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #047857;
+    margin-bottom: 6px;
+  }
+
+  .faq-answer {
+    font-size: 0.9rem;
+    color: #5a7a6d;
+    margin: 0;
+    line-height: 1.65;
+  }
+
+  .help-footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 0.85rem;
+    color: #5a7a6d;
+    border-top: 1px solid rgba(5, 150, 105, 0.1);
+  }
+</style>
+</head>
+<body>
+
+<header class="help-page-header">
+  <a href="/app" class="help-brand">
+    <div class="help-brand-logo">📖</div>
+    <div class="help-brand-text">
+      <h1 id="page-title-header">دستیار هوشمند هوش تجاری</h1>
+      <p id="page-sub-header">راهنمای کامل سیستم و آموزش قابلیت‌ها</p>
+    </div>
+  </a>
+
+  <div class="help-nav-actions">
+    <div class="help-page-lang-switch">
+      <button type="button" class="help-page-lang-btn is-active" id="btn-lang-fa">🇮🇷 فارسی</button>
+      <button type="button" class="help-page-lang-btn" id="btn-lang-en">🇬🇧 English</button>
+    </div>
+    <a href="/app" class="back-to-app-btn" id="back-app-btn">
+      <span>🚀</span>
+      <span id="back-app-text">ورود به برنامه</span>
+    </a>
+  </div>
+</header>
+
+<main class="help-hero">
+  <span class="help-hero-badge" id="hero-badge">✨ راهنمای جامع و هوشمند</span>
+  <h2 id="hero-title">آموزش کامل تمامی قابلیت‌ها و امکانات سیستم</h2>
+  <p id="hero-desc">پلتفرم دستیار هوشمند هوش تجاری به شما امکان می‌دهد داده‌های تراکنشی را با سؤالات ساده فارسی یا انگلیسی تحلیل کنید، ۴ نمودار هم‌زمان تحلیلی ببینید، پوستر اینفوگرافیک تولید کرده و خروجی رسمی PDF/Excel دریافت نمایید.</p>
+</main>
+
+<div class="help-container">
+  <div class="help-features-grid" id="help-grid">
+    <!-- Dynamic Cards -->
+  </div>
+
+  <div class="help-faq-section">
+    <h3 class="help-faq-title" id="faq-section-title">❓ سوالات متداول کاربران</h3>
+    <div id="faq-list">
+      <!-- Dynamic FAQ Items -->
+    </div>
+  </div>
+</div>
+
+<footer class="help-footer">
+  <p id="footer-text">© پلتفرم تحلیلی دستیار هوشمند هوش تجاری — راهنمای جامع کاربران</p>
+</footer>
+
+<script>
+const HELP_PAGE_DATA = {
+  fa: {
+    dir: 'rtl',
+    headerTitle: 'دستیار هوشمند هوش تجاری',
+    headerSub: 'راهنمای کامل سیستم و آموزش قابلیت‌ها',
+    backBtnText: 'ورود به برنامه',
+    heroBadge: '✨ راهنمای جامع و هوشمند',
+    heroTitle: 'آموزش کامل تمامی قابلیت‌ها و امکانات سیستم',
+    heroDesc: 'پلتفرم دستیار هوشمند هوش تجاری به شما امکان می‌دهد داده‌های تراکنشی را با سؤالات ساده فارسی یا انگلیسی تحلیل کنید، ۴ نمودار هم‌زمان تحلیلی ببینید، پوستر اینفوگرافیک تولید کرده و خروجی رسمی PDF/Excel دریافت نمایید.',
+    faqTitle: '❓ سوالات متداول کاربران',
+    footerText: '© پلتفرم تحلیلی دستیار هوشمند هوش تجاری — راهنمای جامع کاربران',
+    tryBtn: 'تست در برنامه',
+    features: [
+      {
+        icon: '🤖',
+        title: '۱. پرسش و پاسخ هوشمند و تولید خودکار SQL',
+        tag: 'هوش مصنوعی پردازش داده',
+        desc: 'شما می‌توانید سوال خود را به زبان فارسی یا انگلیسی درباره تراکنش‌ها بپرسید. سیستم بر اساس داده‌های موجود کد SQL دقیق تولید کرده، آن را اجرا می‌کند و در صورت بروز خطا به طور خودکار تصحیح می‌نماید (Auto-Fix).',
+        highlights: [
+          'پشتیبانی کامل از زبان فارسی و انگلیسی',
+          'تولید خودکار استعلام SQL و امکان ویرایش کد',
+          'تصحیح خودکار خطاهای دیتابیس توسط مدل AI',
+        ],
+        sample: '۱۰ فروشنده برتر از نظر حجم تراکنش را نشان بده',
+      },
+      {
+        icon: '📊',
+        title: '۲. شبکه ۴ نمودار هم‌زمان و بزرگ‌نمایی پاپ‌آپ',
+        tag: 'تجسم پیشرفته داده‌ها',
+        desc: 'نتایج استعلام به صورت ۴ نمودار تحلیلی خلوت و مربعی (میله‌ای عمودی، خطی، دایره‌ای و میله‌ای افقی) نمایش داده می‌شوند. با کلیک روی هر مربع، پاپ‌آپ بزرگ‌نمایی تعاملی باز شده که امکان تغییر ستون‌ها و چاپ را دارد.',
+        highlights: [
+          'رندر ۴ نمودار مربعی و خلوت بدون تداخل متن',
+          'پاپ‌آپ بزرگ‌نمایی تعاملی با تغییر لحظه‌ای نوع نمودار',
+          'انتخاب هوشمند ستون‌های برچسب و مقدار عددی',
+        ],
+        sample: 'نمودار حجم تراکنش ماهانه',
+      },
+      {
+        icon: '🖼️',
+        title: '۳. پوستر تصویری داده‌محور و اینفوگرافیک',
+        tag: 'گزارش‌دهی تصویری شیک',
+        desc: 'پس از کلیک روی تحلیل نتایج، سیستم یک پوستر داده‌محور شامل شاخص‌های عملکرد کلیدی (KPIs) و سهم برترین دسته‌ها تولید می‌کند که می‌توانید تصویر با کیفیت بالای PNG آن را دانلود کنید.',
+        highlights: [
+          'طراحی گرافیکی مدرن با رنگ‌بندی زمردی',
+          'محاسبه خودکار شاخص‌های کلیدی و سهم دسته‌ها',
+          'دانلود مستقیم فایل PNG جهت ارائه در جلسات',
+        ],
+        sample: 'خلاصه تراکنش‌های امروز را بده',
+      },
+      {
+        icon: '💬',
+        title: '۴. بحث و بررسی هوشمند روی نتایج تحلیل',
+        badge: 'تحلیل تعاملی و اصلاحیه',
+        desc: 'می‌توانید بخشی از متن تحلیل هوش مصنوعی را انتخاب یا هایلایت کنید، اعتراض یا سؤال خود را ارسال کنید و سیستم متن اصلاح‌شده را مستقیماً در گزارش اصلی جایگزین می‌نماید.',
+        highlights: [
+          'امکان هایلایت کردن جملات مشخص از تحلیل',
+          'گفتگوی چندنوبتی درباره داده‌ها و تحلیل',
+          'اعمال مستقیم پیشنهادها در متن اصلی گزارش',
+        ],
+        sample: 'تراکنش‌های ناموفق دیروز را نشان بده',
+      },
+      {
+        icon: '🔊',
+        title: '۵. ورودی صوتی دو زبانه (فارسی و انگلیسی)',
+        badge: 'پردازش گفتار به متن',
+        desc: 'با کلیک روی دکمه میکروفون، می‌توانید سوالات تراکنشی خود را به صورت شفاهی بپرسید. سیستم صدای شما را تحلیل کرده و به متن سوال تبدیل می‌کند.',
+        highlights: [
+          'پشتیبانی از صحبت کردن به فارسی و انگلیسی',
+          'تشخیص پرسرعت بدون نیاز به تایپ کردن',
+          'سازگار با مرورگرهای استاندارد Chrome و Edge',
+        ],
+      },
+      {
+        icon: '📤',
+        title: '۶. خروجی PDF و Excel با یک کلیک',
+        badge: 'خروجی استاندارد سازمانی',
+        desc: 'امکان دانلود کامل گزارش شامل متن تحلیل هوش مصنوعی، تصویر نمودار گرافیکی و جدول داده‌ها در قالب فایل‌های رسمی PDF و Excel جهت بایگانی و ارائه.',
+        highlights: [
+          'فایل PDF فارسی با فونت استاندارد Vazirmatn',
+          'فایل اکسل چندشیتی (Data, Explanation, Analysis)',
+          'شامل تصویر نمودار و آمار جامع ردیف‌ها',
+        ],
+      },
+      {
+        icon: '⏱️',
+        title: '۷. پایش زمان‌بندی سرویس‌ها (Timings)',
+        badge: 'شفافیت کامل فرایند پردازش',
+        desc: 'سیستم زمان‌بندی مرحله به مرحله فرایند (تولید SQL، بررسی امنیت، اجرای دیتابیس، تحلیل و بحث) را به صورت نمودار تفکیکی نمایش می‌دهد تا از سرعت بالای پاسخ‌دهی مطلع شوید.',
+        highlights: [
+          'شفافیت کامل در زمان اجرای کد SQL',
+          'نمایش تفکیکی زمان مدل‌های هوش مصنوعی',
+          'بهینه‌سازی پرسرعت زمان پاسخ‌دهی',
+        ],
+      },
+      {
+        icon: '🕘',
+        title: '۸. تاریخچه، سؤالات پرتکرار و نظرسنجی',
+        badge: 'مدیریت و شخصی‌سازی',
+        desc: 'دسترسی سریع به ۱۰ سؤال پرتکرار کاربران، بازپخش کامل گفتگوی قدیمی، نوار کناری جمع‌شونده و قابلیت ثبت رأی برای امکانات آینده سیستم.',
+        highlights: [
+          'ذخیره‌سازی و بازپخش تاریخچه استعلام‌ها',
+          'فهرست ۱۰ سؤال پرتکرار سیستم',
+          'نظرسنجی آنلاین قابلیت‌های آینده',
+        ],
+      },
+    ],
+    faqs: [
+      {
+        q: 'چگونه می‌توانم گزارش‌های دریافت شده را ذخیره یا چاپ کنم؟',
+        a: 'در انتهای هر نوبت، دکمه‌های PDF و Excel برای دانلود گزارش فعال می‌شوند. همچنین می‌توانید روی نمودار دکمه چاپ را بزنید یا پوستر اینفوگرافیک PNG را دانلود کنید.'
+      },
+      {
+        q: 'آیا سیستم از سوالات به زبان انگلیسی پشتیبانی می‌کند؟',
+        a: 'بله، هم ورودی متنی و هم ورودی صوتی از هر دو زبان فارسی و انگلیسی پشتیبانی می‌کنند و پاسخ‌ها و نمودارها متناسب با زبان درخواستی تنظیم می‌شوند.'
+      },
+      {
+        q: 'اگر کد SQL تولیدشده اشتباه باشد چه باید کرد؟',
+        a: 'کد SQL تولیدشده در یک کادر قابل ویرایش قرار دارد؛ می‌توانید آن را اصلاح کرده و دکمه «اجرای SQL» را بزنید. همچنین هوش مصنوعی سیستم خطاهای متداول را به طور خودکار اصلاح می‌کند (Auto-Fix).'
+      }
+    ]
+  },
+  en: {
+    dir: 'ltr',
+    headerTitle: 'BI Assistant Platform',
+    headerSub: 'Complete System Guide & Feature Manual',
+    backBtnText: 'Back to App',
+    heroBadge: '✨ Complete Platform Manual',
+    heroTitle: 'Comprehensive Feature Overview & Tutorial',
+    heroDesc: 'The Conversational BI Assistant enables you to analyze transaction data via simple Persian or English questions, view 4 clean analytical charts simultaneously, generate visual posters, and download standard PDF/Excel reports.',
+    faqTitle: '❓ Frequently Asked Questions',
+    footerText: '© BI Assistant Platform — User Guide & Documentation',
+    tryBtn: 'Try in App',
+    features: [
+      {
+        icon: '🤖',
+        title: '1. Conversational AI & Automatic SQL',
+        tag: 'AI Data Processing',
+        desc: 'Ask questions in natural Persian or English. The AI constructs precise SQL queries, executes them against the database, and automatically self-heals errors (Auto-Fix) if any occur.',
+        highlights: [
+          'Full bilingual Persian & English query support',
+          'Automatic SQL query building with manual editor',
+          'Database error auto-correction (Auto-Fix)',
+        ],
+        sample: 'Show top 10 merchants by volume',
+      },
+      {
+        icon: '📊',
+        title: '2. 4-Chart Quad Grid & Interactive Zoom Modal',
+        tag: 'Advanced Data Visualization',
+        desc: 'Renders 4 clean analytical square charts (Vertical Bar, Line, Pie, Horizontal Bar) simultaneously. Clicking any chart opens an interactive pop-up zoom modal with column selection & print controls.',
+        highlights: [
+          '4 clean square cards without text label overlap',
+          'Interactive pop-up zoom modal with instant chart switching',
+          'Smart column selection for label and numeric metrics',
+        ],
+        sample: 'Show monthly transaction volume chart',
+      },
+      {
+        icon: '🖼️',
+        title: '3. Data-Driven Infographic Posters',
+        tag: 'Visual Reporting',
+        desc: 'Clicking Analyze Results automatically builds a visual poster featuring Key Performance Indicators (KPIs) and top category breakdown shares, downloadable as a high-res PNG image.',
+        highlights: [
+          'Modern emerald visual theme design',
+          'Automatic KPI calculation & category share breakdown',
+          'Direct PNG image download for meeting presentations',
+        ],
+        sample: 'Show today transaction summary',
+      },
+      {
+        icon: '💬',
+        title: '4. Discussion & Analysis Challenge Panel',
+        tag: 'Interactive Analysis Refinement',
+        desc: 'Highlight any sentence or text snippet in the AI analysis to challenge or clarify. The AI provides smart responses that can be directly applied to update the original report text.',
+        highlights: [
+          'Highlight specific sentences from the analysis',
+          'Multi-turn discussion on data and insights',
+          'Direct application of corrections into the report text',
+        ],
+        sample: 'Show yesterday failed transactions',
+      },
+      {
+        icon: '🔊',
+        title: '5. Bilingual Voice Input (FA/EN)',
+        tag: 'Speech-to-Text Processing',
+        desc: 'Click the microphone button to ask transaction questions hands-free in Persian or English without typing.',
+        highlights: [
+          'Supports natural speech in Persian & English',
+          'Fast voice recognition without typing',
+          'Compatible with Chrome and Edge browsers',
+        ],
+      },
+      {
+        icon: '📤',
+        title: '6. One-Click PDF & Excel Exports',
+        tag: 'Standard Exporting',
+        desc: 'Download complete reports containing AI analysis text, high-res chart visuals, and data tables into formal PDF and Excel files for archiving.',
+        highlights: [
+          'Persian PDF files formatted with Vazirmatn font',
+          'Multi-sheet Excel workbooks (Data, Explanation, Analysis)',
+          'Includes chart visuals and comprehensive row statistics',
+        ],
+      },
+      {
+        icon: '⏱️',
+        title: '7. Service Pipeline Timings',
+        tag: 'Processing Transparency',
+        desc: 'Inspect step-by-step performance timelines for SQL generation, safety checks, database execution, analysis, and discussion.',
+        highlights: [
+          'Complete transparency for SQL query execution time',
+          'Detailed breakdown of AI model response latency',
+          'Optimized pipeline for fast answer turnaround',
+        ],
+      },
+      {
+        icon: '🕘',
+        title: '8. History, Top Questions & Feature Poll',
+        tag: 'Management & Personalization',
+        desc: 'Quick access to top 10 frequent questions, historical conversation playback, collapsible sidebar panels, and community feature voting.',
+        highlights: [
+          'Query history storage and full playback',
+          'Top 10 frequent system questions list',
+          'Online feature poll for future updates',
+        ],
+      },
+    ],
+    faqs: [
+      {
+        q: 'How can I save or print generated reports?',
+        a: 'At the bottom of each report, PDF and Excel export buttons become active. You can also print any chart or download the PNG infographic poster.'
+      },
+      {
+        q: 'Does the platform support English questions?',
+        a: 'Yes, both text and voice input support Persian and English, and responses/charts adapt to your chosen language.'
+      },
+      {
+        q: 'What if the generated SQL code has an error?',
+        a: 'The SQL code is placed inside an editable text area so you can modify it manually. The system also automatically corrects database syntax errors (Auto-Fix).'
+      }
+    ]
+  }
+};
+
+let currentLang = 'fa';
+
+function renderHelpPage(lang) {
+  currentLang = lang;
+  const data = HELP_PAGE_DATA[lang];
+
+  document.documentElement.dir = data.dir;
+  document.documentElement.lang = lang;
+
+  document.getElementById('page-title-header').textContent = data.headerTitle;
+  document.getElementById('page-sub-header').textContent = data.headerSub;
+  document.getElementById('back-app-text').textContent = data.backBtnText;
+  document.getElementById('hero-badge').textContent = data.heroBadge;
+  document.getElementById('hero-title').textContent = data.heroTitle;
+  document.getElementById('hero-desc').textContent = data.heroDesc;
+  document.getElementById('faq-section-title').textContent = data.faqTitle;
+  document.getElementById('footer-text').textContent = data.footerText;
+
+  const btnFa = document.getElementById('btn-lang-fa');
+  const btnEn = document.getElementById('btn-lang-en');
+
+  if (lang === 'fa') {
+    btnFa.classList.add('is-active');
+    btnEn.classList.remove('is-active');
+  } else {
+    btnEn.classList.add('is-active');
+    btnFa.classList.remove('is-active');
+  }
+
+  const gridEl = document.getElementById('help-grid');
+  gridEl.innerHTML = data.features.map(item => `
+    <div class="help-feature-card">
+      <div class="help-feature-header">
+        <div class="help-feature-icon-box">${item.icon}</div>
+        <div class="help-feature-title-wrap">
+          <h3>${item.title}</h3>
+          <span class="help-feature-tag">${item.tag}</span>
+        </div>
+      </div>
+      <div class="help-feature-body">
+        <p>${item.desc}</p>
+        <ul class="help-feature-highlights">
+          ${item.highlights.map(h => `<li>${h}</li>`).join('')}
+        </ul>
+      </div>
+      ${item.sample ? `
+        <div class="help-sample-box">
+          <span class="help-sample-text">💡 "${item.sample}"</span>
+          <a href="/app?q=${encodeURIComponent(item.sample)}" class="help-sample-btn">${data.tryBtn} →</a>
+        </div>
+      ` : ''}
+    </div>
+  `).join('');
+
+  const faqEl = document.getElementById('faq-list');
+  faqEl.innerHTML = data.faqs.map(faq => `
+    <div class="faq-item">
+      <div class="faq-question">❓ ${faq.q}</div>
+      <div class="faq-answer">${faq.a}</div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('btn-lang-fa').addEventListener('click', () => renderHelpPage('fa'));
+document.getElementById('btn-lang-en').addEventListener('click', () => renderHelpPage('en'));
+
+renderHelpPage('fa');
+</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+# Version control / editor / OS cruft
+.git
+.gitignore
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+venv/
+.venv/
+env/
+
+# Runtime data & secrets — the container creates its own on first run
+*.db
+data/*.db
+data/*.json
+!data/.gitkeep
+exports/*
+!exports/.gitkeep
+history.json
+feedback.json
+feature_poll.json
+.env
+.env.*
+
+# Docs / one-off tooling — not needed to run the app
+docs/
+scripts/
+README.md
+
+# Stray dev/test output artifacts (if any linger locally)
+report*.pdf
+report*.xlsx
+test_*.pdf
+test_*.xlsx
+test_output.*
+.test_cookies.txt

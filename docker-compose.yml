@@ -1,0 +1,21 @@
+services:
+  bichart:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: bichart:latest
+    container_name: bichart
+    ports:
+      - "8000:7860"
+    environment:
+      # Set this in a local .env file (next to docker-compose.yml)
+      # or export it in your shell before running docker compose.
+      AVALAI_API_KEY: ${AVALAI_API_KEY:-}
+      # Optional overrides
+      PORT: 7860
+      SESSION_SECRET: ${SESSION_SECRET:-bichart-change-this-secret-in-production}
+    volumes:
+      # Persist generated DB/data and exported files between restarts.
+      - ./data:/app/data
+      - ./exports:/app/exports
+    restart: unless-stopped
