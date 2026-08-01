@@ -20,7 +20,7 @@ from modules.llm.ollama import (
 )
 
 AVALAI_BASE = "https://api.avalai.ir/v1"
-AVALAI_API_KEY = os.environ.get("AVALAI_API_KEY", "aa-PqX6XTobrcQv8r4zFGaIIhl4lur7e1kNswrKsIh2sAKjcczu")
+AVALAI_API_KEY = os.environ.get("AVALAI_API_KEY", "")
 #AVALAI_MODEL = os.environ.get("AVALAI_MODEL", "glm-5.2")
 AVALAI_MODEL = os.environ.get("AVALAI_MODEL", "gpt-4o-mini")
 #AVALAI_MODEL = os.environ.get("AVALAI_MODEL", "claude-opus-4-8")
