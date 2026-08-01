@@ -4,7 +4,9 @@ const state = {
   language: 'fa',
   provider: 'avalai',
   lastResponse: null, // stores the most recent chat response for PDF/Excel export
-  lastChart: null,    // Chart.js instance for PDF chart image
+  lastChart: null,    // Chart.js instance for PDF chart image (single-view or first quad)
+  lastCharts: [],     // all 4 Chart.js instances when in quad-grid view
+  lastQuadConfigs: [], // configs (title/icon) matching lastCharts
   pendingClarification: null, // { originalQuestion, transcript } while AI is asking a follow-up question
 };
 
@@ -191,6 +193,38 @@ function captureChartImage() {
   return null;
 }
 
+function captureAllChartImages() {
+  // If we have all 4 quad chart instances, capture each one with its title.
+  if (state.lastCharts && state.lastCharts.length > 0) {
+    const images = [];
+    state.lastCharts.forEach((inst, i) => {
+      const cfg = (state.lastQuadConfigs && state.lastQuadConfigs[i]) || {};
+      let dataUrl = null;
+      if (inst && typeof inst.toBase64Image === 'function') {
+        try {
+          if (typeof inst.draw === 'function') inst.draw();
+          const url = inst.toBase64Image('image/png', 1);
+          if (url && url.startsWith('data:image') && url.length > 100) dataUrl = url;
+        } catch (_) { /* ignore */ }
+      }
+      // Fallback: capture the underlying canvas element
+      if (!dataUrl && inst && inst.canvas) {
+        try {
+          const url = inst.canvas.toDataURL('image/png');
+          if (url && url.startsWith('data:image') && url.length > 100) dataUrl = url;
+        } catch (_) { /* ignore */ }
+      }
+      if (dataUrl) {
+        images.push({ image: dataUrl, title: cfg.title || `نمودار ${i + 1}`, icon: cfg.icon || '📊' });
+      }
+    });
+    if (images.length > 0) return images;
+  }
+  // Fallback to single chart
+  const single = captureChartImage();
+  return single ? [{ image: single, title: state.language === 'fa' ? 'نمودار' : 'Chart', icon: '📊' }] : [];
+}
+
 function buildExportPayload() {
   if (!state.lastResponse) return null;
   const { explanation, data, analysis } = state.lastResponse;
@@ -199,7 +233,8 @@ function buildExportPayload() {
     explanation: explanation || '',
     data: data || [],
     analysis: analysis || '',
-    chart_image: captureChartImage(),
+    chart_image: captureChartImage(),   // kept for backward-compat
+    chart_images: captureAllChartImages(), // all 4 charts with titles
   };
 }
 
@@ -2682,6 +2717,9 @@ function maybeRenderChart(container, data) {
 }
 
 function renderQuadGridView(container, data, configs, onSwitchView) {
+  // Store configs so captureAllChartImages() can label each chart in the PDF
+  state.lastQuadConfigs = configs;
+  state.lastCharts = [];
   container.innerHTML = `
     <div class="chart-panel">
       <div class="chart-header">
@@ -2729,6 +2767,7 @@ function renderQuadGridView(container, data, configs, onSwitchView) {
       try {
         const inst = createChartInstance(canvas, cfg.type, chartData, { isMini: true });
         if (idx === 0) state.lastChart = inst;
+        state.lastCharts[idx] = inst;
       } catch (_) {}
     }
     card.addEventListener('click', () => {

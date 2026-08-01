@@ -184,8 +184,11 @@ def generate_llm_pdf(
     data: Optional[list] = None,
     analysis: Optional[str] = None,
     chart_image: Optional[str] = None,
+    chart_images: Optional[list] = None,
     number_sep: str = ";",
 ) -> str:
+    # chart_images: list of {"image": <data-url>, "title": str, "icon": str}
+    # Falls back to chart_image (single) when chart_images is absent/empty.
     # number_sep: thousands separator every 3 digits (default ";")
     sample = " ".join(str(p) for p in (title, explanation, analysis or "") if p)
     force_rtl = is_rtl_text(sample)
@@ -195,7 +198,28 @@ def generate_llm_pdf(
     pdf.font_name = font_name
     pdf.set_text_shaping(True)
 
-    chart_path = _decode_chart_image(chart_image)
+    # Resolve chart paths — prefer the multi-chart list, fall back to single.
+    chart_path_list: list[dict] = []  # [{"path": str, "title": str, "icon": str}]
+    if chart_images:
+        for entry in chart_images:
+            if not isinstance(entry, dict):
+                continue
+            img_data = entry.get("image") or ""
+            path = _decode_chart_image(img_data)
+            if path:
+                chart_path_list.append({
+                    "path": path,
+                    "title": entry.get("title") or ("نمودار" if force_rtl else "Chart"),
+                    "icon": entry.get("icon") or "📊",
+                })
+    if not chart_path_list:
+        single = _decode_chart_image(chart_image)
+        if single:
+            chart_path_list.append({
+                "path": single,
+                "title": "نمودار" if force_rtl else "Chart",
+                "icon": "📊",
+            })
     try:
         pdf.add_page()
 
@@ -223,24 +247,42 @@ def generate_llm_pdf(
         pdf.multi_cell(0, 7, body, align=_cell_align(body, force_rtl))
         pdf.ln(4)
 
-        # Chart image
-        if chart_path and os.path.exists(chart_path):
-            pdf.section_title(normalize_persian_pdf_text("نمودار" if force_rtl else "Chart"))
-            max_w = pdf.epw
-            try:
-                # Ensure room for the chart; add a page if needed
-                if pdf.get_y() > pdf.h - 80:
-                    pdf.add_page()
-                    pdf.section_title(normalize_persian_pdf_text("نمودار" if force_rtl else "Chart"))
-                pdf.image(chart_path, w=max_w * 0.95, x=pdf.l_margin + pdf.epw * 0.025)
-                pdf.ln(6)
-            except Exception as img_err:
-                pdf.set_font(font_name, size=9)
-                pdf.set_text_color(*MUTED)
-                msg = f"Chart embed failed: {img_err}"
-                pdf.multi_cell(0, 6, msg)
-                pdf.set_text_color(*INK)
-                pdf.ln(2)
+        # Chart images — embed all available charts
+        if chart_path_list:
+            section_label = normalize_persian_pdf_text(
+                "نمودارهای تحلیلی" if force_rtl else "Analytical Charts"
+            )
+            pdf.section_title(section_label)
+            for entry in chart_path_list:
+                cpath = entry["path"]
+                ctitle = normalize_persian_pdf_text(entry["title"])
+                cicon = entry.get("icon", "")
+                if not os.path.exists(cpath):
+                    continue
+                try:
+                    # Sub-label for each individual chart
+                    pdf.set_font(font_name, size=10)
+                    pdf.set_text_color(*ACCENT_STRONG)
+                    sub_label = normalize_persian_pdf_text(f"{cicon}  {ctitle}")
+                    pdf.multi_cell(0, 7, sub_label, align=_cell_align(sub_label, force_rtl))
+                    pdf.set_text_color(*INK)
+                    # Ensure room for chart; add a page if needed
+                    if pdf.get_y() > pdf.h - 80:
+                        pdf.add_page()
+                        pdf.set_font(font_name, size=10)
+                        pdf.set_text_color(*ACCENT_STRONG)
+                        pdf.multi_cell(0, 7, sub_label, align=_cell_align(sub_label, force_rtl))
+                        pdf.set_text_color(*INK)
+                    max_w = pdf.epw
+                    pdf.image(cpath, w=max_w * 0.95, x=pdf.l_margin + pdf.epw * 0.025)
+                    pdf.ln(8)
+                except Exception as img_err:
+                    pdf.set_font(font_name, size=9)
+                    pdf.set_text_color(*MUTED)
+                    msg = f"Chart embed failed: {img_err}"
+                    pdf.multi_cell(0, 6, msg)
+                    pdf.set_text_color(*INK)
+                    pdf.ln(2)
 
         # Data table
         rows = data or []
@@ -382,8 +424,10 @@ def generate_llm_pdf(
         pdf.output(output_path)
         return output_path
     finally:
-        if chart_path and os.path.exists(chart_path):
-            try:
-                os.remove(chart_path)
-            except OSError:
-                pass
+        for entry in chart_path_list:
+            p = entry.get("path")
+            if p and os.path.exists(p):
+                try:
+                    os.remove(p)
+                except OSError:
+                    pass

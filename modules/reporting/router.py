@@ -24,6 +24,7 @@ class PDFExportRequest(BaseModel):
     data: Optional[list] = None
     analysis: Optional[str] = None
     chart_image: Optional[str] = None
+    chart_images: Optional[list] = None  # list of {image, title, icon} for all 4 charts
 
 
 class ExcelExportRequest(BaseModel):
@@ -50,6 +51,7 @@ def export_pdf(req: PDFExportRequest, request: Request):
             data=req.data,
             analysis=req.analysis,
             chart_image=req.chart_image,
+            chart_images=req.chart_images,
         )
 
         return FileResponse(
