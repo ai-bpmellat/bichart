@@ -1,0 +1,9 @@
+# ─── Phusion Passenger + cPanel ─────────────────────────────────────
+# This file tells Apache/Passenger to route all requests through your
+# Python app instead of serving static files from the directory.
+
+PassengerAppRoot /home/<username>/bichart
+PassengerPython /home/<username>/virtualenv/bichart/3.10/bin/python
+
+# Friendly error pages during development (remove in production)
+PassengerFriendlyErrorPages on

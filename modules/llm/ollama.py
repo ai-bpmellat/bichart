@@ -18,10 +18,8 @@ import requests
 
 OLLAMA_HOST = "http://127.0.0.1:11434"   # use 127.0.0.1, not "localhost" (Windows httpx/requests
                                           # can hit IPv6/proxy resolution issues with "localhost")
-#MODEL_NAME = "gemma4:e4b-it-qat"
-#MODEL_NAME = " qwen3.5:0.8b"
-#MODEL_NAME = "gemma4:e4b"
-MODEL_NAME = "gemma4:latest"
+MODEL_NAME = os.environ.get("OLLAMA_MODEL", "gemma4:latest")
+ANALYSIS_MODEL_NAME = os.environ.get("OLLAMA_ANALYSIS_MODEL", MODEL_NAME)
 
 REQUEST_TIMEOUT = 60
 
@@ -67,10 +65,10 @@ class OllamaError(Exception):
     pass
 
 
-def _post(prompt: str, system: str = "", temperature: float = 0.1) -> str:
+def _post(prompt: str, system: str = "", temperature: float = 0.1, model: str | None = None) -> str:
     """Low-level call to Ollama's /api/generate endpoint. Returns raw text response."""
     payload = {
-        "model": MODEL_NAME,
+        "model": model or MODEL_NAME,
         "prompt": prompt,
         "system": system,
         "stream": False,
@@ -285,7 +283,12 @@ def fix_sql(
     return parsed
 
 
-def generate_analysis(data_sample: list, user_question: str, language: str = RESPONSE_LANGUAGE) -> str:
+def generate_analysis(
+    data_sample: list,
+    user_question: str,
+    language: str = RESPONSE_LANGUAGE,
+    precomputed_stats: dict | None = None,
+) -> str:
     """
     Second-stage call: given query result rows and the original question,
     ask the model for accurate analysis / forecast in plain text.
@@ -293,11 +296,11 @@ def generate_analysis(data_sample: list, user_question: str, language: str = RES
     data_json = json.dumps(data_sample, ensure_ascii=False, default=str)
     from modules.llm.prompts import ANALYSIS_SYSTEM_RULES, build_analysis_prompt
 
-    prompt = build_analysis_prompt(data_json, user_question)
+    prompt = build_analysis_prompt(data_json, user_question, precomputed_stats=precomputed_stats)
     lang_instruction = _ANALYSIS_LANGUAGE_INSTRUCTIONS.get(language, _ANALYSIS_LANGUAGE_INSTRUCTIONS["en"])
     system = f"{ANALYSIS_SYSTEM_RULES}\n\n{lang_instruction}"
     try:
-        raw = _post(prompt, system=system, temperature=0.2)
+        raw = _post(prompt, system=system, temperature=0.2, model=ANALYSIS_MODEL_NAME)
     except OllamaError as e:
         return f"(Analysis unavailable: {e})"
     return raw.strip() or "No analysis could be generated for this result set."

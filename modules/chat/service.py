@@ -190,13 +190,162 @@ def run_sql(
     }
 
 
+def compute_result_stats(records: list, user_question: str = "", numeric_col_hint: Optional[str] = None) -> dict[str, Any]:
+    """محاسبه هوشمند آمار و شاخص‌های کاربردی بازاریابی و ارزیابی کسب‌وکار متناسب با قصد سوال کاربر."""
+    if not records:
+        return {"intent_type": "comparison"}
+
+    q_lower = (user_question or "").lower()
+
+    # 1. Intent Detection
+    forecast_keywords = ["پیش‌بینی", "احتمال", "رشد", "آینده", "ماه بعد", "ماه آینده", "روند", "forecast", "predict", "probability", "growth", "future", "trend", "momentum", "expect", "انتظار"]
+    churn_keywords = ["ریزش", "کاهش", "افت", "ناموفق", "خروج", "غیرفعال", "churn", "decline", "drop", "loss", "inactive", "failed"]
+    ranking_keywords = ["۱۰", "برتر", "رتبه", "بیشترین", "کمترین", "سهم", "تمرکز", "top", "rank", "highest", "lowest", "share", "pareto", "پارتو"]
+
+    is_forecast = any(w in q_lower for w in forecast_keywords)
+    is_churn = any(w in q_lower for w in churn_keywords) and not is_forecast
+    is_ranking = any(w in q_lower for w in ranking_keywords) and not (is_forecast or is_churn)
+
+    intent = "forecast" if is_forecast else ("churn" if is_churn else ("ranking" if is_ranking else "comparison"))
+
+    # Determine numeric column
+    numeric_col = numeric_col_hint
+    if not numeric_col:
+        for k, v in records[0].items():
+            if isinstance(v, (int, float)) and not isinstance(v, bool):
+                numeric_col = k
+                break
+
+    if not numeric_col:
+        return {"intent_type": intent}
+
+    values = []
+    for r in records:
+        val = r.get(numeric_col)
+        if val is not None and isinstance(val, (int, float)) and not isinstance(val, bool):
+            values.append(float(val))
+
+    if not values:
+        return {"intent_type": intent, "column": numeric_col}
+
+    total = sum(values)
+    avg_val = round(total / len(values), 2)
+    max_val = max(values)
+    min_val = min(values)
+
+    # Time series / Growth calculations
+    growth_rates = []
+    for i in range(1, len(values)):
+        prev = values[i - 1]
+        curr = values[i]
+        if prev != 0:
+            growth_rates.append(((curr - prev) / prev) * 100)
+
+    avg_growth_pct = round(sum(growth_rates) / len(growth_rates), 1) if growth_rates else 0.0
+    pos_growths = [g for g in growth_rates if g > 0]
+    positive_growth_ratio_pct = round((len(pos_growths) / len(growth_rates) * 100), 1) if growth_rates else 50.0
+
+    # Growth Volatility (Standard Deviation of Growth Rates)
+    if len(growth_rates) > 1:
+        mean_g = avg_growth_pct
+        variance = sum((g - mean_g) ** 2 for g in growth_rates) / len(growth_rates)
+        growth_volatility_pct = round(variance ** 0.5, 1)
+    else:
+        growth_volatility_pct = 0.0
+
+    # Calculate estimated growth probability for next period
+    if growth_rates:
+        base_prob = positive_growth_ratio_pct
+        trend_adj = 10.0 if avg_growth_pct > 5 else (-10.0 if avg_growth_pct < -5 else 0.0)
+        recent_adj = 5.0 if growth_rates[-1] > 0 else -5.0
+        # Reduce probability slightly if volatility is high
+        volatility_adj = -5.0 if growth_volatility_pct > 15.0 else 0.0
+        estimated_growth_prob_pct = round(max(5.0, min(95.0, base_prob + trend_adj + recent_adj + volatility_adj)), 1)
+    else:
+        estimated_growth_prob_pct = 50.0
+
+    # Ranking & Top/Bottom Stats
+    top = values[0]
+    bottom = values[-1]
+
+    # Comparative Benchmarks
+    top_vs_avg_ratio = round(top / avg_val, 1) if avg_val != 0 else 1.0
+    latest_vs_avg_pct = round(((values[-1] - avg_val) / avg_val * 100), 1) if avg_val != 0 else 0.0
+
+    # Predictive Forecast Calculations
+    projected_next_value = round(values[-1] * (1.0 + (avg_growth_pct / 100.0)), 2)
+    projected_range_low = round(projected_next_value * 0.93, 2)
+    projected_range_high = round(projected_next_value * 1.07, 2)
+
+    # Momentum trend indicator
+    if len(growth_rates) >= 2:
+        recent_momentum = growth_rates[-1] - growth_rates[-2]
+        if recent_momentum > 3.0:
+            momentum_label = "شتاب‌دار صعودی (Accelerating Growth)"
+        elif recent_momentum < -3.0:
+            momentum_label = "کاهش شتاب رشد (Decelerating)"
+        else:
+            momentum_label = "رشد پایدار و متعادل (Stable Momentum)"
+    else:
+        momentum_label = "روند معمولی (Standard Trend)"
+
+    # Ranking & Concentration Stats
+    top_share_pct = round((top / total * 100), 1) if total != 0 else 0.0
+    top_3_sum = sum(values[:3])
+    top_3_share_pct = round((top_3_sum / total * 100), 1) if total != 0 else 0.0
+    top_to_bottom_ratio = round((top / bottom), 1) if bottom != 0 else None
+
+    # Churn stats
+    drop_from_peak_pct = round(((max_val - values[-1]) / max_val * 100), 1) if max_val != 0 else 0.0
+
+    return {
+        "intent_type": intent,
+        "column": numeric_col,
+        "total_sum": total,
+        "avg_val": avg_val,
+        "max_val": max_val,
+        "min_val": min_val,
+        "first_val": values[0],
+        "latest_val": values[-1],
+        "row_count": len(values),
+        # Marketing & Growth metrics
+        "avg_growth_pct": avg_growth_pct,
+        "positive_growth_ratio_pct": positive_growth_ratio_pct,
+        "estimated_growth_prob_pct": estimated_growth_prob_pct,
+        "growth_volatility_pct": growth_volatility_pct,
+        "growth_rates": [round(g, 1) for g in growth_rates],
+        # Comparative metrics
+        "top_vs_avg_ratio": top_vs_avg_ratio,
+        "latest_vs_avg_pct": latest_vs_avg_pct,
+        "momentum_label": momentum_label,
+        # Predictive Metrics
+        "projected_next_value": projected_next_value,
+        "projected_range_low": projected_range_low,
+        "projected_range_high": projected_range_high,
+        # Ranking & Concentration metrics
+        "top_value": top,
+        "bottom_value": bottom,
+        "top_share_pct": top_share_pct,
+        "top_3_share_pct": top_3_share_pct if len(values) >= 3 else None,
+        "top_to_bottom_ratio": top_to_bottom_ratio,
+        # Churn & Risk metrics
+        "drop_from_peak_pct": drop_from_peak_pct,
+    }
+
+
 def analyze(user_question: str, data: list, language: str, provider: str, username: str) -> dict[str, Any]:
     timings: dict[str, float] = {}
     t0 = time.perf_counter()
     llm = get_llm_client(provider)
     t = time.perf_counter()
+    stats = compute_result_stats(data, user_question=user_question)
     try:
-        analysis = llm.generate_analysis(data[:80], user_question, language=language)
+        analysis = llm.generate_analysis(
+            data[:80],
+            user_question,
+            language=language,
+            precomputed_stats=stats,
+        )
     except Exception as e:
         timings["analysis"] = round((time.perf_counter() - t) * 1000, 1)
         timings["total"] = round((time.perf_counter() - t0) * 1000, 1)

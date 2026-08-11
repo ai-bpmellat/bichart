@@ -20,7 +20,7 @@ from modules.llm.ollama import (
 )
 
 AVALAI_BASE = "https://api.avalai.ir/v1"
-AVALAI_API_KEY = os.environ.get("AVALAI_API_KEY", "")
+AVALAI_API_KEY = os.environ.get("AVALAI_API_KEY", "aa-PqX6XTobrcQv8r4zFGaIIhl4lur7e1kNswrKsIh2sAKjcczu")
 #AVALAI_MODEL = os.environ.get("AVALAI_MODEL", "glm-5.2")
 AVALAI_MODEL = os.environ.get("AVALAI_MODEL", "gpt-4o-mini")
 #AVALAI_MODEL = os.environ.get("AVALAI_MODEL", "claude-opus-4-8")
@@ -161,11 +161,16 @@ def fix_sql(
     return parsed
 
 
-def generate_analysis(data_sample: list, user_question: str, language: str = RESPONSE_LANGUAGE) -> str:
+def generate_analysis(
+    data_sample: list,
+    user_question: str,
+    language: str = RESPONSE_LANGUAGE,
+    precomputed_stats: dict | None = None,
+) -> str:
     data_json = json.dumps(data_sample, ensure_ascii=False, default=str)
     from modules.llm.prompts import ANALYSIS_SYSTEM_RULES, build_analysis_prompt
 
-    prompt = build_analysis_prompt(data_json, user_question)
+    prompt = build_analysis_prompt(data_json, user_question, precomputed_stats=precomputed_stats)
     lang_instruction = _ANALYSIS_LANGUAGE_INSTRUCTIONS.get(language, _ANALYSIS_LANGUAGE_INSTRUCTIONS["en"])
     system = f"{ANALYSIS_SYSTEM_RULES}\n\n{lang_instruction}"
     try:
