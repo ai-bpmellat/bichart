@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="پلتفرم دستیار هوشمند هوش تجاری و تحلیل داده. ساخت داشبوردهای پویا، تجسم داده و گزارش‌ساز هوشمند. Business Intelligence Dashboard and Data Analysis Platform.">
-    <meta name="keywords" content="هوش تجاری, داشبورد هوش تجاری, تحلیل داده, تجسم داده, گزارش ساز, تحلیل کسب و کار, Business Intelligence, BI Dashboard, Data Analysis, Data Visualization, Data Analytics">
+    <meta name="description"
+        content="پلتفرم دستیار هوشمند هوش تجاری و تحلیل داده. ساخت داشبوردهای پویا، تجسم داده و گزارش‌ساز هوشمند. Business Intelligence Dashboard and Data Analysis Platform.">
+    <meta name="keywords"
+        content="هوش تجاری, داشبورد هوش تجاری, تحلیل داده, تجسم داده, گزارش ساز, تحلیل کسب و کار, Business Intelligence, BI Dashboard, Data Analysis, Data Visualization, Data Analytics">
     <meta name="robots" content="index, follow">
     <title>Rayamate رایامیت</title>
     <link rel="icon" type="image/png" sizes="512x512" href="/static/favicon-512.png" />
@@ -14,7 +17,9 @@
     <link rel="apple-touch-icon" sizes="192x192" href="/static/favicon-192.png" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Oswald:wght@400;500;600;700&family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Oswald:wght@400;500;600;700&family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
@@ -35,10 +40,15 @@
         }
     </script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Vazirmatn', 'Inter', sans-serif; 
-            background: #f4f8f6; 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Vazirmatn', 'Inter', sans-serif;
+            background: #f4f8f6;
             overflow-x: hidden;
             color: #334840;
         }
@@ -48,15 +58,16 @@
             background: #f4f8f6;
             position: relative;
         }
+
         .hero-bg::before {
             content: '';
             position: fixed;
             inset: 0;
-            background: 
-                radial-gradient(ellipse 600px 450px at 80% 5%, rgba(5,150,105,0.06), transparent 70%),
-                radial-gradient(ellipse 500px 400px at 10% 85%, rgba(217,119,6,0.04), transparent 70%),
-                radial-gradient(ellipse 450px 450px at 50% 50%, rgba(52,211,153,0.04), transparent 70%),
-                radial-gradient(ellipse 350px 350px at 20% 20%, rgba(5,150,105,0.03), transparent 70%);
+            background:
+                radial-gradient(ellipse 600px 450px at 80% 5%, rgba(5, 150, 105, 0.06), transparent 70%),
+                radial-gradient(ellipse 500px 400px at 10% 85%, rgba(217, 119, 6, 0.04), transparent 70%),
+                radial-gradient(ellipse 450px 450px at 50% 50%, rgba(52, 211, 153, 0.04), transparent 70%),
+                radial-gradient(ellipse 350px 350px at 20% 20%, rgba(5, 150, 105, 0.03), transparent 70%);
             pointer-events: none;
             z-index: 0;
         }
@@ -77,21 +88,54 @@
             pointer-events: none;
             animation: floatOrb 12s ease-in-out infinite;
         }
-        .orb-1 { width: 400px; height: 400px; background: rgba(5,150,105,0.08); top: -80px; right: -60px; }
-        .orb-2 { width: 300px; height: 300px; background: rgba(217,119,6,0.06); bottom: 10%; left: -40px; animation-delay: -4s; }
-        .orb-3 { width: 350px; height: 350px; background: rgba(52,211,153,0.07); top: 45%; left: 35%; animation-delay: -7s; }
+
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: rgba(5, 150, 105, 0.08);
+            top: -80px;
+            right: -60px;
+        }
+
+        .orb-2 {
+            width: 300px;
+            height: 300px;
+            background: rgba(217, 119, 6, 0.06);
+            bottom: 10%;
+            left: -40px;
+            animation-delay: -4s;
+        }
+
+        .orb-3 {
+            width: 350px;
+            height: 350px;
+            background: rgba(52, 211, 153, 0.07);
+            top: 45%;
+            left: 35%;
+            animation-delay: -7s;
+        }
+
         @keyframes floatOrb {
-            0%, 100% { transform: translate(0, 0); }
-            50% { transform: translate(15px, -15px); }
+
+            0%,
+            100% {
+                transform: translate(0, 0);
+            }
+
+            50% {
+                transform: translate(15px, -15px);
+            }
         }
 
         /* ===== TEXT CLASSES ===== */
         .text-heading {
             color: #0f2a1f !important;
         }
+
         .text-body {
             color: #4a6b5e !important;
         }
+
         .text-muted {
             color: #7a9e90 !important;
         }
@@ -106,9 +150,15 @@
             -webkit-text-fill-color: transparent;
             animation: shimmer 5s linear infinite;
         }
+
         @keyframes shimmer {
-            0% { background-position: -200% center; }
-            100% { background-position: 200% center; }
+            0% {
+                background-position: -200% center;
+            }
+
+            100% {
+                background-position: 200% center;
+            }
         }
 
         /* ===== GLOW CARDS — light glass ===== */
@@ -118,13 +168,14 @@
             overflow: hidden;
             transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
         }
+
         .glow-card::before {
             content: '';
             position: absolute;
             inset: 0;
             border-radius: 1.5rem;
             padding: 1px;
-            background: linear-gradient(135deg, rgba(5,150,105,0.35), rgba(217,119,6,0.15), rgba(52,211,153,0.15), rgba(5,150,105,0.35));
+            background: linear-gradient(135deg, rgba(5, 150, 105, 0.35), rgba(217, 119, 6, 0.15), rgba(52, 211, 153, 0.15), rgba(5, 150, 105, 0.35));
             background-size: 300% 300%;
             animation: borderGlow 6s ease infinite;
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -133,14 +184,24 @@
             pointer-events: none;
             z-index: 2;
         }
+
         @keyframes borderGlow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
         }
+
         .glow-card:hover {
             transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 25px 50px rgba(5, 150, 105, 0.1), 0 10px 20px rgba(0,0,0,0.04);
+            box-shadow: 0 25px 50px rgba(5, 150, 105, 0.1), 0 10px 20px rgba(0, 0, 0, 0.04);
         }
 
         .card-inner {
@@ -156,7 +217,10 @@
             object-fit: cover;
             transition: transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
         }
-        .glow-card:hover .screenshot { transform: scale(1.05); }
+
+        .glow-card:hover .screenshot {
+            transform: scale(1.05);
+        }
 
         .hero-screenshot-container {
             position: relative;
@@ -164,33 +228,66 @@
             overflow: hidden;
             box-shadow:
                 0 0 0 1px rgba(5, 150, 105, 0.15),
-                0 20px 40px rgba(0,0,0,0.08),
+                0 20px 40px rgba(0, 0, 0, 0.08),
                 0 0 60px rgba(5, 150, 105, 0.05);
         }
+
         .hero-screenshot-container::after {
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(180deg, transparent 50%, rgba(244,248,246,0.8) 100%);
+            background: linear-gradient(180deg, transparent 50%, rgba(244, 248, 246, 0.8) 100%);
             pointer-events: none;
         }
 
-        .float-badge { animation: floatBadge 3s ease-in-out infinite; }
+        .float-badge {
+            animation: floatBadge 3s ease-in-out infinite;
+        }
+
         @keyframes floatBadge {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
         }
 
-        .pulse-ring { animation: pulseRing 2s ease-out infinite; }
+        .pulse-ring {
+            animation: pulseRing 2s ease-out infinite;
+        }
+
         @keyframes pulseRing {
-            0% { transform: scale(0.9); opacity: 0.7; }
-            100% { transform: scale(1.5); opacity: 0; }
+            0% {
+                transform: scale(0.9);
+                opacity: 0.7;
+            }
+
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
         }
 
-        .scroll-indicator { animation: scrollBounce 2s ease-in-out infinite; }
+        .scroll-indicator {
+            animation: scrollBounce 2s ease-in-out infinite;
+        }
+
         @keyframes scrollBounce {
-            0%, 100% { transform: translateY(0); opacity: 0.5; }
-            50% { transform: translateY(10px); opacity: 0.2; }
+
+            0%,
+            100% {
+                transform: translateY(0);
+                opacity: 0.5;
+            }
+
+            50% {
+                transform: translateY(10px);
+                opacity: 0.2;
+            }
         }
 
         #particles {
@@ -200,8 +297,13 @@
             z-index: 1;
         }
 
-        .icon-glow { box-shadow: 0 4px 20px rgba(5, 150, 105, 0.2); }
-        .stat-number { font-variant-numeric: tabular-nums; }
+        .icon-glow {
+            box-shadow: 0 4px 20px rgba(5, 150, 105, 0.2);
+        }
+
+        .stat-number {
+            font-variant-numeric: tabular-nums;
+        }
 
         .nav-glass {
             background: rgba(244, 248, 246, 0.85);
@@ -215,6 +317,7 @@
             object-fit: contain;
             flex-shrink: 0;
         }
+
         @media (max-width: 640px) {
             .nav-brand-logo {
                 height: 64px;
@@ -227,21 +330,51 @@
             animation: marquee 30s linear infinite;
             width: max-content;
         }
+
         @keyframes marquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-50%);
+            }
         }
 
         /* ===== SECTION BACKGROUNDS ===== */
-        .section-a { background: #f4f8f6; position: relative; z-index: 2; }
-        .section-b { background: #eef4f1; position: relative; z-index: 2; }
-        .section-c { background: #f7faf9; position: relative; z-index: 2; }
+        .section-a {
+            background: #f4f8f6;
+            position: relative;
+            z-index: 2;
+        }
 
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f4f8f6; }
-        ::-webkit-scrollbar-thumb { background: #059669; border-radius: 3px; }
+        .section-b {
+            background: #eef4f1;
+            position: relative;
+            z-index: 2;
+        }
+
+        .section-c {
+            background: #f7faf9;
+            position: relative;
+            z-index: 2;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f4f8f6;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #059669;
+            border-radius: 3px;
+        }
     </style>
 </head>
+
 <body class="hero-bg grid-pattern">
 
     <canvas id="particles"></canvas>
@@ -254,7 +387,9 @@
         <div class="max-w-7xl mx-auto px-6 lg:px-8 py-3 flex items-center justify-between">
             <a href="/" class="flex items-center gap-3" style="text-decoration:none;">
                 <img src="/static/logo.png" alt="" class="nav-brand-logo" />
-                <span style="color:#0f2a1f; font-weight:700; font-size:1.5rem; letter-spacing:-0.02em; line-height:1.2;">Rayamate <span style="color:#059669; font-weight:400; font-size:1.15rem;">رایامیت</span></span>
+                <span
+                    style="color:#0f2a1f; font-weight:700; font-size:1.5rem; letter-spacing:-0.02em; line-height:1.2;">Rayamate
+                    <span style="color:#059669; font-weight:400; font-size:1.15rem;">رایامیت</span></span>
             </a>
             <div class="hidden md:flex items-center gap-8" style="font-size:0.875rem; color:#5a7a6d;">
                 <a href="#features" class="hover:text-brand-dark transition-colors" style="color:inherit;">ویژگی‌ها</a>
@@ -263,10 +398,14 @@
                 <a href="#" class="hover:text-brand-dark transition-colors" style="color:inherit;">تماس</a>
             </div>
             <div class="flex items-center gap-3">
-                <a id="nav-login-btn" href="http://rayamate.ir:8000/login" class="hidden sm:inline-flex px-5 py-2.5 text-sm rounded-full hover:bg-black/5 transition-all" style="color:#334840; border:1px solid rgba(0,0,0,0.1); text-decoration:none;">
+                <a id="nav-login-btn" href="http://rayamate.ir/login"
+                    class="hidden sm:inline-flex px-5 py-2.5 text-sm rounded-full hover:bg-black/5 transition-all"
+                    style="color:#334840; border:1px solid rgba(0,0,0,0.1); text-decoration:none;">
                     ورود
                 </a>
-                <a id="nav-start-btn" href="http://rayamate.ir:8000/login" class="inline-flex px-5 py-2.5 text-sm rounded-full hover:opacity-90 transition-all" style="color:#fff; background:#059669; box-shadow: 0 6px 20px rgba(5,150,105,0.3); text-decoration:none;">
+                <a id="nav-start-btn" href="http://rayamate.ir/login"
+                    class="inline-flex px-5 py-2.5 text-sm rounded-full hover:opacity-90 transition-all"
+                    style="color:#fff; background:#059669; box-shadow: 0 6px 20px rgba(5,150,105,0.3); text-decoration:none;">
                     شروع رایگان
                 </a>
             </div>
@@ -277,9 +416,11 @@
     <section class="section-a relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-12">
         <!-- Badge -->
         <div class="float-badge relative z-10 mb-8">
-            <div class="relative flex items-center gap-2 px-5 py-2 rounded-full text-sm" style="border:1px solid rgba(5,150,105,0.2); background:rgba(5,150,105,0.06); color:#047857;">
+            <div class="relative flex items-center gap-2 px-5 py-2 rounded-full text-sm"
+                style="border:1px solid rgba(5,150,105,0.2); background:rgba(5,150,105,0.06); color:#047857;">
                 <span class="relative flex h-2 w-2">
-                    <span class="pulse-ring absolute inline-flex h-full w-full rounded-full" style="background:#22c55e;"></span>
+                    <span class="pulse-ring absolute inline-flex h-full w-full rounded-full"
+                        style="background:#22c55e;"></span>
                     <span class="relative inline-flex rounded-full h-2 w-2" style="background:#22c55e;"></span>
                 </span>
                 پلتفرم تحلیل داده هوشمند
@@ -288,11 +429,15 @@
 
         <!-- Title -->
         <div class="relative z-10 text-center max-w-5xl mx-auto mb-8">
-            <h1 class="font-display text-5xl sm:text-7xl lg:text-[120px] font-bold leading-[0.85] tracking-tighter mb-6">
-                <span class="text-heading block" style="font-size:inherit; line-height:inherit; font-weight:700;">RAYA</span>
-                <span class="text-shimmer-safe block" style="font-size:inherit; line-height:inherit; font-weight:700;">MATE</span>
+            <h1
+                class="font-display text-5xl sm:text-7xl lg:text-[120px] font-bold leading-[0.85] tracking-tighter mb-6">
+                <span class="text-heading block"
+                    style="font-size:inherit; line-height:inherit; font-weight:700;">RAYA</span>
+                <span class="text-shimmer-safe block"
+                    style="font-size:inherit; line-height:inherit; font-weight:700;">MATE</span>
             </h1>
-            <p class="text-heading mb-2" style="font-family:'Vazirmatn',sans-serif; font-size:1.75rem; font-weight:300; opacity:0.7;">رایامیت</p>
+            <p class="text-heading mb-2"
+                style="font-family:'Vazirmatn',sans-serif; font-size:1.75rem; font-weight:300; opacity:0.7;">رایامیت</p>
             <p class="relative z-10 max-w-2xl mx-auto leading-relaxed mt-4" style="font-size:1rem; color:#5a7a6d;">
                 تحلیل هوشمند داده‌ها با هوش مصنوعی — از پرس‌وجوی SQL تا مصورسازی بصری، همه در یک پلتفرم یکپارچه
             </p>
@@ -300,12 +445,17 @@
 
         <!-- CTA Buttons -->
         <div class="relative z-10 flex flex-wrap items-center justify-center gap-4 mb-16">
-            <a id="hero-start-btn" href="http://rayamate.ir:8000/login" class="group px-8 py-4 rounded-2xl font-medium text-sm flex items-center gap-2 hover:scale-105 transition-all" style="color:#fff; background:#059669; box-shadow: 0 10px 30px rgba(5,150,105,0.25); text-decoration:none;">
+            <a id="hero-start-btn" href="http://rayamate.ir/login"
+                class="group px-8 py-4 rounded-2xl font-medium text-sm flex items-center gap-2 hover:scale-105 transition-all"
+                style="color:#fff; background:#059669; box-shadow: 0 10px 30px rgba(5,150,105,0.25); text-decoration:none;">
                 <iconify-icon icon="lucide:zap" style="font-size:18px;"></iconify-icon>
                 شروع تحلیل داده
-                <iconify-icon icon="lucide:arrow-left" style="font-size:18px;" class="group-hover:-translate-x-1 transition-transform"></iconify-icon>
+                <iconify-icon icon="lucide:arrow-left" style="font-size:18px;"
+                    class="group-hover:-translate-x-1 transition-transform"></iconify-icon>
             </a>
-            <a href="#screens" class="group px-8 py-4 rounded-2xl font-medium text-sm flex items-center gap-2 hover:bg-black/5 transition-all" style="color:#334840; background:rgba(0,0,0,0.03); border:1px solid rgba(0,0,0,0.08); text-decoration:none;">
+            <a href="#screens"
+                class="group px-8 py-4 rounded-2xl font-medium text-sm flex items-center gap-2 hover:bg-black/5 transition-all"
+                style="color:#334840; background:rgba(0,0,0,0.03); border:1px solid rgba(0,0,0,0.08); text-decoration:none;">
                 <iconify-icon icon="lucide:play-circle" style="font-size:18px; color:#059669;"></iconify-icon>
                 مشاهده دمو
             </a>
@@ -315,42 +465,53 @@
         <div class="relative z-10 w-full max-w-5xl mx-auto mb-20">
             <div class="hero-screenshot-container">
                 <div class="relative aspect-video rounded-2xl overflow-hidden">
-                    <img src="https://z-cdn-media.chatglm.cn/files/aee59b06-f87f-4a94-9424-643bfdffe4f2.jpg?auth_key=1883933230-b2e18bd03021434888c3513efea34670-0-fae39c2988e844c4d542b410cc92e41f" 
-                         alt="Rayamate Data Query" class="screenshot" loading="eager">
+                    <img src="https://z-cdn-media.chatglm.cn/files/aee59b06-f87f-4a94-9424-643bfdffe4f2.jpg?auth_key=1883933230-b2e18bd03021434888c3513efea34670-0-fae39c2988e844c4d542b410cc92e41f"
+                        alt="Rayamate Data Query" class="screenshot" loading="eager">
                     <div class="absolute top-4 right-4 z-10 float-badge" style="animation-delay:-1s;">
-                        <div class="flex items-center gap-2 px-4 py-2 rounded-full text-xs backdrop-blur-md" style="background:rgba(255,255,255,0.85); border:1px solid rgba(34,197,94,0.3); color:#047857;">
+                        <div class="flex items-center gap-2 px-4 py-2 rounded-full text-xs backdrop-blur-md"
+                            style="background:rgba(255,255,255,0.85); border:1px solid rgba(34,197,94,0.3); color:#047857;">
                             <iconify-icon icon="lucide:check-circle" style="font-size:14px;"></iconify-icon>
                             اجرای موفق — 1.99s
                         </div>
                     </div>
                     <div class="absolute top-4 left-4 z-10 float-badge" style="animation-delay:-2s;">
-                        <div class="flex items-center gap-2 px-4 py-2 rounded-full text-xs backdrop-blur-md" style="background:rgba(255,255,255,0.85); border:1px solid rgba(5,150,105,0.25); color:#059669;">
+                        <div class="flex items-center gap-2 px-4 py-2 rounded-full text-xs backdrop-blur-md"
+                            style="background:rgba(255,255,255,0.85); border:1px solid rgba(5,150,105,0.25); color:#059669;">
                             <iconify-icon icon="lucide:database" style="font-size:14px;"></iconify-icon>
                             SQL Query
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="absolute -bottom-20 left-0 right-0 h-20 pointer-events-none" style="background:linear-gradient(to bottom, transparent, #f4f8f6);"></div>
+            <div class="absolute -bottom-20 left-0 right-0 h-20 pointer-events-none"
+                style="background:linear-gradient(to bottom, transparent, #f4f8f6);"></div>
         </div>
 
         <!-- Stats Bar -->
         <div class="relative z-10 w-full max-w-4xl mx-auto mb-12">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="text-center p-5 rounded-2xl" style="background:rgba(255,255,255,0.6); border:1px solid rgba(0,0,0,0.04);">
-                    <div class="stat-number text-heading mb-1" style="font-size:1.75rem; font-weight:700;" data-target="184">۰</div>
+                <div class="text-center p-5 rounded-2xl"
+                    style="background:rgba(255,255,255,0.6); border:1px solid rgba(0,0,0,0.04);">
+                    <div class="stat-number text-heading mb-1" style="font-size:1.75rem; font-weight:700;"
+                        data-target="184">۰</div>
                     <div style="font-size:0.75rem; color:#7a9e90;">میلیون رکورد پردازش شده</div>
                 </div>
-                <div class="text-center p-5 rounded-2xl" style="background:rgba(255,255,255,0.6); border:1px solid rgba(0,0,0,0.04);">
-                    <div class="stat-number text-heading mb-1" style="font-size:1.75rem; font-weight:700;" data-target="99.9" data-suffix="%">۰%</div>
+                <div class="text-center p-5 rounded-2xl"
+                    style="background:rgba(255,255,255,0.6); border:1px solid rgba(0,0,0,0.04);">
+                    <div class="stat-number text-heading mb-1" style="font-size:1.75rem; font-weight:700;"
+                        data-target="99.9" data-suffix="%">۰%</div>
                     <div style="font-size:0.75rem; color:#7a9e90;">دقت تحلیل</div>
                 </div>
-                <div class="text-center p-5 rounded-2xl" style="background:rgba(255,255,255,0.6); border:1px solid rgba(0,0,0,0.04);">
-                    <div class="stat-number text-heading mb-1" style="font-size:1.75rem; font-weight:700;" data-target="2.2" data-suffix="ms">۰ms</div>
+                <div class="text-center p-5 rounded-2xl"
+                    style="background:rgba(255,255,255,0.6); border:1px solid rgba(0,0,0,0.04);">
+                    <div class="stat-number text-heading mb-1" style="font-size:1.75rem; font-weight:700;"
+                        data-target="2.2" data-suffix="ms">۰ms</div>
                     <div style="font-size:0.75rem; color:#7a9e90;">میانگین پاسخ‌دهی</div>
                 </div>
-                <div class="text-center p-5 rounded-2xl" style="background:rgba(255,255,255,0.6); border:1px solid rgba(0,0,0,0.04);">
-                    <div class="stat-number text-heading mb-1" style="font-size:1.75rem; font-weight:700;" data-target="12" data-suffix="+">۰+</div>
+                <div class="text-center p-5 rounded-2xl"
+                    style="background:rgba(255,255,255,0.6); border:1px solid rgba(0,0,0,0.04);">
+                    <div class="stat-number text-heading mb-1" style="font-size:1.75rem; font-weight:700;"
+                        data-target="12" data-suffix="+">۰+</div>
                     <div style="font-size:0.75rem; color:#7a9e90;">نوع نمودار</div>
                 </div>
             </div>
@@ -363,38 +524,53 @@
     </section>
 
     <!-- ===== MARQUEE ===== -->
-    <section class="section-b relative z-10 py-6" style="border-top:1px solid rgba(0,0,0,0.04); border-bottom:1px solid rgba(0,0,0,0.04); overflow:hidden;">
+    <section class="section-b relative z-10 py-6"
+        style="border-top:1px solid rgba(0,0,0,0.04); border-bottom:1px solid rgba(0,0,0,0.04); overflow:hidden;">
         <div class="marquee-track">
             <div class="flex items-center gap-12 px-6 whitespace-nowrap" style="font-size:0.875rem; color:#8ba89c;">
-                <span class="flex items-center gap-2"><iconify-icon icon="lucide:bar-chart-3" style="color:#059669;"></iconify-icon> تحلیل داده</span>
+                <span class="flex items-center gap-2"><iconify-icon icon="lucide:bar-chart-3"
+                        style="color:#059669;"></iconify-icon> تحلیل داده</span>
                 <span style="color:#c8ddd5;">✦</span>
-                <span class="flex items-center gap-2"><iconify-icon icon="lucide:search" style="color:#D97706;"></iconify-icon> پرس‌وجوی SQL</span>
+                <span class="flex items-center gap-2"><iconify-icon icon="lucide:search"
+                        style="color:#D97706;"></iconify-icon> پرس‌وجوی SQL</span>
                 <span style="color:#c8ddd5;">✦</span>
-                <span class="flex items-center gap-2"><iconify-icon icon="lucide:line-chart" style="color:#34D399;"></iconify-icon> نمودار ماهانه</span>
+                <span class="flex items-center gap-2"><iconify-icon icon="lucide:line-chart"
+                        style="color:#34D399;"></iconify-icon> نمودار ماهانه</span>
                 <span style="color:#c8ddd5;">✦</span>
-                <span class="flex items-center gap-2"><iconify-icon icon="lucide:filter" style="color:#D97706;"></iconify-icon> فیلتر هوشمند</span>
+                <span class="flex items-center gap-2"><iconify-icon icon="lucide:filter"
+                        style="color:#D97706;"></iconify-icon> فیلتر هوشمند</span>
                 <span style="color:#c8ddd5;">✦</span>
-                <span class="flex items-center gap-2"><iconify-icon icon="lucide:brain" style="color:#059669;"></iconify-icon> هوش مصنوعی</span>
+                <span class="flex items-center gap-2"><iconify-icon icon="lucide:brain"
+                        style="color:#059669;"></iconify-icon> هوش مصنوعی</span>
                 <span style="color:#c8ddd5;">✦</span>
-                <span class="flex items-center gap-2"><iconify-icon icon="lucide:shield-check" style="color:#34D399;"></iconify-icon> امنیت بالا</span>
+                <span class="flex items-center gap-2"><iconify-icon icon="lucide:shield-check"
+                        style="color:#34D399;"></iconify-icon> امنیت بالا</span>
                 <span style="color:#c8ddd5;">✦</span>
-                <span class="flex items-center gap-2"><iconify-icon icon="lucide:zap" style="color:#D97706;"></iconify-icon> پردازش سریع</span>
+                <span class="flex items-center gap-2"><iconify-icon icon="lucide:zap"
+                        style="color:#D97706;"></iconify-icon> پردازش سریع</span>
                 <span style="color:#c8ddd5;">✦</span>
             </div>
             <div class="flex items-center gap-12 px-6 whitespace-nowrap" style="font-size:0.875rem; color:#8ba89c;">
-                <span class="flex items-center gap-2"><iconify-icon icon="lucide:bar-chart-3" style="color:#059669;"></iconify-icon> تحلیل داده</span>
+                <span class="flex items-center gap-2"><iconify-icon icon="lucide:bar-chart-3"
+                        style="color:#059669;"></iconify-icon> تحلیل داده</span>
                 <span style="color:#c8ddd5;">✦</span>
-                <span class="flex items-center gap-2"><iconify-icon icon="lucide:search" style="color:#D97706;"></iconify-icon> پرس‌وجوی SQL</span>
+                <span class="flex items-center gap-2"><iconify-icon icon="lucide:search"
+                        style="color:#D97706;"></iconify-icon> پرس‌وجوی SQL</span>
                 <span style="color:#c8ddd5;">✦</span>
-                <span class="flex items-center gap-2"><iconify-icon icon="lucide:line-chart" style="color:#34D399;"></iconify-icon> نمودار ماهانه</span>
+                <span class="flex items-center gap-2"><iconify-icon icon="lucide:line-chart"
+                        style="color:#34D399;"></iconify-icon> نمودار ماهانه</span>
                 <span style="color:#c8ddd5;">✦</span>
-                <span class="flex items-center gap-2"><iconify-icon icon="lucide:filter" style="color:#D97706;"></iconify-icon> فیلتر هوشمند</span>
+                <span class="flex items-center gap-2"><iconify-icon icon="lucide:filter"
+                        style="color:#D97706;"></iconify-icon> فیلتر هوشمند</span>
                 <span style="color:#c8ddd5;">✦</span>
-                <span class="flex items-center gap-2"><iconify-icon icon="lucide:brain" style="color:#059669;"></iconify-icon> هوش مصنوعی</span>
+                <span class="flex items-center gap-2"><iconify-icon icon="lucide:brain"
+                        style="color:#059669;"></iconify-icon> هوش مصنوعی</span>
                 <span style="color:#c8ddd5;">✦</span>
-                <span class="flex items-center gap-2"><iconify-icon icon="lucide:shield-check" style="color:#34D399;"></iconify-icon> امنیت بالا</span>
+                <span class="flex items-center gap-2"><iconify-icon icon="lucide:shield-check"
+                        style="color:#34D399;"></iconify-icon> امنیت بالا</span>
                 <span style="color:#c8ddd5;">✦</span>
-                <span class="flex items-center gap-2"><iconify-icon icon="lucide:zap" style="color:#D97706;"></iconify-icon> پردازش سریع</span>
+                <span class="flex items-center gap-2"><iconify-icon icon="lucide:zap"
+                        style="color:#D97706;"></iconify-icon> پردازش سریع</span>
                 <span style="color:#c8ddd5;">✦</span>
             </div>
         </div>
@@ -404,11 +580,13 @@
     <section id="screens" class="section-c relative z-10 py-24 px-6 lg:px-8">
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-20">
-                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-6" style="border:1px solid rgba(5,150,105,0.15); background:rgba(5,150,105,0.05); color:#059669;">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-6"
+                    style="border:1px solid rgba(5,150,105,0.15); background:rgba(5,150,105,0.05); color:#059669;">
                     <iconify-icon icon="lucide:layers" style="font-size:14px;"></iconify-icon>
                     قابلیت‌های پلتفرم
                 </div>
-                <h2 class="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tighter leading-[0.95] mb-6">
+                <h2
+                    class="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tighter leading-[0.95] mb-6">
                     <span class="text-heading">تحلیل داده</span><br>
                     <span style="color:#059669;">هرگز ساده‌تر نبوده</span>
                 </h2>
@@ -423,25 +601,36 @@
                     <div class="card-inner p-1">
                         <div class="grid md:grid-cols-2 gap-0">
                             <div class="p-8 lg:p-12 flex flex-col justify-center">
-                                <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 icon-glow" style="background:linear-gradient(135deg, #059669, #047857);">
-                                    <iconify-icon icon="lucide:terminal" style="color:#fff; font-size:24px;"></iconify-icon>
+                                <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 icon-glow"
+                                    style="background:linear-gradient(135deg, #059669, #047857);">
+                                    <iconify-icon icon="lucide:terminal"
+                                        style="color:#fff; font-size:24px;"></iconify-icon>
                                 </div>
-                                <h3 class="font-display text-2xl lg:text-3xl font-bold tracking-tight mb-4 text-heading">
+                                <h3
+                                    class="font-display text-2xl lg:text-3xl font-bold tracking-tight mb-4 text-heading">
                                     پرس‌وجوی SQL هوشمند
                                 </h3>
                                 <p class="leading-relaxed mb-6 text-body">
-                                    با استفاده از هوش مصنوعی، سوالات خود را به زبان طبیعی بپرسید و به‌طور خودکار به کوئری‌های SQL تبدیل شود. نتایج در کمتر از ۲ میلی‌ثانیه نمایش داده می‌شوند.
+                                    با استفاده از هوش مصنوعی، سوالات خود را به زبان طبیعی بپرسید و به‌طور خودکار به
+                                    کوئری‌های SQL تبدیل شود. نتایج در کمتر از ۲ میلی‌ثانیه نمایش داده می‌شوند.
                                 </p>
                                 <div class="flex flex-wrap gap-3">
-                                    <span class="px-3 py-1.5 text-xs rounded-full" style="background:rgba(5,150,105,0.06); color:#047857; border:1px solid rgba(5,150,105,0.12);">SQL خودکار</span>
-                                    <span class="px-3 py-1.5 text-xs rounded-full" style="background:rgba(34,197,94,0.06); color:#059669; border:1px solid rgba(34,197,94,0.12);">سرعت بالا</span>
-                                    <span class="px-3 py-1.5 text-xs rounded-full" style="background:rgba(217,119,6,0.06); color:#D97706; border:1px solid rgba(217,119,6,0.12);">NLP</span>
+                                    <span class="px-3 py-1.5 text-xs rounded-full"
+                                        style="background:rgba(5,150,105,0.06); color:#047857; border:1px solid rgba(5,150,105,0.12);">SQL
+                                        خودکار</span>
+                                    <span class="px-3 py-1.5 text-xs rounded-full"
+                                        style="background:rgba(34,197,94,0.06); color:#059669; border:1px solid rgba(34,197,94,0.12);">سرعت
+                                        بالا</span>
+                                    <span class="px-3 py-1.5 text-xs rounded-full"
+                                        style="background:rgba(217,119,6,0.06); color:#D97706; border:1px solid rgba(217,119,6,0.12);">NLP</span>
                                 </div>
                             </div>
                             <div class="relative h-64 md:h-auto overflow-hidden rounded-l-[calc(1.5rem-4px)]">
-                                <img src="https://z-cdn-media.chatglm.cn/files/aee59b06-f87f-4a94-9424-643bfdffe4f2.jpg?auth_key=1883933230-b2e18bd03021434888c3513efea34670-0-fae39c2988e844c4d542b410cc92e41f" 
-                                     alt="SQL Query" class="screenshot">
-                                <div class="absolute inset-0" style="background:linear-gradient(to left, transparent, rgba(255,255,255,0.5));"></div>
+                                <img src="https://z-cdn-media.chatglm.cn/files/aee59b06-f87f-4a94-9424-643bfdffe4f2.jpg?auth_key=1883933230-b2e18bd03021434888c3513efea34670-0-fae39c2988e844c4d542b410cc92e41f"
+                                    alt="SQL Query" class="screenshot">
+                                <div class="absolute inset-0"
+                                    style="background:linear-gradient(to left, transparent, rgba(255,255,255,0.5));">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -451,22 +640,28 @@
                 <div class="glow-card group">
                     <div class="card-inner p-1">
                         <div class="relative h-56 overflow-hidden rounded-t-[calc(1.5rem-4px)]">
-                            <img src="https://z-cdn-media.chatglm.cn/files/49fb34e7-e5c9-4f7e-8e7d-0fcd43a55930.jpg?auth_key=1883933230-926f9dd2e9fd4d0c97d366b0bd3438c0-0-40859494f8e79fc6b174094e16c87264" 
-                                 alt="Charts" class="screenshot">
-                            <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(255,255,255,0.95), transparent);"></div>
+                            <img src="https://z-cdn-media.chatglm.cn/files/49fb34e7-e5c9-4f7e-8e7d-0fcd43a55930.jpg?auth_key=1883933230-926f9dd2e9fd4d0c97d366b0bd3438c0-0-40859494f8e79fc6b174094e16c87264"
+                                alt="Charts" class="screenshot">
+                            <div class="absolute inset-0"
+                                style="background:linear-gradient(to top, rgba(255,255,255,0.95), transparent);"></div>
                             <div class="absolute bottom-4 right-4 z-10 float-badge" style="animation-delay:-1.5s;">
-                                <div class="px-3 py-1.5 rounded-lg text-xs backdrop-blur-md font-medium" style="background:rgba(255,255,255,0.9); border:1px solid rgba(34,197,94,0.25); color:#047857;">
+                                <div class="px-3 py-1.5 rounded-lg text-xs backdrop-blur-md font-medium"
+                                    style="background:rgba(255,255,255,0.9); border:1px solid rgba(34,197,94,0.25); color:#047857;">
                                     ▲ ۲۳.۵% رشد
                                 </div>
                             </div>
                         </div>
                         <div class="p-6 lg:p-8">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style="background:linear-gradient(135deg, #34D399, #059669);">
-                                <iconify-icon icon="lucide:bar-chart-3" style="color:#fff; font-size:18px;"></iconify-icon>
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-4"
+                                style="background:linear-gradient(135deg, #34D399, #059669);">
+                                <iconify-icon icon="lucide:bar-chart-3"
+                                    style="color:#fff; font-size:18px;"></iconify-icon>
                             </div>
-                            <h3 class="font-display text-xl font-bold tracking-tight mb-2 text-heading">نمودارهای تعاملی</h3>
+                            <h3 class="font-display text-xl font-bold tracking-tight mb-2 text-heading">نمودارهای تعاملی
+                            </h3>
                             <p class="text-sm leading-relaxed text-body">
-                                داده‌های ماهانه فروش را با نمودارهای رنگی و تعاملی مشاهده کنید. روند تغییرات به‌طور بصری قابل درک است.
+                                داده‌های ماهانه فروش را با نمودارهای رنگی و تعاملی مشاهده کنید. روند تغییرات به‌طور بصری
+                                قابل درک است.
                             </p>
                         </div>
                     </div>
@@ -476,20 +671,24 @@
                 <div class="glow-card group">
                     <div class="card-inner p-1">
                         <div class="relative h-56 overflow-hidden rounded-t-[calc(1.5rem-4px)]">
-                            <img src="https://z-cdn-media.chatglm.cn/files/7398b92d-6550-456d-a557-b990dcd8da11.png?auth_key=1883933230-804a45213548447c800a382fabde3a1a-0-3aa6b41aa1bcb091bda8c7d9d7e7f24f" 
-                                 alt="Filter" class="screenshot">
-                            <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(255,255,255,0.95), transparent);"></div>
+                            <img src="https://z-cdn-media.chatglm.cn/files/7398b92d-6550-456d-a557-b990dcd8da11.png?auth_key=1883933230-804a45213548447c800a382fabde3a1a-0-3aa6b41aa1bcb091bda8c7d9d7e7f24f"
+                                alt="Filter" class="screenshot">
+                            <div class="absolute inset-0"
+                                style="background:linear-gradient(to top, rgba(255,255,255,0.95), transparent);"></div>
                             <div class="absolute bottom-4 left-4 z-10 float-badge" style="animation-delay:-2.5s;">
-                                <div class="px-3 py-1.5 rounded-lg text-xs backdrop-blur-md font-medium" style="background:rgba(255,255,255,0.9); border:1px solid rgba(217,119,6,0.25); color:#D97706;">
+                                <div class="px-3 py-1.5 rounded-lg text-xs backdrop-blur-md font-medium"
+                                    style="background:rgba(255,255,255,0.9); border:1px solid rgba(217,119,6,0.25); color:#D97706;">
                                     فیلتر پیشرفته
                                 </div>
                             </div>
                         </div>
                         <div class="p-6 lg:p-8">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style="background:linear-gradient(135deg, #F59E0B, #D97706);">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-4"
+                                style="background:linear-gradient(135deg, #F59E0B, #D97706);">
                                 <iconify-icon icon="lucide:filter" style="color:#fff; font-size:18px;"></iconify-icon>
                             </div>
-                            <h3 class="font-display text-xl font-bold tracking-tight mb-2 text-heading">فیلتر و جستجوی هوشمند</h3>
+                            <h3 class="font-display text-xl font-bold tracking-tight mb-2 text-heading">فیلتر و جستجوی
+                                هوشمند</h3>
                             <p class="text-sm leading-relaxed text-body">
                                 با دستورات ویرایش و فیلتر پیشرفته، داده‌های مورد نظر خود را دقیق‌تر پیدا و مدیریت کنید.
                             </p>
@@ -504,32 +703,41 @@
     <section id="features" class="section-a relative z-10 py-24 px-6 lg:px-8">
         <div class="max-w-7xl mx-auto">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="group p-8 rounded-3xl transition-all duration-500" style="background:rgba(255,255,255,0.6); border:1px solid rgba(0,0,0,0.05);" 
-                     onmouseenter="this.style.borderColor='rgba(5,150,105,0.2)'; this.style.background='rgba(255,255,255,0.85)'; this.style.boxShadow='0 15px 40px rgba(5,150,105,0.08)';"
-                     onmouseleave="this.style.borderColor='rgba(0,0,0,0.05)'; this.style.background='rgba(255,255,255,0.6)'; this.style.boxShadow='none';">
-                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300" style="background:rgba(5,150,105,0.08);">
+                <div class="group p-8 rounded-3xl transition-all duration-500"
+                    style="background:rgba(255,255,255,0.6); border:1px solid rgba(0,0,0,0.05);"
+                    onmouseenter="this.style.borderColor='rgba(5,150,105,0.2)'; this.style.background='rgba(255,255,255,0.85)'; this.style.boxShadow='0 15px 40px rgba(5,150,105,0.08)';"
+                    onmouseleave="this.style.borderColor='rgba(0,0,0,0.05)'; this.style.background='rgba(255,255,255,0.6)'; this.style.boxShadow='none';">
+                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300"
+                        style="background:rgba(5,150,105,0.08);">
                         <iconify-icon icon="lucide:brain-circuit" style="color:#059669; font-size:20px;"></iconify-icon>
                     </div>
                     <h4 class="text-heading font-bold text-lg mb-3">تحلیل با هوش مصنوعی</h4>
-                    <p class="text-sm leading-relaxed text-muted">پرسش‌های فارسی شما به‌صورت خودکار به کوئری SQL تبدیل شده و نتایج دقیق ارائه می‌شود.</p>
+                    <p class="text-sm leading-relaxed text-muted">پرسش‌های فارسی شما به‌صورت خودکار به کوئری SQL تبدیل
+                        شده و نتایج دقیق ارائه می‌شود.</p>
                 </div>
-                <div class="group p-8 rounded-3xl transition-all duration-500" style="background:rgba(255,255,255,0.6); border:1px solid rgba(0,0,0,0.05);"
-                     onmouseenter="this.style.borderColor='rgba(52,211,153,0.2)'; this.style.background='rgba(255,255,255,0.85)'; this.style.boxShadow='0 15px 40px rgba(52,211,153,0.08)';"
-                     onmouseleave="this.style.borderColor='rgba(0,0,0,0.05)'; this.style.background='rgba(255,255,255,0.6)'; this.style.boxShadow='none';">
-                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300" style="background:rgba(52,211,153,0.08);">
+                <div class="group p-8 rounded-3xl transition-all duration-500"
+                    style="background:rgba(255,255,255,0.6); border:1px solid rgba(0,0,0,0.05);"
+                    onmouseenter="this.style.borderColor='rgba(52,211,153,0.2)'; this.style.background='rgba(255,255,255,0.85)'; this.style.boxShadow='0 15px 40px rgba(52,211,153,0.08)';"
+                    onmouseleave="this.style.borderColor='rgba(0,0,0,0.05)'; this.style.background='rgba(255,255,255,0.6)'; this.style.boxShadow='none';">
+                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300"
+                        style="background:rgba(52,211,153,0.08);">
                         <iconify-icon icon="lucide:gauge" style="color:#34D399; font-size:20px;"></iconify-icon>
                     </div>
                     <h4 class="text-heading font-bold text-lg mb-3">پردازش در لحظه</h4>
-                    <p class="text-sm leading-relaxed text-muted">نتایج کوئری‌ها در کمتر از ۲.۲ میلی‌ثانیه محاسبه و نمایش داده می‌شوند.</p>
+                    <p class="text-sm leading-relaxed text-muted">نتایج کوئری‌ها در کمتر از ۲.۲ میلی‌ثانیه محاسبه و
+                        نمایش داده می‌شوند.</p>
                 </div>
-                <div class="group p-8 rounded-3xl transition-all duration-500" style="background:rgba(255,255,255,0.6); border:1px solid rgba(0,0,0,0.05);"
-                     onmouseenter="this.style.borderColor='rgba(217,119,6,0.2)'; this.style.background='rgba(255,255,255,0.85)'; this.style.boxShadow='0 15px 40px rgba(217,119,6,0.08)';"
-                     onmouseleave="this.style.borderColor='rgba(0,0,0,0.05)'; this.style.background='rgba(255,255,255,0.6)'; this.style.boxShadow='none';">
-                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300" style="background:rgba(217,119,6,0.08);">
+                <div class="group p-8 rounded-3xl transition-all duration-500"
+                    style="background:rgba(255,255,255,0.6); border:1px solid rgba(0,0,0,0.05);"
+                    onmouseenter="this.style.borderColor='rgba(217,119,6,0.2)'; this.style.background='rgba(255,255,255,0.85)'; this.style.boxShadow='0 15px 40px rgba(217,119,6,0.08)';"
+                    onmouseleave="this.style.borderColor='rgba(0,0,0,0.05)'; this.style.background='rgba(255,255,255,0.6)'; this.style.boxShadow='none';">
+                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300"
+                        style="background:rgba(217,119,6,0.08);">
                         <iconify-icon icon="lucide:lock-keyhole" style="color:#D97706; font-size:20px;"></iconify-icon>
                     </div>
                     <h4 class="text-heading font-bold text-lg mb-3">امنیت داده‌ها</h4>
-                    <p class="text-sm leading-relaxed text-muted">تمام داده‌ها با رمزنگاری پیشرفته محافظت شده و دسترسی‌ها مدیریت می‌شوند.</p>
+                    <p class="text-sm leading-relaxed text-muted">تمام داده‌ها با رمزنگاری پیشرفته محافظت شده و
+                        دسترسی‌ها مدیریت می‌شوند.</p>
                 </div>
             </div>
         </div>
@@ -538,24 +746,33 @@
     <!-- ===== CTA ===== -->
     <section class="section-b relative z-10 py-24 px-6 lg:px-8">
         <div class="max-w-4xl mx-auto text-center">
-            <div class="relative p-12 lg:p-20 rounded-[2rem] overflow-hidden" style="background: linear-gradient(135deg, rgba(5,150,105,0.06), rgba(217,119,6,0.03), rgba(52,211,153,0.03));">
+            <div class="relative p-12 lg:p-20 rounded-[2rem] overflow-hidden"
+                style="background: linear-gradient(135deg, rgba(5,150,105,0.06), rgba(217,119,6,0.03), rgba(52,211,153,0.03));">
                 <div class="absolute inset-0 rounded-[2rem]" style="border:1px solid rgba(5,150,105,0.1);"></div>
-                <div class="absolute top-0 right-0 w-64 h-64 rounded-full blur-[100px]" style="background:rgba(5,150,105,0.06);"></div>
-                <div class="absolute bottom-0 left-0 w-48 h-48 rounded-full blur-[80px]" style="background:rgba(217,119,6,0.04);"></div>
-                
+                <div class="absolute top-0 right-0 w-64 h-64 rounded-full blur-[100px]"
+                    style="background:rgba(5,150,105,0.06);"></div>
+                <div class="absolute bottom-0 left-0 w-48 h-48 rounded-full blur-[80px]"
+                    style="background:rgba(217,119,6,0.04);"></div>
+
                 <div class="relative z-10">
-                    <h2 class="font-display text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tighter leading-[0.95] mb-6 text-heading">
+                    <h2
+                        class="font-display text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tighter leading-[0.95] mb-6 text-heading">
                         آماده تحلیل<br>داده‌هایتان هستید؟
                     </h2>
                     <p class="max-w-lg mx-auto mb-10 text-body">
                         همین حالا رایامیت را امتحان کنید و قدرت تحلیل داده هوشمند را تجربه نمایید
                     </p>
                     <div class="flex flex-wrap items-center justify-center gap-4">
-                        <a id="cta-start-btn" href="http://rayamate.ir:8000/login" class="group px-10 py-4 rounded-2xl font-bold text-sm flex items-center gap-2 hover:scale-105 transition-all" style="color:#fff; background:#059669; box-shadow: 0 12px 35px rgba(5,150,105,0.25); text-decoration:none;">
+                        <a id="cta-start-btn" href="http://rayamate.ir/login"
+                            class="group px-10 py-4 rounded-2xl font-bold text-sm flex items-center gap-2 hover:scale-105 transition-all"
+                            style="color:#fff; background:#059669; box-shadow: 0 12px 35px rgba(5,150,105,0.25); text-decoration:none;">
                             شروع رایگان
-                            <iconify-icon icon="lucide:arrow-left" style="font-size:18px;" class="group-hover:-translate-x-1 transition-transform"></iconify-icon>
+                            <iconify-icon icon="lucide:arrow-left" style="font-size:18px;"
+                                class="group-hover:-translate-x-1 transition-transform"></iconify-icon>
                         </a>
-                        <a href="#features" class="px-10 py-4 rounded-2xl font-medium text-sm hover:bg-black/5 transition-all" style="color:#334840; border:1px solid rgba(0,0,0,0.08); text-decoration:none;">
+                        <a href="#features"
+                            class="px-10 py-4 rounded-2xl font-medium text-sm hover:bg-black/5 transition-all"
+                            style="color:#334840; border:1px solid rgba(0,0,0,0.08); text-decoration:none;">
                             تماس با فروش
                         </a>
                     </div>
@@ -568,16 +785,21 @@
     <footer class="section-c relative z-10 py-12 px-6 lg:px-8" style="border-top:1px solid rgba(0,0,0,0.05);">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg, #059669, #047857);">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center"
+                    style="background:linear-gradient(135deg, #059669, #047857);">
                     <iconify-icon icon="lucide:database" style="color:#fff; font-size:14px;"></iconify-icon>
                 </div>
                 <span class="text-heading font-bold text-sm">Rayamate رایامیت</span>
             </div>
             <p class="text-muted" style="font-size:0.75rem;">© ۲۰۲۵ رایامیت. تمامی حقوق محفوظ است.</p>
             <div class="flex items-center gap-4 text-muted">
-                <a href="#" class="hover:text-brand-dark transition-colors"><iconify-icon icon="lucide:twitter" style="font-size:18px;"></iconify-icon></a>
-                <a href="https://www.linkedin.com/company/rayamate" target="_blank" rel="noopener noreferrer" class="hover:text-brand-dark transition-colors"><iconify-icon icon="lucide:linkedin" style="font-size:18px;"></iconify-icon></a>
-                <a href="#" class="hover:text-brand-dark transition-colors"><iconify-icon icon="lucide:github" style="font-size:18px;"></iconify-icon></a>
+                <a href="#" class="hover:text-brand-dark transition-colors"><iconify-icon icon="lucide:twitter"
+                        style="font-size:18px;"></iconify-icon></a>
+                <a href="https://www.linkedin.com/company/rayamate" target="_blank" rel="noopener noreferrer"
+                    class="hover:text-brand-dark transition-colors"><iconify-icon icon="lucide:linkedin"
+                        style="font-size:18px;"></iconify-icon></a>
+                <a href="#" class="hover:text-brand-dark transition-colors"><iconify-icon icon="lucide:github"
+                        style="font-size:18px;"></iconify-icon></a>
             </div>
         </div>
     </footer>
@@ -586,7 +808,7 @@
         const canvas = document.getElementById('particles');
         const ctx = canvas.getContext('2d');
         let particles = [];
-        
+
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -695,7 +917,7 @@
         // App runs on port 8000 (uvicorn). Landing page may be on 80/443.
         (function setAppLinks() {
             const host = window.location.hostname || 'rayamate.ir';
-            const appLogin = `http://${host}:8000/login`;
+            const appLogin = `http://${host}/login`;
             ['hero-start-btn', 'nav-login-btn', 'nav-start-btn', 'cta-start-btn'].forEach((id) => {
                 const el = document.getElementById(id);
                 if (el) el.href = appLogin;
@@ -717,4 +939,5 @@
         });
     </script>
 </body>
+
 </html>
