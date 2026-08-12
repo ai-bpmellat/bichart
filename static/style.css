@@ -1060,18 +1060,34 @@ table.data-table tr:hover td { background: #f6faf8; }
 .chart-canvas-wrap {
   position: relative;
   width: 100%;
-  min-height: 280px;
-  max-height: min(70vh, 560px);
+  min-height: 320px;
+  height: 380px;
+  max-height: min(75vh, 600px);
 }
 
 .chart-canvas-wrap--horizontal {
-  min-height: 320px;
+  min-height: 360px;
   max-height: min(80vh, 720px);
 }
 
-.chart-canvas-wrap canvas {
+.chart-canvas-wrap canvas,
+.chart-canvas-wrap > div {
   width: 100% !important;
   height: 100% !important;
+}
+
+.chart-badge-auto {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-strong);
+  background: linear-gradient(135deg, rgba(5, 150, 105, 0.15), rgba(5, 150, 105, 0.05));
+  border: 1px solid rgba(5, 150, 105, 0.25);
+  padding: 3px 9px;
+  border-radius: 12px;
+  margin-right: 8px;
 }
 
 .chart-panel--unavailable {
@@ -2327,6 +2343,14 @@ table.data-table tr:hover td { background: #f6faf8; }
   position: relative;
   width: 100%;
   margin: 6px 0;
+}
+
+.chart-card-canvas-wrap > div,
+.chart-card-canvas-wrap canvas,
+.chart-modal-canvas-wrap > div,
+.chart-modal-canvas-wrap canvas {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .chart-card-quad-footer {

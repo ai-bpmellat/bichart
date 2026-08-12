@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="پلتفرم دستیار هوشمند هوش تجاری و تحلیل داده. ساخت داشبوردهای پویا، تجسم داده و گزارش‌ساز هوشمند. Business Intelligence Dashboard and Data Analysis Platform.">
+<meta name="keywords" content="هوش تجاری, داشبورد هوش تجاری, تحلیل داده, تجسم داده, گزارش ساز, تحلیل کسب و کار, Business Intelligence, BI Dashboard, Data Analysis, Data Visualization, Data Analytics">
+<meta name="robots" content="index, follow">
 <title>دستیار هوشمند هوش تجاری</title>
 <link rel="icon" type="image/png" sizes="512x512" href="/static/favicon-512.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="/static/favicon-192.png" />
@@ -11,7 +14,7 @@
 <link rel="apple-touch-icon" sizes="192x192" href="/static/favicon-192.png" />
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/style.css" />
-<script src="/static/vendor/chart.umd.min.js"></script>
+<script src="/static/vendor/echarts.min.js"></script>
 </head>
 <body>
 
@@ -169,6 +172,13 @@
         <li class="whatsnew-item">
           <span class="whatsnew-icon">📊</span>
           <div class="whatsnew-text">
+            <strong>موتور پیشرفته ECharts با ۱۰ نوع نمودار هوشمند</strong>
+            <p>انواع نمودارهای میله‌ای، خطی، دایره‌ای، قیفی (Funnel)، شمعی (Candlestick)، گیج (Gauge)، نقشه استانی ایران (Geo Map)، سانکی (Sankey)، نقشه درختی (Treemap) و نقشه حرارتی (Heatmap) با انتخاب خودکار هوشمند.</p>
+          </div>
+        </li>
+        <li class="whatsnew-item">
+          <span class="whatsnew-icon">📊</span>
+          <div class="whatsnew-text">
             <strong>پوستر تحلیلی (اینفوگرافیک)</strong>
             <p>بعد از تحلیل نتایج، یک پوستر تصویری داده‌محور با KPI و نمودار سهم تولید می‌شود که می‌توانید آن را دانلود کنید.</p>
           </div>
@@ -195,24 +205,10 @@
           </div>
         </li>
         <li class="whatsnew-item">
-          <span class="whatsnew-icon">📈</span>
-          <div class="whatsnew-text">
-            <strong>نمودارهای حرفه‌ای با انتخاب نوع</strong>
-            <p>نمودارهای میله‌ای، خطی، دایره‌ای و حلقه‌ای با قابلیت تغییر ستون‌ها و چاپ نمودار.</p>
-          </div>
-        </li>
-        <li class="whatsnew-item">
           <span class="whatsnew-icon">⏱️</span>
           <div class="whatsnew-text">
             <strong>زمان‌بندی سرویس‌ها</strong>
             <p>مدت زمان هر مرحله (تولید SQL، اجرا، تحلیل و...) به‌صورت نمودار میله‌ای نمایش داده می‌شود.</p>
-          </div>
-        </li>
-        <li class="whatsnew-item">
-          <span class="whatsnew-icon">🗳️</span>
-          <div class="whatsnew-text">
-            <strong>نظرسنجی قابلیت‌های آینده</strong>
-            <p>در نوار کناری می‌توانید رأی دهید کدام قابلیت‌ها زودتر اضافه شوند.</p>
           </div>
         </li>
       </ul>
@@ -243,21 +239,40 @@
     <div class="chart-modal-toolbar">
       <div class="chart-modal-controls">
         <label>
-          <span>ستون برچسب:</span>
+          <span>ستون برچسب (محور X):</span>
           <select class="chart-type-select" id="modal-label-select"></select>
         </label>
         <label>
-          <span>ستون مقدار:</span>
+          <span>ستون مقدار (محور Y):</span>
           <select class="chart-type-select" id="modal-value-select"></select>
         </label>
         <label>
           <span>نوع نمودار:</span>
           <select class="chart-type-select" id="modal-kind-select">
-            <option value="bar">میله‌ای عمودی</option>
-            <option value="barHorizontal">میله‌ای افقی</option>
-            <option value="line">خطی</option>
-            <option value="pie">دایره‌ای (پای)</option>
-            <option value="doughnut">حلقه‌ای</option>
+            <optgroup label="📊 نمودارهای میله‌ای و ستونی">
+              <option value="bar">میله‌ای عمودی</option>
+              <option value="barHorizontal">میله‌ای افقی</option>
+              <option value="barStacked">میله‌ای پشته‌ای</option>
+            </optgroup>
+            <optgroup label="📈 نمودارهای خطی و روندی">
+              <option value="line">خطی</option>
+              <option value="area">مساحتی با گرادیان</option>
+              <option value="lineSmooth">خطی نرم (پیوسته)</option>
+            </optgroup>
+            <optgroup label="🥧 نمودارهای سهم و دایره‌ای">
+              <option value="pie">دایره‌ای (پای)</option>
+              <option value="doughnut">حلقه‌ای (دونات)</option>
+              <option value="rose">گل سرخ نایتینگل</option>
+            </optgroup>
+            <optgroup label="🚀 نمودارهای تحلیلی و تخصصی">
+              <option value="funnel">قیفی (مراحل تبدیل)</option>
+              <option value="gauge">گیج و سرعت‌سنج (KPI)</option>
+              <option value="geoMap">نقشه استانی و مکانی ایران</option>
+              <option value="sankey">سانکی و جریان داده</option>
+              <option value="treemap">نقشه درختی سلسله‌مراتبی</option>
+              <option value="heatmap">نقشه حرارتی ماتریسی</option>
+              <option value="candlestick">شمعی ژاپنی (دامنه نوسان)</option>
+            </optgroup>
           </select>
         </label>
       </div>
@@ -272,7 +287,7 @@
     </div>
     <div class="chart-modal-body">
       <div class="chart-modal-canvas-wrap">
-        <canvas id="chart-modal-canvas"></canvas>
+        <div id="chart-modal-canvas" style="width: 100%; height: 100%; min-height: 400px;"></div>
       </div>
       <div class="chart-modal-note" id="chart-modal-note"></div>
     </div>

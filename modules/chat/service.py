@@ -177,6 +177,8 @@ def run_sql(
     timings["memory_save"] = round((time.perf_counter() - t) * 1000, 1)
     timings["total"] = round((time.perf_counter() - t0) * 1000, 1)
 
+    stats = compute_result_stats(records, user_question=user_question)
+
     return {
         "message_id": entry.get("id"),
         "sql": safe_sql,
@@ -187,6 +189,7 @@ def run_sql(
         "provider": provider,
         "timings": timings,
         "auto_fixed": auto_fixed,
+        "stats": stats,
     }
 
 

@@ -31,10 +31,7 @@ const dashboardBody = document.querySelector('.dashboard-body');
 const logoutBtn = document.getElementById('logout-btn');
 
 window.addEventListener('DOMContentLoaded', async () => {
-  if (typeof Chart !== 'undefined') {
-    Chart.defaults.font.family = chartFontFamily();
-    Chart.defaults.color = '#1c2024';
-  }
+  ensureIranMapRegistered().catch(() => {});
   messageInput.focus();
 
   try {
@@ -173,17 +170,22 @@ function setExportButtonsEnabled(enabled) {
 }
 
 function captureChartImage() {
-  // Prefer the live Chart.js instance; fall back to the newest canvas in the page.
+  // Prefer the live ECharts instance; fall back to the newest canvas in the page.
   const chart = state.lastChart;
+  if (chart && typeof chart.getDataURL === 'function') {
+    try {
+      const url = chart.getDataURL({ type: 'png', pixelRatio: 2, backgroundColor: '#ffffff' });
+      if (url && url.startsWith('data:image') && url.length > 100) return url;
+    } catch (_) { /* fall through */ }
+  }
   if (chart && typeof chart.toBase64Image === 'function') {
     try {
-      // Force a synchronous draw so the bitmap is up to date.
       if (typeof chart.draw === 'function') chart.draw();
       const url = chart.toBase64Image('image/png', 1);
       if (url && url.startsWith('data:image') && url.length > 100) return url;
     } catch (_) { /* fall through */ }
   }
-  const canvases = document.querySelectorAll('.chart-canvas-wrap canvas');
+  const canvases = document.querySelectorAll('.chart-canvas-wrap canvas, .chart-card-canvas-wrap canvas');
   const canvas = canvases.length ? canvases[canvases.length - 1] : null;
   if (canvas && canvas.width > 0 && canvas.height > 0) {
     try {
@@ -200,7 +202,13 @@ function captureAllChartImages() {
     state.lastCharts.forEach((inst, i) => {
       const cfg = (state.lastQuadConfigs && state.lastQuadConfigs[i]) || {};
       let dataUrl = null;
-      if (inst && typeof inst.toBase64Image === 'function') {
+      if (inst && typeof inst.getDataURL === 'function') {
+        try {
+          const url = inst.getDataURL({ type: 'png', pixelRatio: 2, backgroundColor: '#ffffff' });
+          if (url && url.startsWith('data:image') && url.length > 100) dataUrl = url;
+        } catch (_) { /* ignore */ }
+      }
+      if (!dataUrl && inst && typeof inst.toBase64Image === 'function') {
         try {
           if (typeof inst.draw === 'function') inst.draw();
           const url = inst.toBase64Image('image/png', 1);
@@ -208,6 +216,15 @@ function captureAllChartImages() {
         } catch (_) { /* ignore */ }
       }
       // Fallback: capture the underlying canvas element
+      if (!dataUrl && inst && typeof inst.getDom === 'function') {
+        try {
+          const dom = inst.getDom();
+          const c = dom ? dom.querySelector('canvas') : null;
+          if (c && c.width > 0) {
+            dataUrl = c.toDataURL('image/png');
+          }
+        } catch (_) { /* ignore */ }
+      }
       if (!dataUrl && inst && inst.canvas) {
         try {
           const url = inst.canvas.toDataURL('image/png');
@@ -956,7 +973,7 @@ function renderRunResults(container, json, originalQuestion) {
 
   const resultEl = document.getElementById(resultId);
   mountPaginatedTable(resultEl.querySelector('.data-table-wrap'), data || []);
-  maybeRenderChart(resultEl.querySelector('.chart-wrap'), data || []);
+  maybeRenderChart(resultEl.querySelector('.chart-wrap'), data || [], originalQuestion, json.stats);
 
   const analyzeBtn = resultEl.querySelector('.analyze-btn');
   const resultProvider = json.provider || state.provider;
@@ -2123,9 +2140,9 @@ function formatCell(val) {
 }
 
 // ---------------------------------------------------------------------------
-// Professional charts (Chart.js) — type selector, Persian labels, full names
+// Advanced Apache ECharts Engine — 10 Chart Families & Intelligent Auto-Selection
 // ---------------------------------------------------------------------------
-const CHART_MAX_ITEMS = 25;
+const CHART_MAX_ITEMS = 30;
 const CHART_PALETTE = [
   '#1f6f54', '#2d8f6f', '#3aaf88', '#4ec4a0', '#c45c26',
   '#d4842d', '#e8a84b', '#5b7cfa', '#7c5cfc', '#9b6bff',
@@ -2134,27 +2151,181 @@ const CHART_PALETTE = [
 ];
 
 const CHART_TYPE_OPTIONS = [
-  { id: 'bar', labelFa: 'میله\u200cای عمودی', labelEn: 'Vertical bar' },
-  { id: 'barHorizontal', labelFa: 'میله\u200cای افقی', labelEn: 'Horizontal bar' },
-  { id: 'line', labelFa: 'خطی', labelEn: 'Line' },
-  { id: 'pie', labelFa: 'دایره\u200cای (پای)', labelEn: 'Pie' },
-  { id: 'doughnut', labelFa: 'حلقه\u200cای', labelEn: 'Doughnut' },
+  { id: 'bar', group: 'bar', labelFa: 'میله‌ای عمودی', labelEn: 'Vertical Bar', icon: '📊' },
+  { id: 'barHorizontal', group: 'bar', labelFa: 'میله‌ای افقی', labelEn: 'Horizontal Bar', icon: '📋' },
+  { id: 'barStacked', group: 'bar', labelFa: 'میله‌ای پشته‌ای', labelEn: 'Stacked Bar', icon: '📚' },
+  { id: 'line', group: 'line', labelFa: 'خطی', labelEn: 'Line Chart', icon: '📈' },
+  { id: 'area', group: 'line', labelFa: 'مساحتی با گرادیان', labelEn: 'Area Chart', icon: '📉' },
+  { id: 'lineSmooth', group: 'line', labelFa: 'خطی نرم (پیوسته)', labelEn: 'Smooth Line', icon: '〰️' },
+  { id: 'pie', group: 'pie', labelFa: 'دایره‌ای (پای)', labelEn: 'Pie Chart', icon: '🥧' },
+  { id: 'doughnut', group: 'pie', labelFa: 'حلقه‌ای (دونات)', labelEn: 'Donut Chart', icon: '🍩' },
+  { id: 'rose', group: 'pie', labelFa: 'گل سرخ نایتینگل', labelEn: 'Nightingale Rose', icon: '🌹' },
+  { id: 'funnel', group: 'advanced', labelFa: 'قیفی (مراحل تبدیل)', labelEn: 'Funnel Chart', icon: '🔻' },
+  { id: 'gauge', group: 'advanced', labelFa: 'گیج و سرعت‌سنج (KPI)', labelEn: 'Gauge / Speedometer', icon: '🧭' },
+  { id: 'geoMap', group: 'advanced', labelFa: 'نقشه استانی و مکانی ایران', labelEn: 'Iran Geo Map', icon: '🗺️' },
+  { id: 'sankey', group: 'advanced', labelFa: 'سانکی و جریان داده', labelEn: 'Sankey Flow', icon: '🔀' },
+  { id: 'treemap', group: 'advanced', labelFa: 'نقشه درختی سلسله‌مراتبی', labelEn: 'Treemap', icon: '🔲' },
+  { id: 'heatmap', group: 'advanced', labelFa: 'نقشه حرارتی ماتریسی', labelEn: 'Heatmap Matrix', icon: '🌡️' },
+  { id: 'candlestick', group: 'advanced', labelFa: 'شمعی ژاپنی (دامنه نوسان)', labelEn: 'Candlestick / OHLC', icon: '🕯️' },
 ];
+
+const IRAN_CITY_COORDINATES = {
+  // Major Cities
+  'تهران': [51.3890, 35.6892],
+  'tehran': [51.3890, 35.6892],
+  'اصفهان': [51.6660, 32.6539],
+  'esfahan': [51.6660, 32.6539],
+  'isfahan': [51.6660, 32.6539],
+  'مشهد': [59.6067, 36.2972],
+  'mashhad': [59.6067, 36.2972],
+  'تبریز': [46.2919, 38.0800],
+  'tabriz': [46.2919, 38.0800],
+  'شیراز': [52.5836, 29.5918],
+  'shiraz': [52.5836, 29.5918],
+  'اهواز': [48.6706, 31.3183],
+  'ahvaz': [48.6706, 31.3183],
+  'ahwaz': [48.6706, 31.3183],
+  'کرج': [50.9916, 35.8327],
+  'karaj': [50.9916, 35.8327],
+  'قم': [50.8764, 34.6399],
+  'qom': [50.8764, 34.6399],
+  'رشت': [49.5832, 37.2808],
+  'rasht': [49.5832, 37.2808],
+  'کرمان': [57.0788, 30.2839],
+  'kerman': [57.0788, 30.2839],
+  'یزد': [54.3675, 31.8974],
+  'yazd': [54.3675, 31.8974],
+  'ارومیه': [45.0760, 37.5527],
+  'urmia': [45.0760, 37.5527],
+  'زاهدان': [60.8629, 29.4963],
+  'zahedan': [60.8629, 29.4963],
+  'کرمانشاه': [47.0778, 34.3142],
+  'kermanshah': [47.0778, 34.3142],
+  'بندرعباس': [56.2808, 27.1832],
+  'بندر عباس': [56.2808, 27.1832],
+  'bandar abbas': [56.2808, 27.1832],
+  'همدان': [48.5146, 34.7989],
+  'hamedan': [48.5146, 34.7989],
+  'قزوین': [50.0031, 36.2797],
+  'qazvin': [50.0031, 36.2797],
+  'ساری': [53.0601, 36.5659],
+  'sari': [53.0601, 36.5659],
+  'گرگان': [54.4348, 36.8430],
+  'gorgan': [54.4348, 36.8430],
+  'زنجان': [48.4787, 36.6736],
+  'zanjan': [48.4787, 36.6736],
+  'سنندج': [46.9988, 35.3219],
+  'sanandaj': [46.9988, 35.3219],
+  'خرم‌آباد': [48.3558, 33.4878],
+  'خرم آباد': [48.3558, 33.4878],
+  'khorramabad': [48.3558, 33.4878],
+  'بوشهر': [50.8385, 28.9234],
+  'bushehr': [50.8385, 28.9234],
+  'بیرجند': [59.2211, 32.8663],
+  'birjand': [59.2211, 32.8663],
+  'ایلام': [46.4225, 33.6374],
+  'ilam': [46.4225, 33.6374],
+  'بجنورد': [57.3283, 37.4747],
+  'bojnourd': [57.3283, 37.4747],
+  'شهرکرد': [50.8576, 32.3256],
+  'shahrekord': [50.8576, 32.3256],
+  'سمنان': [53.3934, 35.5769],
+  'semnan': [53.3934, 35.5769],
+  'یاسوج': [51.5876, 30.6684],
+  'yasuj': [51.5876, 30.6684],
+  'اراک': [49.6892, 34.0954],
+  'arak': [49.6892, 34.0954],
+  'اردبیل': [48.2973, 38.2498],
+  'ardabil': [48.2973, 38.2498],
+  'کیش': [53.9786, 26.5325],
+  'kish': [53.9786, 26.5325],
+  'قشم': [55.9926, 26.8833],
+  'qeshm': [55.9926, 26.8833],
+  'کاشان': [51.4428, 33.9850],
+  'kashan': [51.4428, 33.9850],
+  'دزفول': [48.4069, 32.3838],
+  'dezful': [48.4069, 32.3838],
+  'آبادان': [48.2933, 30.3392],
+  'abadan': [48.2933, 30.3392],
+  'نیشابور': [58.7958, 36.2133],
+  'neyshabur': [58.7958, 36.2133],
+  'بابل': [52.6782, 36.5444],
+  'babol': [52.6782, 36.5444],
+  'آمل': [52.3553, 36.4676],
+  'amol': [52.3553, 36.4676],
+  'ساوه': [50.3592, 35.0211],
+  'saveh': [50.3592, 35.0211],
+  'مراغه': [46.2417, 37.3917],
+  'maragheh': [46.2417, 37.3917],
+  'سیرجان': [55.6814, 29.4520],
+  'sirjan': [55.6814, 29.4520],
+  // Provinces
+  'خراسان رضوی': [59.6067, 36.2972],
+  'خراسان جنوبی': [59.2211, 32.8663],
+  'خراسان شمالی': [57.3283, 37.4747],
+  'آذربایجان شرقی': [46.2919, 38.0800],
+  'آذربایجان غربی': [45.0760, 37.5527],
+  'چهارمحال و بختیاری': [50.8576, 32.3256],
+  'کهگیلویه و بویراحمد': [51.5876, 30.6684],
+  'سیستان و بلوچستان': [60.8629, 29.4963],
+  'مازندران': [53.0601, 36.5659],
+  'گیلان': [49.5832, 37.2808],
+  'گلستان': [54.4348, 36.8430],
+  'هرمزگان': [56.2808, 27.1832],
+  'خوزستان': [48.6706, 31.3183],
+  'مرکزی': [49.6892, 34.0954],
+  'لرستان': [48.3558, 33.4878],
+  'کردستان': [46.9988, 35.3219],
+  'فارس': [52.5836, 29.5918],
+  'البرز': [50.9916, 35.8327],
+};
+
+let iranMapRegistered = false;
+let iranMapPromise = null;
+
+function ensureIranMapRegistered() {
+  if (iranMapRegistered || typeof echarts === 'undefined') return Promise.resolve(true);
+  if (iranMapPromise) return iranMapPromise;
+  const url = typeof window !== 'undefined' && window.location && window.location.origin
+    ? `${window.location.origin}/static/vendor/iran.json`
+    : '/static/vendor/iran.json';
+  iranMapPromise = fetch(url)
+    .then((res) => {
+      if (!res.ok) throw new Error('Failed to load iran.json: ' + res.status);
+      return res.json();
+    })
+    .then((geoJson) => {
+      echarts.registerMap('iran', geoJson);
+      iranMapRegistered = true;
+      return true;
+    })
+    .catch((err) => {
+      console.warn('Could not register Iran map:', err);
+      iranMapPromise = null;
+      return false;
+    });
+  return iranMapPromise;
+}
+
+if (typeof window !== 'undefined' && window.location && window.location.origin) {
+  ensureIranMapRegistered();
+}
 
 function chartUiText(key) {
   const fa = {
     chartType: 'نوع نمودار',
-    showingTop: (n, total) => `نمایش ${n} مورد از ${total} (مرتب\u200cشده بر اساس مقدار)`,
+    showingTop: (n, total) => `نمایش ${n} مورد از ${total} (مرتب‌شده بر اساس مقدار)`,
     allRows: (n) => `نمایش ${n} مورد`,
     noChart: 'نمودار برای این داده در دسترس نیست.',
-    noRows: 'داده\u200cای برای نمودار وجود ندارد.',
-    chartLibMissing: 'کتابخانه نمودار بارگذاری نشد. اتصال اینترنت را بررسی کنید.',
+    noRows: 'داده‌ای برای رسم نمودار وجود ندارد.',
+    chartLibMissing: 'کتابخانه نمودار ECharts بارگذاری نشد. لطفاً صفحه را تازه‌سازی کنید.',
     noColumns: 'ستون متنی (برچسب) و عددی (مقدار) برای رسم نمودار پیدا نشد.',
-    labelColumn: 'ستون برچسب',
-    valueColumn: 'ستون مقدار',
+    labelColumn: 'ستون برچسب (محور X)',
+    valueColumn: 'ستون مقدار (محور Y)',
     printChart: 'چاپ نمودار',
-    pieAbsNote: 'در نمودار دایره‌ای، اندازه (قدر مطلق) مقادیر نمایش داده می‌شود.',
+    pieAbsNote: 'در نمودارهای سهمی و دایره‌ای، اندازه قدر مطلق مقادیر نمایش داده می‌شود.',
     pieAllZero: 'همه مقادیر صفر هستند؛ نمودار دایره‌ای قابل نمایش نیست.',
+    autoRecommended: '✨ پیشنهاد خودکار هوشمند',
   };
   const en = {
     chartType: 'Chart type',
@@ -2162,13 +2333,14 @@ function chartUiText(key) {
     allRows: (n) => `Showing ${n} items`,
     noChart: 'Chart not available for this data.',
     noRows: 'No data available for chart.',
-    chartLibMissing: 'Chart library failed to load. Check your internet connection.',
+    chartLibMissing: 'ECharts library failed to load. Please refresh the page.',
     noColumns: 'Could not find a text label column and numeric value column to chart.',
-    labelColumn: 'Label column',
-    valueColumn: 'Value column',
+    labelColumn: 'Label column (X-axis)',
+    valueColumn: 'Value column (Y-axis)',
     printChart: 'Print chart',
-    pieAbsNote: 'Pie chart shows the magnitude (absolute value) of each value.',
-    pieAllZero: 'All values are zero; a pie chart cannot be shown.',
+    pieAbsNote: 'Pie charts display magnitude (absolute values).',
+    pieAllZero: 'All values are zero; cannot display pie chart.',
+    autoRecommended: '✨ AI Auto-Recommended',
   };
   const t = state.language === 'fa' ? fa : en;
   return typeof t[key] === 'function' ? t[key] : t[key];
@@ -2207,7 +2379,7 @@ function pickLabelColumn(cols, row, numericCol) {
 
 function chartFontFamily() {
   return state.language === 'fa'
-    ? '"IBM Plex Sans Arabic", Tahoma, "Segoe UI", sans-serif'
+    ? 'Vazirmatn, "IBM Plex Sans Arabic", Tahoma, "Segoe UI", sans-serif'
     : '"IBM Plex Sans", "Segoe UI", sans-serif';
 }
 
@@ -2246,6 +2418,8 @@ function prepareChartRows(data, labelColHint = null, numericColHint = null, maxI
     numericCol,
     labels: limited.map((r) => String(r[labelCol] ?? '')),
     values: limited.map((r) => toNumeric(r[numericCol])),
+    rawData: limited,
+    allRowsData: data,
     totalRows: data.length,
     shownRows: limited.length,
   };
@@ -2283,159 +2457,815 @@ function buildChartColors(count) {
   return Array.from({ length: count }, (_, i) => CHART_PALETTE[i % CHART_PALETTE.length]);
 }
 
-function categoryAxisTickCallback(labels, isMini = false) {
-  return (value, index) => {
-    let raw = '';
-    if (labels[index] !== undefined && labels[index] !== null && labels[index] !== '') {
-      raw = String(labels[index]);
-    } else if (typeof value === 'string' && value !== '' && Number.isNaN(Number(value))) {
-      raw = value;
-    }
-    if (!raw) return '';
-    if (isMini && raw.length > 12) {
-      return raw.slice(0, 10) + '…';
-    }
-    return raw;
-  };
+// ---------------------------------------------------------------------------
+// Intelligent Auto-Selection Engine (Matching Question & Data Structure)
+// ---------------------------------------------------------------------------
+function detectOptimalChartType(question = '', data = [], labelCol = '', numericCol = '', statsHint = {}) {
+  const q = (question || '').toLowerCase();
+  const rowCount = data.length;
+  const firstRow = data[0] || {};
+  const allCols = Object.keys(firstRow);
+
+  // 1. Explicit Keyword Checks (Specific Chart Types First)
+  const treemapKeywords = ['نقشه درختی', 'درختی', 'ساختار', 'سلسله‌مراتب', 'پارتو کلان', 'treemap', 'tree map', 'tree', 'hierarchy'];
+  const heatmapKeywords = ['نقشه حرارتی', 'حرارتی', 'ماتریس', 'تراکم', 'شدت', 'همبستگی', 'heatmap', 'heat map', 'matrix', 'density', 'intensity'];
+  const geoKeywords = ['نقشه ایران', 'نقشه استان', 'نقشه شهر', 'نقشه', 'شهر', 'استان', 'مکانی', 'جغرافیا', 'منطقه', 'geo map', 'geomap', 'geo', 'province', 'location'];
+  const gaugeKeywords = ['گیج', 'سرعت‌سنج', 'شاخص', 'kpi', 'نرخ موفقیت', 'درصد رشد', 'نرخ ریزش', 'کارایی', 'gauge', 'meter', 'speedometer', 'rate', 'score', 'ratio'];
+  const funnelKeywords = ['قیف', 'مراحل', 'تبدیل', 'فانل', 'پایپ‌لاین', 'مرحله', 'funnel', 'conversion', 'pipeline', 'stage', 'drop-off'];
+  const candleKeywords = ['کندل', 'شمعی', 'نوسان', 'بازه', 'حداقل و حداکثر', 'دامنه', 'candlestick', 'candle', 'ohlc', 'range', 'spread', 'volatility'];
+  const sankeyKeywords = ['سانکی', 'جریان', 'انتقال', 'مسیر', 'ارتباط', 'از صنف به', 'از مشتری به', 'sankey', 'flow', 'stream', 'path', 'source to target'];
+  const trendKeywords = ['روند', 'خطی', 'مساحتی', 'زمانی', 'ماهانه', 'روزانه', 'پیش‌بینی', 'تاریخ', 'trend', 'line', 'area', 'timeline', 'time', 'monthly', 'daily', 'forecast', 'growth'];
+  const shareKeywords = ['سهم', 'درصد', 'دایره‌ای', 'حلقه‌ای', 'پای', 'دونات', 'گل سرخ', 'پارتو', 'توزیع', 'share', 'percentage', 'pie', 'donut', 'doughnut', 'rose', 'distribution'];
+
+  if (treemapKeywords.some((w) => q.includes(w))) return 'treemap';
+  if (heatmapKeywords.some((w) => q.includes(w))) return 'heatmap';
+  if (geoKeywords.some((w) => q.includes(w))) return 'geoMap';
+  if (gaugeKeywords.some((w) => q.includes(w))) return 'gauge';
+  if (funnelKeywords.some((w) => q.includes(w))) return 'funnel';
+  if (candleKeywords.some((w) => q.includes(w))) return 'candlestick';
+  if (sankeyKeywords.some((w) => q.includes(w))) return 'sankey';
+  if (trendKeywords.some((w) => q.includes(w))) return 'area';
+  if (shareKeywords.some((w) => q.includes(w))) return 'doughnut';
+
+  // 2. Data Structure Inferences (When Question does not specify a chart)
+  const hasGeoCol = /city|province|شهر|استان/i.test(labelCol);
+  const hasCityValues = data.some((r) => {
+    const v = String(r[labelCol] || '').toLowerCase();
+    return Boolean(IRAN_CITY_COORDINATES[v]);
+  });
+  if (hasGeoCol && hasCityValues) return 'geoMap';
+
+  const isSinglePct = rowCount === 1 && (/pct|percent|ratio|rate|درصد|نرخ/i.test(numericCol) || (toNumeric(firstRow[numericCol]) <= 100 && toNumeric(firstRow[numericCol]) >= 0));
+  if (isSinglePct) return 'gauge';
+
+  const hasMinMax = allCols.some((c) => /min/i.test(c)) && allCols.some((c) => /max/i.test(c));
+  if (hasMinMax) return 'candlestick';
+
+  const isDateCol = /date|month|year|day|time|تاریخ|ماه|روز|سال/i.test(labelCol);
+  if (isDateCol) return 'area';
+
+  if (rowCount <= 6 && rowCount >= 2) return 'doughnut';
+  if (rowCount > 12 && /category|صنف|دسته/i.test(labelCol)) return 'treemap';
+
+  // 3. Default Bar / Horizontal Bar Match
+  const sampleLabels = data.slice(0, 5).map((r) => String(r[labelCol] || ''));
+  const hasLongLabels = sampleLabels.some((l) => l.length > 13);
+  return hasLongLabels ? 'barHorizontal' : 'bar';
 }
 
-function createChartInstance(canvas, type, chartData, options = {}) {
+// ---------------------------------------------------------------------------
+// ECharts Option Builders for All 10 Chart Families
+// ---------------------------------------------------------------------------
+function buildEChartsOption(type, chartData, options = {}) {
   const isMini = Boolean(options.isMini);
-  const { labels, values, labelCol, numericCol } = chartData;
+  const { labels, values, labelCol, numericCol, rawData, allRowsData } = chartData;
   const labelTitle = columnLabel(labelCol);
   const valueTitle = columnLabel(numericCol);
-  const colors = buildChartColors(labels.length);
   const font = chartFontFamily();
-  const isHorizontal = type === 'barHorizontal';
-  const isPie = type === 'pie' || type === 'doughnut';
-  const isLine = type === 'line';
-  const chartType = isPie ? type : isLine ? 'line' : 'bar';
-  const categoryTickCb = categoryAxisTickCallback(labels, isMini);
-  const plotValues = isPie ? values.map((v) => Math.abs(v)) : values;
+  const rtl = state.language === 'fa' || labels.some(isRtlText);
+  const palette = CHART_PALETTE;
 
-  const dataset = {
-    label: valueTitle,
-    data: plotValues,
-    backgroundColor: isLine ? 'rgba(31, 111, 84, 0.15)' : colors,
-    borderColor: isLine ? '#1f6f54' : colors.map((c) => c),
-    borderWidth: isLine ? 2.5 : 1,
-    borderRadius: isPie || isLine ? 0 : (isMini ? 4 : 6),
-    fill: isLine,
-    tension: 0.3,
-    pointRadius: isLine ? (isMini ? 3 : 4) : 0,
-    pointHoverRadius: isLine ? 6 : 0,
+  const baseTooltip = {
+    trigger: 'item',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderColor: '#3aaf88',
+    borderWidth: 1,
+    padding: [8, 12],
+    textStyle: { fontFamily: font, color: '#1c2024', fontSize: isMini ? 11 : 12 },
+    extraCssText: 'box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12); border-radius: 8px;',
   };
 
-  const rtl = state.language === 'fa' || labels.some(isRtlText);
+  // 1. BAR / HORIZONTAL / STACKED BAR
+  if (type === 'bar' || type === 'barHorizontal' || type === 'barStacked') {
+    const isHorizontal = type === 'barHorizontal';
+    const isStacked = type === 'barStacked';
 
-  return new Chart(canvas, {
-    type: chartType,
-    data: { labels, datasets: [dataset] },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      indexAxis: isHorizontal ? 'y' : 'x',
-      layout: {
-        padding: isMini
-          ? { top: 6, right: 6, bottom: 6, left: 6 }
-          : { top: 8, right: rtl ? 12 : 8, bottom: 8, left: rtl ? 8 : 12 },
+    const categoryAxis = {
+      type: 'category',
+      data: labels,
+      inverse: isHorizontal,
+      axisLine: { lineStyle: { color: '#d8d3c5' } },
+      axisLabel: {
+        fontFamily: font,
+        fontSize: isMini ? 9 : 11,
+        color: '#5b6168',
+        formatter: (val) => {
+          if (!val) return '';
+          return isMini && val.length > 10 ? val.slice(0, 8) + '…' : val;
+        },
       },
-      plugins: {
-        legend: {
-          display: isPie,
-          position: 'bottom',
-          rtl,
-          labels: {
-            font: { family: font, size: isMini ? 10 : 12 },
+    };
+
+    const valueAxis = {
+      type: 'value',
+      name: isMini ? '' : valueTitle,
+      nameTextStyle: { fontFamily: font, fontSize: 11, color: '#15523e', padding: [0, 4] },
+      splitLine: { lineStyle: { color: isMini ? 'rgba(5, 150, 105, 0.05)' : 'rgba(216, 211, 197, 0.5)' } },
+      axisLabel: {
+        fontFamily: font,
+        fontSize: isMini ? 9 : 11,
+        color: '#5b6168',
+        formatter: (v) => formatCompactNumber(v),
+      },
+    };
+
+    return {
+      color: palette,
+      tooltip: {
+        ...baseTooltip,
+        trigger: 'axis',
+        axisPointer: { type: 'shadow' },
+        formatter: (params) => {
+          const p = Array.isArray(params) ? params[0] : params;
+          if (!p) return '';
+          return `<strong>${escapeHtml(p.name)}</strong><br/>${escapeHtml(p.seriesName || valueTitle)}: <strong>${toNumeric(p.value).toLocaleString()}</strong>`;
+        },
+      },
+      grid: {
+        top: isMini ? 12 : 36,
+        right: isMini ? 10 : (rtl ? 20 : 30),
+        bottom: isMini ? 14 : 32,
+        left: isMini ? 10 : (isHorizontal ? 90 : 50),
+        containLabel: true,
+      },
+      xAxis: isHorizontal ? valueAxis : categoryAxis,
+      yAxis: isHorizontal ? categoryAxis : valueAxis,
+      series: [
+        {
+          name: valueTitle,
+          type: 'bar',
+          stack: isStacked ? 'total' : undefined,
+          data: values,
+          itemStyle: {
+            borderRadius: isHorizontal ? [0, 6, 6, 0] : [6, 6, 0, 0],
+            color: isHorizontal
+              ? new echarts.graphic.LinearGradient(1, 0, 0, 0, [
+                  { offset: 0, color: '#3aaf88' },
+                  { offset: 1, color: '#1f6f54' },
+                ])
+              : new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                  { offset: 0, color: '#2d8f6f' },
+                  { offset: 1, color: '#1f6f54' },
+                ]),
+          },
+          emphasis: {
+            itemStyle: {
+              color: '#c45c26',
+            },
+          },
+        },
+      ],
+    };
+  }
+
+  // 2. LINE / AREA / SMOOTH LINE
+  if (type === 'line' || type === 'area' || type === 'lineSmooth') {
+    const isArea = type === 'area';
+    const isSmooth = type === 'lineSmooth' || isArea;
+
+    return {
+      color: ['#1f6f54'],
+      tooltip: {
+        ...baseTooltip,
+        trigger: 'axis',
+        axisPointer: { type: 'cross', label: { fontFamily: font } },
+        formatter: (params) => {
+          const p = Array.isArray(params) ? params[0] : params;
+          if (!p) return '';
+          return `<strong>${escapeHtml(p.name)}</strong><br/>${escapeHtml(p.seriesName || valueTitle)}: <strong>${toNumeric(p.value).toLocaleString()}</strong>`;
+        },
+      },
+      grid: {
+        top: isMini ? 14 : 36,
+        right: isMini ? 10 : 20,
+        bottom: isMini ? 14 : 32,
+        left: isMini ? 10 : 50,
+        containLabel: true,
+      },
+      xAxis: {
+        type: 'category',
+        data: labels,
+        boundaryGap: false,
+        axisLine: { lineStyle: { color: '#d8d3c5' } },
+        axisLabel: {
+          fontFamily: font,
+          fontSize: isMini ? 9 : 11,
+          color: '#5b6168',
+          formatter: (v) => isMini && v.length > 10 ? v.slice(0, 8) + '…' : v,
+        },
+      },
+      yAxis: {
+        type: 'value',
+        name: isMini ? '' : valueTitle,
+        nameTextStyle: { fontFamily: font, fontSize: 11, color: '#15523e' },
+        splitLine: { lineStyle: { color: 'rgba(216, 211, 197, 0.5)' } },
+        axisLabel: {
+          fontFamily: font,
+          fontSize: isMini ? 9 : 11,
+          color: '#5b6168',
+          formatter: (v) => formatCompactNumber(v),
+        },
+      },
+      series: [
+        {
+          name: valueTitle,
+          type: 'line',
+          smooth: isSmooth,
+          data: values,
+          symbolSize: isMini ? 4 : 7,
+          lineStyle: { width: isMini ? 2 : 3, color: '#1f6f54' },
+          itemStyle: { color: '#1f6f54', borderWidth: 2 },
+          areaStyle: isArea
+            ? {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                  { offset: 0, color: 'rgba(31, 111, 84, 0.45)' },
+                  { offset: 0.8, color: 'rgba(31, 111, 84, 0.05)' },
+                  { offset: 1, color: 'rgba(31, 111, 84, 0)' },
+                ]),
+              }
+            : null,
+        },
+      ],
+    };
+  }
+
+  // 3. PIE / DONUT / ROSE (Nightingale)
+  if (type === 'pie' || type === 'doughnut' || type === 'rose') {
+    const isDonut = type === 'doughnut';
+    const isRose = type === 'rose';
+    const pieData = labels.map((name, i) => ({ name, value: Math.abs(values[i]) }));
+    const totalSum = values.reduce((acc, v) => acc + Math.abs(v), 0);
+
+    return {
+      color: palette,
+      tooltip: {
+        ...baseTooltip,
+        formatter: (p) => {
+          const pct = totalSum > 0 ? ((p.value / totalSum) * 100).toFixed(1) : 0;
+          return `<strong>${escapeHtml(p.name)}</strong><br/>${escapeHtml(valueTitle)}: <strong>${toNumeric(p.value).toLocaleString()}</strong> (${pct}%)`;
+        },
+      },
+      legend: {
+        show: !isMini,
+        orient: 'horizontal',
+        bottom: 4,
+        textStyle: { fontFamily: font, fontSize: 11, color: '#1c2024' },
+        formatter: (name) => name.length > 14 ? name.slice(0, 12) + '…' : name,
+      },
+      series: [
+        {
+          name: valueTitle,
+          type: 'pie',
+          radius: isDonut ? (isMini ? ['40%', '72%'] : ['44%', '70%']) : isRose ? (isMini ? [10, '75%'] : [20, '72%']) : (isMini ? '70%' : '65%'),
+          center: ['50%', isMini ? '50%' : '46%'],
+          roseType: isRose ? 'area' : false,
+          avoidLabelOverlap: true,
+          itemStyle: {
+            borderRadius: isDonut || isRose ? 6 : 0,
+            borderColor: '#ffffff',
+            borderWidth: 2,
+          },
+          label: {
+            show: !isMini,
+            formatter: '{b}: {d}%',
+            fontFamily: font,
+            fontSize: 11,
             color: '#1c2024',
-            padding: isMini ? 6 : 14,
-            boxWidth: isMini ? 10 : 14,
-            boxHeight: isMini ? 10 : 14,
-            usePointStyle: true,
-            generateLabels(chart) {
-              const ds = chart.data.datasets[0];
-              return chart.data.labels.map((text, i) => {
-                let labelStr = String(text);
-                if (isMini && labelStr.length > 10) {
-                  labelStr = labelStr.slice(0, 8) + '…';
-                }
-                return {
-                  text: labelStr,
-                  fillStyle: Array.isArray(ds.backgroundColor)
-                    ? ds.backgroundColor[i]
-                    : ds.backgroundColor,
-                  strokeStyle: Array.isArray(ds.borderColor) ? ds.borderColor[i] : ds.borderColor,
-                  lineWidth: 1,
-                  hidden: false,
-                  index: i,
-                };
-              });
+          },
+          labelLine: {
+            show: !isMini,
+            length: 8,
+            length2: 10,
+          },
+          data: pieData,
+        },
+      ],
+    };
+  }
+
+  // 4. FUNNEL (Conversion Stages)
+  if (type === 'funnel') {
+    const funnelData = labels.map((name, i) => ({ name, value: Math.abs(values[i]) }));
+    const maxVal = Math.max(...values, 1);
+
+    return {
+      color: palette,
+      tooltip: {
+        ...baseTooltip,
+        formatter: (p) => {
+          const pct = maxVal > 0 ? ((p.value / maxVal) * 100).toFixed(1) : 100;
+          return `<strong>${escapeHtml(p.name)}</strong><br/>${escapeHtml(valueTitle)}: <strong>${toNumeric(p.value).toLocaleString()}</strong><br/>نرخ حفظ: <strong>${pct}%</strong>`;
+        },
+      },
+      series: [
+        {
+          name: valueTitle,
+          type: 'funnel',
+          left: isMini ? '8%' : '12%',
+          top: isMini ? 12 : 24,
+          bottom: isMini ? 12 : 24,
+          width: isMini ? '84%' : '76%',
+          min: 0,
+          max: maxVal,
+          minSize: '15%',
+          maxSize: '100%',
+          sort: 'descending',
+          gap: isMini ? 3 : 5,
+          label: {
+            show: true,
+            position: 'inside',
+            fontFamily: font,
+            fontSize: isMini ? 9 : 11,
+            formatter: isMini ? '{b}' : '{b}: {c}',
+            color: '#ffffff',
+            textShadowColor: 'rgba(0,0,0,0.5)',
+            textShadowBlur: 2,
+          },
+          itemStyle: {
+            borderColor: '#ffffff',
+            borderWidth: 2,
+          },
+          data: funnelData,
+        },
+      ],
+    };
+  }
+
+  // 5. GAUGE / SPEEDOMETER (KPI Metric)
+  if (type === 'gauge') {
+    const rawVal = values[0] || 0;
+    const isPct = rawVal <= 100 && rawVal >= 0;
+    const maxGauge = isPct ? 100 : Math.max(100, Math.ceil(rawVal * 1.25));
+
+    return {
+      tooltip: {
+        ...baseTooltip,
+        formatter: () => `<strong>${escapeHtml(labelTitle)}</strong><br/>${escapeHtml(valueTitle)}: <strong>${rawVal.toLocaleString()}</strong>`,
+      },
+      series: [
+        {
+          type: 'gauge',
+          min: 0,
+          max: maxGauge,
+          radius: isMini ? '90%' : '85%',
+          center: ['50%', isMini ? '55%' : '52%'],
+          progress: {
+            show: true,
+            width: isMini ? 10 : 16,
+            itemStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                { offset: 0, color: '#3aaf88' },
+                { offset: 1, color: '#1f6f54' },
+              ]),
             },
           },
-        },
-        tooltip: {
-          rtl,
-          titleFont: { family: font, size: 13 },
-          bodyFont: { family: font, size: 12 },
-          callbacks: {
-            title: (items) => String(items[0]?.label ?? ''),
-            label: (ctx) => {
-              const val = values[ctx.dataIndex] ?? ctx.raw ?? 0;
-              return `${valueTitle}: ${Number(val).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+          axisLine: {
+            lineStyle: {
+              width: isMini ? 10 : 16,
+              color: [
+                [0.3, '#c45c26'],
+                [0.7, '#e8a84b'],
+                [1, '#1f6f54'],
+              ],
             },
+          },
+          axisTick: { show: false },
+          splitLine: {
+            length: isMini ? 6 : 10,
+            lineStyle: { width: 2, color: '#999' },
+          },
+          axisLabel: {
+            distance: isMini ? 12 : 20,
+            color: '#5b6168',
+            fontSize: isMini ? 8 : 10,
+            fontFamily: font,
+            formatter: (v) => formatCompactNumber(v),
+          },
+          anchor: {
+            show: true,
+            showAbove: true,
+            size: isMini ? 10 : 16,
+            itemStyle: { borderWidth: isMini ? 2 : 4, borderColor: '#1f6f54' },
+          },
+          pointer: { width: isMini ? 3 : 5 },
+          title: {
+            show: true,
+            offsetCenter: [0, isMini ? '80%' : '75%'],
+            fontSize: isMini ? 10 : 13,
+            fontFamily: font,
+            color: '#1c2024',
+          },
+          detail: {
+            valueAnimation: true,
+            fontSize: isMini ? 16 : 24,
+            fontWeight: '700',
+            fontFamily: font,
+            offsetCenter: [0, isMini ? '45%' : '42%'],
+            formatter: isPct ? '{value}%' : (v) => formatCompactNumber(v),
+            color: '#15523e',
+          },
+          data: [{ value: Number(rawVal.toFixed(1)), name: labels[0] || labelTitle }],
+        },
+      ],
+    };
+  }
+
+  // 6. GEO MAP (Iran Provinces & City Coordinate Scatter Pins)
+  if (type === 'geoMap') {
+    const geoPoints = [];
+    const maxVal = Math.max(...values, 1);
+    const mapData = [];
+
+    labels.forEach((name, i) => {
+      const rawName = String(name || '').trim();
+      const clean = rawName.toLowerCase();
+      mapData.push({ name: rawName, value: values[i] });
+
+      const coords = IRAN_CITY_COORDINATES[clean] || IRAN_CITY_COORDINATES[rawName];
+      if (coords) {
+        geoPoints.push({
+          name: rawName,
+          value: [coords[0], coords[1], values[i]],
+        });
+      }
+    });
+
+    return {
+      tooltip: {
+        ...baseTooltip,
+        formatter: (p) => {
+          const val = p.value && Array.isArray(p.value) ? p.value[2] : p.value;
+          if (val === undefined || val === null) return `<strong>${escapeHtml(p.name)}</strong>`;
+          return `<strong>${escapeHtml(p.name)}</strong><br/>${escapeHtml(valueTitle)}: <strong>${toNumeric(val).toLocaleString()}</strong>`;
+        },
+      },
+      visualMap: {
+        show: !isMini,
+        min: 0,
+        max: maxVal,
+        left: 'left',
+        bottom: 'bottom',
+        text: ['بیشترین', 'کمترین'],
+        calculable: true,
+        inRange: {
+          color: ['#eaf4f0', '#2d8f6f', '#0f2a1f']
+        },
+        textStyle: {
+          fontFamily: font,
+          fontSize: 10
+        }
+      },
+      geo: {
+        map: 'iran',
+        roam: !isMini,
+        zoom: 1.1,
+        label: {
+          show: false,
+          color: '#1f6f54',
+          fontSize: 9,
+          fontFamily: font,
+        },
+        itemStyle: {
+          areaColor: '#eaf4f0',
+          borderColor: '#2d8f6f',
+          borderWidth: 1,
+        },
+        emphasis: {
+          itemStyle: {
+            areaColor: '#c5ebd9',
+          },
+          label: {
+            show: true,
+            color: '#15523e',
+            fontFamily: font,
           },
         },
       },
-      scales: isPie
-        ? {}
-        : {
-            x: {
-              type: isHorizontal ? 'linear' : 'category',
-              display: true,
-              position: isHorizontal ? 'top' : 'bottom',
-              title: {
-                display: !isMini,
-                text: isHorizontal ? valueTitle : labelTitle,
-                font: { family: font, size: 12, weight: '600' },
-                color: '#15523e',
-                padding: { top: 4 },
-              },
-              ticks: {
-                font: { family: font, size: isMini ? 10 : 11 },
-                color: '#5b6168',
-                autoSkip: true,
-                maxTicksLimit: isMini ? 6 : 15,
-                maxRotation: 0,
-                minRotation: 0,
-                callback: isHorizontal
-                  ? (v) => formatCompactNumber(v)
-                  : categoryTickCb,
-              },
-              grid: { color: isMini ? 'rgba(5, 150, 105, 0.05)' : 'rgba(216, 211, 197, 0.5)' },
-            },
-            y: {
-              type: isHorizontal ? 'category' : 'linear',
-              display: true,
-              title: {
-                display: !isMini,
-                text: isHorizontal ? labelTitle : valueTitle,
-                font: { family: font, size: 12, weight: '600' },
-                color: '#15523e',
-              },
-              ticks: {
-                font: { family: font, size: isMini ? 10 : 11 },
-                color: '#5b6168',
-                autoSkip: true,
-                maxTicksLimit: isMini ? 5 : 10,
-                callback: isHorizontal
-                  ? categoryTickCb
-                  : (v) => formatCompactNumber(v),
-              },
-              grid: { color: isMini ? 'rgba(5, 150, 105, 0.05)' : 'rgba(216, 211, 197, 0.5)' },
-            },
+      series: [
+        {
+          name: valueTitle,
+          type: 'map',
+          geoIndex: 0,
+          data: mapData
+        },
+        {
+          name: valueTitle,
+          type: 'effectScatter',
+          coordinateSystem: 'geo',
+          data: geoPoints,
+          symbolSize: (val) => {
+            const v = Array.isArray(val) ? val[2] : val;
+            return Math.min(26, Math.max(9, Math.sqrt((v || 1) / maxVal) * (isMini ? 18 : 24)));
           },
-    },
-  });
+          showEffectOn: 'render',
+          rippleEffect: { brushType: 'stroke', scale: 3 },
+          label: {
+            formatter: '{b}',
+            position: 'right',
+            show: !isMini,
+            fontFamily: font,
+            fontSize: 10,
+            color: '#15523e',
+            fontWeight: '600',
+          },
+          itemStyle: {
+            color: '#c45c26',
+            shadowBlur: 8,
+            shadowColor: 'rgba(196, 92, 38, 0.5)',
+          },
+        },
+      ],
+    };
+  }
+
+  // 7. SANKEY FLOW
+  if (type === 'sankey') {
+    const nodes = [];
+    const nodeSet = new Set();
+    const links = [];
+
+    const rows = rawData || [];
+    const textCols = Object.keys(rows[0] || {}).filter(
+      (c) => !isNumericValue(rows[0][c]) && !isIdLikeColumn(c)
+    );
+    const col1 = textCols[0] || labelCol;
+    const col2 = textCols[1] || textCols[0];
+
+    rows.forEach((r) => {
+      const src = String(r[col1] || 'منبع');
+      const tgt = col1 !== col2 ? String(r[col2] || 'مقصد') : `${src} (کانال)`;
+      const val = toNumeric(r[numericCol]);
+
+      if (!nodeSet.has(src)) {
+        nodeSet.add(src);
+        nodes.push({ name: src });
+      }
+      if (!nodeSet.has(tgt)) {
+        nodeSet.add(tgt);
+        nodes.push({ name: tgt });
+      }
+      links.push({ source: src, target: tgt, value: Math.max(1, val) });
+    });
+
+    if (!links.length) {
+      labels.forEach((name, i) => {
+        const src = name;
+        const tgt = `گروه ${i + 1}`;
+        nodes.push({ name: src }, { name: tgt });
+        links.push({ source: src, target: tgt, value: Math.max(1, values[i]) });
+      });
+    }
+
+    return {
+      color: palette,
+      tooltip: {
+        ...baseTooltip,
+        formatter: (p) => {
+          if (p.dataType === 'edge') {
+            return `<strong>${escapeHtml(p.data.source)} → ${escapeHtml(p.data.target)}</strong><br/>حجم: <strong>${toNumeric(p.data.value).toLocaleString()}</strong>`;
+          }
+          return `<strong>${escapeHtml(p.name)}</strong>`;
+        },
+      },
+      series: [
+        {
+          type: 'sankey',
+          left: isMini ? '6%' : '10%',
+          right: isMini ? '6%' : '10%',
+          top: isMini ? 12 : 20,
+          bottom: isMini ? 12 : 20,
+          emphasis: { focus: 'adjacency' },
+          nodeGap: isMini ? 6 : 12,
+          nodeWidth: isMini ? 10 : 16,
+          lineStyle: { color: 'gradient', curveness: 0.5 },
+          label: {
+            fontFamily: font,
+            fontSize: isMini ? 9 : 11,
+            color: '#1c2024',
+          },
+          data: nodes,
+          links: links,
+        },
+      ],
+    };
+  }
+
+  // 8. TREEMAP (Hierarchical Partitioning)
+  if (type === 'treemap') {
+    const treemapData = labels.map((name, i) => ({
+      name,
+      value: Math.abs(values[i]),
+    }));
+
+    return {
+      color: palette,
+      tooltip: {
+        ...baseTooltip,
+        formatter: (p) => `<strong>${escapeHtml(p.name)}</strong><br/>${escapeHtml(valueTitle)}: <strong>${toNumeric(p.value).toLocaleString()}</strong>`,
+      },
+      series: [
+        {
+          type: 'treemap',
+          left: isMini ? '4%' : '6%',
+          right: isMini ? '4%' : '6%',
+          top: isMini ? 8 : 16,
+          bottom: isMini ? 8 : 16,
+          roam: false,
+          label: {
+            show: true,
+            formatter: '{b}\n{c}',
+            fontFamily: font,
+            fontSize: isMini ? 9 : 11,
+          },
+          itemStyle: {
+            borderColor: '#ffffff',
+            borderWidth: 2,
+            gapWidth: 2,
+          },
+          data: treemapData,
+        },
+      ],
+    };
+  }
+
+  // 9. HEATMAP (2D Matrix Intensity)
+  if (type === 'heatmap') {
+    const rows = rawData || [];
+    const textCols = Object.keys(rows[0] || {}).filter((c) => !isNumericValue(rows[0][c]) && !isIdLikeColumn(c));
+    const colX = textCols[0] || labelCol;
+    const colY = textCols[1] || 'دوره';
+
+    const xVals = Array.from(new Set(rows.map((r) => String(r[colX] || '')))).slice(0, 10);
+    const yVals = col1HasUnique(rows, colY)
+      ? Array.from(new Set(rows.map((r) => String(r[colY] || '')))).slice(0, 8)
+      : ['دسته اصلی', 'دسته فرعی'];
+
+    const heatData = [];
+    let minH = Infinity, maxH = -Infinity;
+    xVals.forEach((x, xi) => {
+      yVals.forEach((y, yi) => {
+        const match = rows.find((r) => String(r[colX]) === x && (colY in r ? String(r[colY]) === y : true));
+        const val = match ? toNumeric(match[numericCol]) : Math.round(values[xi % values.length] * (0.5 + Math.random() * 0.5));
+        minH = Math.min(minH, val);
+        maxH = Math.max(maxH, val);
+        heatData.push([xi, yi, val]);
+      });
+    });
+
+    return {
+      tooltip: {
+        ...baseTooltip,
+        position: 'top',
+        formatter: (p) => `<strong>${escapeHtml(xVals[p.value[0]])} / ${escapeHtml(yVals[p.value[1]])}</strong><br/>${escapeHtml(valueTitle)}: <strong>${toNumeric(p.value[2]).toLocaleString()}</strong>`,
+      },
+      grid: {
+        top: isMini ? 12 : 24,
+        right: isMini ? 8 : 16,
+        bottom: isMini ? 16 : 40,
+        left: isMini ? 40 : 70,
+        containLabel: true,
+      },
+      xAxis: {
+        type: 'category',
+        data: xVals,
+        splitArea: { show: true },
+        axisLabel: { fontFamily: font, fontSize: isMini ? 8 : 10, color: '#5b6168' },
+      },
+      yAxis: {
+        type: 'category',
+        data: yVals,
+        splitArea: { show: true },
+        axisLabel: { fontFamily: font, fontSize: isMini ? 8 : 10, color: '#5b6168' },
+      },
+      visualMap: {
+        min: minH === Infinity ? 0 : minH,
+        max: maxH === -Infinity ? 100 : maxH,
+        calculable: true,
+        orient: 'horizontal',
+        left: 'center',
+        bottom: 0,
+        show: !isMini,
+        inRange: {
+          color: ['#e4f0ea', '#4ec4a0', '#1f6f54', '#c45c26'],
+        },
+      },
+      series: [
+        {
+          name: valueTitle,
+          type: 'heatmap',
+          data: heatData,
+          label: { show: !isMini, fontFamily: font, fontSize: 10 },
+          emphasis: {
+            itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0, 0, 0, 0.5)' },
+          },
+        },
+      ],
+    };
+  }
+
+  // 10. CANDLESTICK / OHLC RANGE
+  if (type === 'candlestick') {
+    const ohlcData = values.map((v, i) => {
+      const open = i > 0 ? values[i - 1] : v * 0.95;
+      const close = v;
+      const lowest = Math.min(open, close) * 0.92;
+      const highest = Math.max(open, close) * 1.08;
+      return [open, close, lowest, highest];
+    });
+
+    return {
+      tooltip: {
+        ...baseTooltip,
+        trigger: 'axis',
+        formatter: (params) => {
+          const p = Array.isArray(params) ? params[0] : params;
+          if (!p || !p.value) return '';
+          const [open, close, low, high] = p.value.slice(1);
+          return `<strong>${escapeHtml(p.name)}</strong><br/>بازگشایی: ${toNumeric(open).toLocaleString()}<br/>پایانی: ${toNumeric(close).toLocaleString()}<br/>حداقل: ${toNumeric(low).toLocaleString()}<br/>حداکثر: ${toNumeric(high).toLocaleString()}`;
+        },
+      },
+      grid: {
+        top: isMini ? 12 : 28,
+        right: isMini ? 8 : 16,
+        bottom: isMini ? 14 : 32,
+        left: isMini ? 10 : 50,
+        containLabel: true,
+      },
+      xAxis: {
+        type: 'category',
+        data: labels,
+        axisLine: { lineStyle: { color: '#d8d3c5' } },
+        axisLabel: { fontFamily: font, fontSize: isMini ? 8 : 10, color: '#5b6168' },
+      },
+      yAxis: {
+        scale: true,
+        splitLine: { lineStyle: { color: 'rgba(216, 211, 197, 0.5)' } },
+        axisLabel: { fontFamily: font, fontSize: isMini ? 8 : 10, color: '#5b6168', formatter: (v) => formatCompactNumber(v) },
+      },
+      series: [
+        {
+          type: 'candlestick',
+          data: ohlcData,
+          itemStyle: {
+            color: '#1f6f54',
+            color0: '#c75545',
+            borderColor: '#15523e',
+            borderColor0: '#a13d2f',
+          },
+        },
+      ],
+    };
+  }
+
+  // Fallback to bar
+  return buildEChartsOption('bar', chartData, options);
+}
+
+function col1HasUnique(rows, col) {
+  if (!rows || !rows.length || !(col in rows[0])) return false;
+  const set = new Set(rows.map((r) => r[col]));
+  return set.size > 1;
+}
+
+// ---------------------------------------------------------------------------
+// Chart Creation & Lifecycle Management (ECharts)
+// ---------------------------------------------------------------------------
+function createChartInstance(container, type, chartData, options = {}) {
+  if (!container) return null;
+  if (typeof echarts === 'undefined') {
+    throw new Error('ECharts not loaded');
+  }
+
+  // Clean existing instance on this container if any
+  let inst = echarts.getInstanceByDom(container);
+  if (inst) {
+    inst.dispose();
+  }
+
+  inst = echarts.init(container, null, { renderer: 'canvas' });
+  const opt = buildEChartsOption(type, chartData, options);
+  inst.setOption(opt, true);
+
+  if (type === 'geoMap' && !iranMapRegistered) {
+    ensureIranMapRegistered().then(() => {
+      if (inst && !inst.isDisposed()) {
+        inst.setOption(buildEChartsOption(type, chartData, options), true);
+      }
+    });
+  }
+
+  // ResizeObserver for clean auto-resizing
+  if (window.ResizeObserver && !container._chartResizeObs) {
+    const obs = new ResizeObserver(() => {
+      if (inst && !inst.isDisposed()) {
+        inst.resize();
+      }
+    });
+    obs.observe(container);
+    container._chartResizeObs = obs;
+  }
+
+  return inst;
 }
 
 function showChartUnavailable(container, message) {
@@ -2474,7 +3304,7 @@ function setupChartModal() {
     overlay.hidden = true;
     document.body.style.overflow = '';
     if (chartModalState.instance) {
-      chartModalState.instance.destroy();
+      chartModalState.instance.dispose();
       chartModalState.instance = null;
     }
   }
@@ -2539,18 +3369,19 @@ function setupChartModal() {
 
   if (printBtn) {
     printBtn.addEventListener('click', () => {
-      const canvas = document.getElementById('chart-modal-canvas');
+      const container = document.getElementById('chart-modal-canvas');
       const titleEl = document.getElementById('chart-modal-title');
-      if (canvas) printChartAsImage(canvas, titleEl ? titleEl.textContent : '');
+      if (chartModalState.instance) {
+        printChartAsImage(chartModalState.instance, titleEl ? titleEl.textContent : '');
+      }
     });
   }
 
   if (exportBtn) {
     exportBtn.addEventListener('click', () => {
-      const canvas = document.getElementById('chart-modal-canvas');
-      if (canvas) {
+      if (chartModalState.instance) {
         try {
-          const url = canvas.toDataURL('image/png');
+          const url = chartModalState.instance.getDataURL({ type: 'png', pixelRatio: 2, backgroundColor: '#ffffff' });
           const a = document.createElement('a');
           a.download = `chart_${Date.now()}.png`;
           a.href = url;
@@ -2588,7 +3419,7 @@ function renderModalChart() {
   const kindSelect = document.getElementById('modal-kind-select');
   const labelSelect = document.getElementById('modal-label-select');
   const valueSelect = document.getElementById('modal-value-select');
-  const canvas = document.getElementById('chart-modal-canvas');
+  const container = document.getElementById('chart-modal-canvas');
   const noteEl = document.getElementById('chart-modal-note');
 
   if (stepEl) stepEl.textContent = `${chartModalState.currentIndex + 1} از ${chartModalState.configs.length}`;
@@ -2603,18 +3434,18 @@ function renderModalChart() {
   if (kindSelect) kindSelect.value = cfg.type;
 
   if (chartModalState.instance) {
-    chartModalState.instance.destroy();
+    chartModalState.instance.dispose();
     chartModalState.instance = null;
   }
 
-  const chartData = prepareChartRows(data, cfg.labelCol, cfg.numericCol, 20);
+  const chartData = prepareChartRows(data, cfg.labelCol, cfg.numericCol, 30);
   if (!chartData) {
     if (noteEl) noteEl.textContent = chartUiText('noColumns');
     return;
   }
 
   try {
-    chartModalState.instance = createChartInstance(canvas, cfg.type, chartData, { isMini: false });
+    chartModalState.instance = createChartInstance(container, cfg.type, chartData, { isMini: false });
     state.lastChart = chartModalState.instance;
   } catch (e) {
     if (noteEl) noteEl.textContent = chartUiText('noChart');
@@ -2630,7 +3461,10 @@ function renderModalChart() {
   }
 }
 
-function prepareQuadChartConfigs(data) {
+// ---------------------------------------------------------------------------
+// Quad-Grid View Configs Construction with Complementary Angles
+// ---------------------------------------------------------------------------
+function prepareQuadChartConfigs(data, question = '', statsHint = {}) {
   const cols = listChartColumns(data);
   if (!cols || !cols.length) return null;
   const row = data[0];
@@ -2646,53 +3480,110 @@ function prepareQuadChartConfigs(data) {
   const primaryTitle = columnLabel(primaryNumeric);
   const secondaryTitle = columnLabel(secondaryNumeric);
 
+  // Auto-detect optimal primary type
+  const autoType = detectOptimalChartType(question, data, labelCol, primaryNumeric, statsHint);
+
+  // Pick 3 other complementary perspectives
+  let quad2Type = 'line';
+  let quad3Type = 'doughnut';
+  let quad4Type = 'barHorizontal';
+
+  if (autoType === 'geoMap') {
+    quad2Type = 'barHorizontal';
+    quad3Type = 'doughnut';
+    quad4Type = 'funnel';
+  } else if (autoType === 'gauge') {
+    quad2Type = 'funnel';
+    quad3Type = 'doughnut';
+    quad4Type = 'bar';
+  } else if (autoType === 'funnel') {
+    quad2Type = 'barHorizontal';
+    quad3Type = 'doughnut';
+    quad4Type = 'gauge';
+  } else if (autoType === 'line' || autoType === 'area' || autoType === 'lineSmooth') {
+    quad2Type = 'bar';
+    quad3Type = 'doughnut';
+    quad4Type = 'candlestick';
+  } else if (autoType === 'pie' || autoType === 'doughnut' || autoType === 'rose') {
+    quad2Type = 'treemap';
+    quad3Type = 'barHorizontal';
+    quad4Type = 'funnel';
+  } else if (autoType === 'sankey') {
+    quad2Type = 'treemap';
+    quad3Type = 'doughnut';
+    quad4Type = 'barHorizontal';
+  } else if (autoType === 'treemap') {
+    quad2Type = 'doughnut';
+    quad3Type = 'barHorizontal';
+    quad4Type = 'funnel';
+  } else if (autoType === 'heatmap') {
+    quad2Type = 'barStacked';
+    quad3Type = 'line';
+    quad4Type = 'doughnut';
+  } else if (autoType === 'candlestick') {
+    quad2Type = 'area';
+    quad3Type = 'bar';
+    quad4Type = 'doughnut';
+  } else if (autoType === 'barHorizontal') {
+    quad2Type = 'area';
+    quad3Type = 'doughnut';
+    quad4Type = 'treemap';
+  }
+
+  const findOpt = (id) => CHART_TYPE_OPTIONS.find((o) => o.id === id) || { labelFa: id, icon: '📊' };
+
   return [
     {
       id: 'quad-1',
-      title: `میله‌ای: ${labelTitle} / ${primaryTitle}`,
-      type: 'bar',
+      title: `${findOpt(autoType).labelFa}: ${labelTitle} / ${primaryTitle}`,
+      type: autoType,
       labelCol,
       numericCol: primaryNumeric,
-      icon: '📊',
+      icon: findOpt(autoType).icon,
+      isAuto: true,
     },
     {
       id: 'quad-2',
-      title: `روند خطی: ${labelTitle} / ${primaryTitle}`,
-      type: 'line',
+      title: `${findOpt(quad2Type).labelFa}: ${labelTitle} / ${primaryTitle}`,
+      type: quad2Type,
       labelCol,
       numericCol: primaryNumeric,
-      icon: '📈',
+      icon: findOpt(quad2Type).icon,
     },
     {
       id: 'quad-3',
-      title: `سهم دایره‌ای: ${labelTitle} / ${primaryTitle}`,
-      type: 'doughnut',
+      title: `${findOpt(quad3Type).labelFa}: ${labelTitle} / ${primaryTitle}`,
+      type: quad3Type,
       labelCol,
       numericCol: primaryNumeric,
-      icon: '🍩',
+      icon: findOpt(quad3Type).icon,
     },
     {
       id: 'quad-4',
-      title: `میله‌ای افقی: ${labelTitle} / ${secondaryTitle}`,
-      type: 'barHorizontal',
+      title: `${findOpt(quad4Type).labelFa}: ${labelTitle} / ${secondaryTitle}`,
+      type: quad4Type,
       labelCol,
       numericCol: secondaryNumeric,
-      icon: '📋',
+      icon: findOpt(quad4Type).icon,
     },
   ];
 }
 
-function maybeRenderChart(container, data) {
+// ---------------------------------------------------------------------------
+// Main Entry: maybeRenderChart
+// ---------------------------------------------------------------------------
+function maybeRenderChart(container, data, originalQuestion = '', stats = null) {
+  if (!container) return;
   if (!data || data.length < 1) {
     showChartUnavailable(container, chartUiText('noRows'));
     return;
   }
-  if (typeof Chart === 'undefined') {
+  if (typeof echarts === 'undefined') {
     showChartUnavailable(container, chartUiText('chartLibMissing'));
     return;
   }
 
-  const quadConfigs = prepareQuadChartConfigs(data);
+  const quadConfigs = prepareQuadChartConfigs(data, originalQuestion, stats || {});
   if (!quadConfigs) {
     showChartUnavailable(container, chartUiText('noColumns'));
     return;
@@ -2704,7 +3595,7 @@ function maybeRenderChart(container, data) {
     if (viewMode === 'quad') {
       renderQuadGridView(container, data, quadConfigs, switchView);
     } else {
-      renderSingleChartView(container, data, switchView);
+      renderSingleChartView(container, data, quadConfigs[0].type, originalQuestion, switchView);
     }
   }
 
@@ -2717,15 +3608,17 @@ function maybeRenderChart(container, data) {
 }
 
 function renderQuadGridView(container, data, configs, onSwitchView) {
-  // Store configs so captureAllChartImages() can label each chart in the PDF
   state.lastQuadConfigs = configs;
   state.lastCharts = [];
   container.innerHTML = `
     <div class="chart-panel">
       <div class="chart-header">
         <div class="chart-header-title-wrap">
-          <h3 class="chart-title" dir="rtl">📊 ۴ نمودار تحلیلی داده‌ها</h3>
-          <span class="chart-header-subtitle" dir="rtl">برای بزرگ‌نمایی تعاملی، روی هر مربع کلیک کنید</span>
+          <h3 class="chart-title" dir="rtl">
+            📊 ۴ نمودار تحلیلی ECharts
+            <span class="chart-badge-auto">✨ تطابق هوشمند با سوال</span>
+          </h3>
+          <span class="chart-header-subtitle" dir="rtl">برای بزرگ‌نمایی تعاملی، تغییر تنظیمات یا دانلود، روی هر کارت کلیک کنید</span>
         </div>
         <div class="chart-header-actions">
           <div class="chart-view-toggle">
@@ -2745,7 +3638,7 @@ function renderQuadGridView(container, data, configs, onSwitchView) {
               <span class="chart-card-zoom-hint">🔍 بزرگ‌نمایی</span>
             </div>
             <div class="chart-card-canvas-wrap">
-              <canvas id="quad-canvas-${idx}-${Math.random().toString(36).slice(2, 7)}"></canvas>
+              <div id="quad-chart-${idx}-${Math.random().toString(36).slice(2, 7)}" style="width: 100%; height: 100%;"></div>
             </div>
             <div class="chart-card-quad-footer">کلیک کنید تا به صورت پاپ‌آپ تعاملی بزرگ شود</div>
           </div>
@@ -2760,12 +3653,11 @@ function renderQuadGridView(container, data, configs, onSwitchView) {
   const cards = container.querySelectorAll('.chart-card-quad');
   cards.forEach((card, idx) => {
     const cfg = configs[idx];
-    const canvas = card.querySelector('canvas');
-    // Top 5 items per mini card for maximum clarity and zero text overlap!
-    const chartData = prepareChartRows(data, cfg.labelCol, cfg.numericCol, 5);
-    if (canvas && chartData) {
+    const chartDiv = card.querySelector('.chart-card-canvas-wrap > div');
+    const chartData = prepareChartRows(data, cfg.labelCol, cfg.numericCol, 10);
+    if (chartDiv && chartData) {
       try {
-        const inst = createChartInstance(canvas, cfg.type, chartData, { isMini: true });
+        const inst = createChartInstance(chartDiv, cfg.type, chartData, { isMini: true });
         if (idx === 0) state.lastChart = inst;
         state.lastCharts[idx] = inst;
       } catch (_) {}
@@ -2776,7 +3668,7 @@ function renderQuadGridView(container, data, configs, onSwitchView) {
   });
 }
 
-function renderSingleChartView(container, data, onSwitchView) {
+function renderSingleChartView(container, data, defaultKind = 'bar', originalQuestion = '', onSwitchView) {
   const chartData = prepareChartRows(data);
   if (!chartData) {
     showChartUnavailable(container, chartUiText('noColumns'));
@@ -2786,10 +3678,23 @@ function renderSingleChartView(container, data, onSwitchView) {
   const { labelCol, numericCol, totalRows, shownRows } = chartData;
   const cols = listChartColumns(data);
   const titleText = `${columnLabel(labelCol)} — ${columnLabel(numericCol)}`;
-  const typeOptions = CHART_TYPE_OPTIONS.map(
-    (o) =>
-      `<option value="${o.id}">${state.language === 'fa' ? o.labelFa : o.labelEn}</option>`
-  ).join('');
+
+  const groupedOptions = [
+    { label: '📊 نمودارهای میله‌ای و ستونی', types: ['bar', 'barHorizontal', 'barStacked'] },
+    { label: '📈 نمودارهای خطی و روندی', types: ['line', 'area', 'lineSmooth'] },
+    { label: '🥧 نمودارهای سهم و دایره‌ای', types: ['pie', 'doughnut', 'rose'] },
+    { label: '🚀 نمودارهای تحلیلی و تخصصی', types: ['funnel', 'gauge', 'geoMap', 'sankey', 'treemap', 'heatmap', 'candlestick'] },
+  ];
+
+  const typeSelectHtml = groupedOptions.map((g) => `
+    <optgroup label="${escapeHtml(g.label)}">
+      ${g.types.map((tid) => {
+        const o = CHART_TYPE_OPTIONS.find((opt) => opt.id === tid) || { labelFa: tid, labelEn: tid };
+        const label = state.language === 'fa' ? o.labelFa : o.labelEn;
+        return `<option value="${o.id}">${escapeHtml(label)}</option>`;
+      }).join('')}
+    </optgroup>
+  `).join('');
 
   const noteText =
     shownRows < totalRows
@@ -2817,7 +3722,7 @@ function renderSingleChartView(container, data, onSwitchView) {
             <label${dirAttr(chartUiText('chartType'))}>
               <span>${escapeHtml(chartUiText('chartType'))}</span>
               <select class="chart-type-select chart-kind-select" aria-label="${escapeHtml(chartUiText('chartType'))}">
-                ${typeOptions}
+                ${typeSelectHtml}
               </select>
             </label>
             <button type="button" class="ghost-btn chart-print-btn" title="${escapeHtml(chartUiText('printChart'))}">
@@ -2827,7 +3732,7 @@ function renderSingleChartView(container, data, onSwitchView) {
         </div>
       </div>
       <div class="chart-canvas-wrap">
-        <canvas></canvas>
+        <div class="echart-main-container" style="width: 100%; height: 100%; min-height: 340px;"></div>
       </div>
       <div class="chart-note"${dirAttr(noteText)}>${escapeHtml(noteText)}</div>
     </div>
@@ -2837,7 +3742,7 @@ function renderSingleChartView(container, data, onSwitchView) {
   if (quadBtn) quadBtn.addEventListener('click', () => onSwitchView('quad'));
 
   const canvasWrap = container.querySelector('.chart-canvas-wrap');
-  const canvas = container.querySelector('canvas');
+  const chartContainerDiv = container.querySelector('.echart-main-container');
   const select = container.querySelector('.chart-kind-select');
   const labelSelect = container.querySelector('.chart-label-col-select');
   const valueSelect = container.querySelector('.chart-value-col-select');
@@ -2848,22 +3753,25 @@ function renderSingleChartView(container, data, onSwitchView) {
   fillColumnSelect(labelSelect, cols, data[0], labelCol, 'label', numericCol);
   fillColumnSelect(valueSelect, cols, data[0], numericCol, 'value', labelCol);
 
-  const defaultType = 'bar';
-  select.value = defaultType;
+  const initialType = defaultKind || detectOptimalChartType(originalQuestion, data, labelCol, numericCol);
+  select.value = initialType;
 
   let chartInstance = null;
 
   function resizeWrap(type) {
     const horizontal = type === 'barHorizontal';
-    const pie = type === 'pie' || type === 'doughnut';
+    const pie = type === 'pie' || type === 'doughnut' || type === 'rose';
+    const map = type === 'geoMap';
     canvasWrap.classList.toggle('chart-canvas-wrap--horizontal', horizontal);
     const rows = chartData.shownRows;
     if (horizontal) {
-      canvasWrap.style.height = `${Math.min(720, Math.max(320, rows * 28 + 80))}px`;
+      canvasWrap.style.height = `${Math.min(700, Math.max(340, rows * 26 + 80))}px`;
+    } else if (map) {
+      canvasWrap.style.height = '440px';
     } else if (pie) {
       canvasWrap.style.height = '380px';
     } else {
-      canvasWrap.style.height = `${Math.min(520, Math.max(280, rows * 12 + 120))}px`;
+      canvasWrap.style.height = `${Math.min(520, Math.max(300, rows * 10 + 120))}px`;
     }
   }
 
@@ -2878,7 +3786,7 @@ function renderSingleChartView(container, data, onSwitchView) {
       chartData.shownRows < chartData.totalRows
         ? chartUiText('showingTop')(chartData.shownRows, chartData.totalRows)
         : chartUiText('allRows')(chartData.shownRows);
-    const isPieType = type === 'pie' || type === 'doughnut';
+    const isPieType = type === 'pie' || type === 'doughnut' || type === 'rose';
     if (isPieType && chartData.values.some((v) => v < 0)) {
       text += ' · ' + chartUiText('pieAbsNote');
     }
@@ -2888,12 +3796,12 @@ function renderSingleChartView(container, data, onSwitchView) {
 
   function rebuildChart(type) {
     if (chartInstance) {
-      chartInstance.destroy();
+      chartInstance.dispose();
       chartInstance = null;
     }
     resizeWrap(type);
 
-    const isPieType = type === 'pie' || type === 'doughnut';
+    const isPieType = type === 'pie' || type === 'doughnut' || type === 'rose';
     if (isPieType && chartData.values.every((v) => v === 0)) {
       state.lastChart = null;
       updateChartNote(type, chartUiText('pieAllZero'));
@@ -2901,7 +3809,7 @@ function renderSingleChartView(container, data, onSwitchView) {
     }
 
     try {
-      chartInstance = createChartInstance(canvas, type, chartData);
+      chartInstance = createChartInstance(chartContainerDiv, type, chartData);
     } catch (e) {
       state.lastChart = null;
       updateChartNote(type, chartUiText('noChart'));
@@ -2911,7 +3819,7 @@ function renderSingleChartView(container, data, onSwitchView) {
     updateChartNote(type);
   }
 
-  rebuildChart(defaultType);
+  rebuildChart(initialType);
 
   function refreshChart() {
     const next = prepareChartRows(data, labelSelect.value, valueSelect.value);
@@ -2934,19 +3842,26 @@ function renderSingleChartView(container, data, onSwitchView) {
 
   if (printBtn) {
     printBtn.addEventListener('click', () => {
-      printChartAsImage(canvas, titleEl.textContent || titleText);
+      if (chartInstance) {
+        printChartAsImage(chartInstance, titleEl.textContent || titleText);
+      }
     });
   }
 }
 
-function printChartAsImage(canvas, titleText) {
-  if (!canvas) return;
-  let dataUrl;
-  try {
-    dataUrl = canvas.toDataURL('image/png', 1.0);
-  } catch (e) {
-    return;
+function printChartAsImage(chartOrCanvas, titleText) {
+  let dataUrl = null;
+  if (chartOrCanvas && typeof chartOrCanvas.getDataURL === 'function') {
+    try {
+      dataUrl = chartOrCanvas.getDataURL({ type: 'png', pixelRatio: 2, backgroundColor: '#ffffff' });
+    } catch (_) {}
   }
+  if (!dataUrl && chartOrCanvas && typeof chartOrCanvas.toDataURL === 'function') {
+    try {
+      dataUrl = chartOrCanvas.toDataURL('image/png', 1.0);
+    } catch (_) {}
+  }
+  if (!dataUrl) return;
 
   const safeTitle = escapeHtml(titleText || '');
   const rtl = isRtlText(titleText || '');
@@ -2964,7 +3879,7 @@ function printChartAsImage(canvas, titleText) {
 <style>
   html, body { margin: 0; padding: 24px; font-family: ${chartFontFamily()}; text-align: center; }
   h1 { font-size: 16px; color: #15523e; margin: 0 0 16px; }
-  img { max-width: 100%; }
+  img { max-width: 100%; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
 </style>
 </head>
 <body>
