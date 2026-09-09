@@ -23,9 +23,14 @@ from modules.identity.router import router as identity_router
 from modules.identity.session import SESSION_SECRET, is_authenticated
 from modules.polls.router import router as polls_router
 from modules.reporting.router import router as reporting_router
-from shared.paths import STATIC_DIR
+from shared.paths import BASE_DIR, STATIC_DIR
 
-PUBLIC_PATHS = frozenset({"/", "/login", "/help", "/api/login", "/favicon.ico"})
+DOCS_DIR = os.path.join(BASE_DIR, "docs")
+PUBLIC_PATHS = frozenset({
+    "/", "/login", "/help", "/manual", "/manual/pdf",
+    "/pitch", "/pitch/pdf", "/pitch/pptx",
+    "/api/login", "/favicon.ico"
+})
 PUBLIC_PREFIXES = ("/static/",)
 
 app = FastAPI(title="PSP BI Conversational Report Builder")
@@ -74,6 +79,51 @@ def landing():
 def help_page():
     """Bilingual system help & documentation page."""
     return FileResponse(os.path.join(STATIC_DIR, "help.html"))
+
+
+@app.get("/manual")
+def manual_html():
+    """Comprehensive Persian Capabilities Guide & Manual (HTML view)."""
+    return FileResponse(os.path.join(DOCS_DIR, "bichart_user_guide_capabilities_fa.html"))
+
+
+@app.get("/manual/pdf")
+def manual_pdf():
+    """Downloadable Comprehensive Persian Capabilities Guide & Manual (PDF file)."""
+    pdf_path = os.path.join(DOCS_DIR, "bichart_user_guide_capabilities_fa.pdf")
+    return FileResponse(
+        pdf_path,
+        media_type="application/pdf",
+        filename="bichart_user_guide_capabilities_fa.pdf"
+    )
+
+
+@app.get("/pitch")
+def pitch_deck_view():
+    """Interactive HTML Pitch Deck Presentation."""
+    return FileResponse(os.path.join(DOCS_DIR, "presentations", "pitch_deck_presentation.html"))
+
+
+@app.get("/pitch/pdf")
+def pitch_deck_pdf():
+    """Downloadable Executive PDF Pitch Deck."""
+    pdf_path = os.path.join(DOCS_DIR, "presentations", "BiChart_Rayamate_Pitch_Deck.pdf")
+    return FileResponse(
+        pdf_path,
+        media_type="application/pdf",
+        filename="BiChart_Rayamate_Pitch_Deck.pdf"
+    )
+
+
+@app.get("/pitch/pptx")
+def pitch_deck_pptx():
+    """Downloadable PowerPoint Pitch Deck."""
+    pptx_path = os.path.join(DOCS_DIR, "presentations", "BiChart_Rayamate_Pitch_Deck.pptx")
+    return FileResponse(
+        pptx_path,
+        media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        filename="BiChart_Rayamate_Pitch_Deck.pptx"
+    )
 
 
 @app.get("/app")

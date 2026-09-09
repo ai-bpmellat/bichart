@@ -247,8 +247,8 @@ def months_ago(d: datetime.date, months: int) -> datetime.date:
     return datetime.date(year, month, day)
 
 
-# Rolling window: last 6 months through today (dim_date, transactions, terminal installs)
-MOCK_DATE_END = datetime.date.today()
+# Rolling window: last 6 months through yesterday (dim_date, transactions, terminal installs)
+MOCK_DATE_END = datetime.date.today() - datetime.timedelta(days=1)
 MOCK_DATE_START = months_ago(MOCK_DATE_END, 6)
 
 
@@ -277,7 +277,7 @@ def build_database(n_transactions: int = 1000):
     db = SessionLocal()
 
     try:
-        # --- dim_date: rolling last 6 months through today ---
+        # --- dim_date: rolling last 6 months through yesterday ---
         start = MOCK_DATE_START
         end = MOCK_DATE_END
         print(f"date window: {start.isoformat()} -> {end.isoformat()}")
@@ -402,7 +402,11 @@ def build_database(n_transactions: int = 1000):
         print("\nMock database built successfully at:", SQLITE_PATH)
         print("\nDemo customer access keys (use as X-Access-Key header / login):")
         for c in customers:
-            print(f"  - {c.customer_name}: {c.access_key}  (role={c.role})")
+            try:
+                print(f"  - {c.customer_name}: {c.access_key}  (role={c.role})")
+            except UnicodeEncodeError:
+                safe_name = c.customer_name.encode("ascii", errors="backslashreplace").decode("ascii")
+                print(f"  - {safe_name}: {c.access_key}  (role={c.role})")
 
     finally:
         db.close()

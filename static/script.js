@@ -401,7 +401,7 @@ async function savePreferences() {
 }
 
 function providerLabel() {
-  return state.provider === 'avalai' ? 'AvalAI' : 'Ollama';
+  return state.provider === 'avalai' ? 'API' : 'Ollama';
 }
 
 function formatHistoryTime(iso) {
@@ -4396,7 +4396,7 @@ const HELP_FEATURES = {
         icon: '🤖',
         title: '۱. پرسش و پاسخ هوشمند و SQL خودکار',
         badge: 'هوش مصنوعی تعاملی',
-        desc: 'پرسش درباره داده‌ها به زبان فارسی یا انگلیسی. تولید خودکار و هوشمند queries SQL توسط مدل‌های هوش مصنوعی (AvalAI / Ollama) با قابلیت اصلاح خودکار خطاها (Auto-Fix) و ویرایش دستی کد.',
+        desc: 'پرسش درباره داده‌ها به زبان فارسی یا انگلیسی. تولید خودکار و هوشمند queries SQL توسط مدل‌های هوش مصنوعی (API / Ollama) با قابلیت اصلاح خودکار خطاها (Auto-Fix) و ویرایش دستی کد.',
         prompt: '۱۰ فروشنده برتر از نظر حجم تراکنش را نشان بده',
       },
       {
@@ -4457,7 +4457,7 @@ const HELP_FEATURES = {
         icon: '🤖',
         title: '1. Conversational AI & Automatic SQL',
         badge: 'Interactive AI Query',
-        desc: 'Ask transaction questions in natural Persian or English. AI automatically constructs SQL queries using AvalAI/Ollama with manual editing and automatic error self-healing (Auto-Fix).',
+        desc: 'Ask transaction questions in natural Persian or English. AI automatically constructs SQL queries using API/Ollama with manual editing and automatic error self-healing (Auto-Fix).',
         prompt: 'Show top 10 merchants by volume',
       },
       {

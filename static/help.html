@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="پلتفرم دستیار هوشمند هوش تجاری و تحلیل داده. ساخت داشبوردهای پویا، تجسم داده و گزارش‌ساز هوشمند. Business Intelligence Dashboard and Data Analysis Platform.">
-<meta name="keywords" content="هوش تجاری, داشبورد هوش تجاری, تحلیل داده, تجسم داده, گزارش ساز, تحلیل کسب و کار, Business Intelligence, BI Dashboard, Data Analysis, Data Visualization, Data Analytics">
+<meta name="description" content="راهنمای جامع سیستم رایامیت | از داده تا تصمیم هوشمند — دستیار هوش تجاری مکالمه‌محور و تحلیل داده‌های تراکنش.">
+<meta name="keywords" content="رایامیت, از داده تا تصمیم هوشمند, راهنمای هوش تجاری, Rayamate">
 <meta name="robots" content="index, follow">
-<title>راهنمای جامع سیستم — دستیار هوش تجاری</title>
+<title>رایامیت | از داده تا تصمیم هوشمند — راهنمای جامع</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png" />
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/style.css" />
@@ -122,6 +122,28 @@
   .back-to-app-btn:hover {
     background: #047857;
     transform: translateY(-1px);
+  }
+
+  .download-manual-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    color: #047857;
+    border: 1.5px solid #059669;
+    text-decoration: none;
+    padding: 8px 18px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.1);
+  }
+
+  .download-manual-btn:hover {
+    background: #ecfdf5;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
   }
 
   .help-hero {
@@ -359,6 +381,14 @@
       <button type="button" class="help-page-lang-btn is-active" id="btn-lang-fa">🇮🇷 فارسی</button>
       <button type="button" class="help-page-lang-btn" id="btn-lang-en">🇬🇧 English</button>
     </div>
+    <a href="/static/bichart_user_guide_capabilities_fa.pdf" target="_blank" class="download-manual-btn" id="download-manual-btn">
+      <span>📥</span>
+      <span id="download-manual-text">کتابچه راهنمای PDF</span>
+    </a>
+    <a href="/static/bichart_user_guide_capabilities_fa.docx" download class="download-manual-btn" id="download-docx-btn" style="border-color: #0284c7; color: #0369a1;">
+      <span>📝</span>
+      <span id="download-docx-text">دانلود فایل ورد (Word)</span>
+    </a>
     <a href="/app" class="back-to-app-btn" id="back-app-btn">
       <span>🚀</span>
       <span id="back-app-text">ورود به برنامه</span>
@@ -396,6 +426,8 @@ const HELP_PAGE_DATA = {
     headerTitle: 'دستیار هوشمند هوش تجاری',
     headerSub: 'راهنمای کامل سیستم و آموزش قابلیت‌ها',
     backBtnText: 'ورود به برنامه',
+    downloadManualText: 'کتابچه راهنمای PDF',
+    downloadDocxText: 'دانلود فایل ورد (Word)',
     heroBadge: '✨ راهنمای جامع و هوشمند',
     heroTitle: 'آموزش کامل تمامی قابلیت‌ها و امکانات سیستم',
     heroDesc: 'پلتفرم دستیار هوشمند هوش تجاری به شما امکان می‌دهد داده‌های تراکنشی را با سؤالات ساده فارسی یا انگلیسی تحلیل کنید، ۴ نمودار هم‌زمان تحلیلی ببینید، پوستر اینفوگرافیک تولید کرده و خروجی رسمی PDF/Excel دریافت نمایید.',
@@ -516,6 +548,8 @@ const HELP_PAGE_DATA = {
     headerTitle: 'BI Assistant Platform',
     headerSub: 'Complete System Guide & Feature Manual',
     backBtnText: 'Back to App',
+    downloadManualText: 'Full PDF Manual',
+    downloadDocxText: 'Download Word (.docx)',
     heroBadge: '✨ Complete Platform Manual',
     heroTitle: 'Comprehensive Feature Overview & Tutorial',
     heroDesc: 'The Conversational BI Assistant enables you to analyze transaction data via simple Persian or English questions, view 4 clean analytical charts simultaneously, generate visual posters, and download standard PDF/Excel reports.',
@@ -645,6 +679,8 @@ function renderHelpPage(lang) {
   document.getElementById('page-title-header').textContent = data.headerTitle;
   document.getElementById('page-sub-header').textContent = data.headerSub;
   document.getElementById('back-app-text').textContent = data.backBtnText;
+  document.getElementById('download-manual-text').textContent = data.downloadManualText;
+  document.getElementById('download-docx-text').textContent = data.downloadDocxText;
   document.getElementById('hero-badge').textContent = data.heroBadge;
   document.getElementById('hero-title').textContent = data.heroTitle;
   document.getElementById('hero-desc').textContent = data.heroDesc;

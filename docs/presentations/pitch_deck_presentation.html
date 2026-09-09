@@ -1,0 +1,1141 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>رایامیت | از داده تا تصمیم هوشمند — ارائه Pitch Deck</title>
+  <meta name="description" content="رایامیت | از داده تا تصمیم هوشمند — ارائه پیچ‌دک معرفی سامانه هوش تجاری مکالمه‌محور صنعت پرداخت.">
+  <meta name="keywords" content="رایامیت, از داده تا تصمیم هوشمند, پیچ دک, هوش تجاری, Rayamate Pitch Deck">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #059669;
+      --primary-dark: #047857;
+      --primary-deep: #064e3b;
+      --primary-soft: #ecfdf5;
+      --primary-border: #a7f3d0;
+      --accent-amber: #d97706;
+      --accent-amber-soft: #fef3c7;
+      --bg-dark: #061711;
+      --bg-card-dark: #0d271e;
+      --bg-card-darker: #081d16;
+      --text-dark: #0f2a1f;
+      --text-muted: #64748b;
+      --text-light: #f8fafc;
+      --slate-50: #f8fafc;
+      --slate-100: #f1f5f9;
+      --slate-200: #e2e8f0;
+      --slate-700: #334155;
+      --slate-800: #1e293b;
+      --slide-width: 1200px;
+      --slide-height: 675px; /* 16:9 */
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+      --shadow-glow: 0 0 40px rgba(5, 150, 105, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Vazirmatn', Tahoma, -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #0b1512;
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    /* Deck Container */
+    .deck-viewport {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 20px;
+    }
+
+    .slide-wrapper {
+      width: min(var(--slide-width), 95vw);
+      height: min(var(--slide-height), calc(95vw * 9 / 16));
+      max-height: 88vh;
+      aspect-ratio: 16 / 9;
+      background: #ffffff;
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      transition: all 0.35s ease;
+    }
+
+    /* Individual Slides */
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      opacity: 0;
+      transform: scale(0.985);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      overflow: hidden;
+    }
+
+    .slide.active {
+      display: flex;
+      opacity: 1;
+      transform: scale(1);
+      z-index: 2;
+    }
+
+    /* Slide Header */
+    .slide-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      padding: 16px 36px;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .slide-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #34d399, transparent);
+    }
+
+    .slide-kicker {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--primary-border);
+      text-transform: uppercase;
+    }
+
+    .slide-title {
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.3;
+      color: #ffffff;
+    }
+
+    /* Slide Body */
+    .slide-body {
+      flex: 1;
+      padding: 24px 36px 16px;
+      background: var(--slate-50);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Slide Footer */
+    .slide-footer {
+      padding: 10px 36px;
+      background: #ffffff;
+      border-top: 1px solid var(--slate-200);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: var(--primary-dark);
+    }
+
+    /* Dark Slide Styling (Cover / Closing) */
+    .slide-dark {
+      background: radial-gradient(circle at 80% 20%, #113829 0%, #061711 70%);
+      color: var(--text-light);
+    }
+
+    .slide-dark .slide-footer {
+      background: transparent;
+      border-top-color: rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+    }
+
+    .slide-dark .footer-brand {
+      color: var(--primary-border);
+    }
+
+    /* Card Grids */
+    .grid-2x2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      flex: 1;
+    }
+
+    .grid-3-col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      flex: 1;
+    }
+
+    .grid-4-col {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      flex: 1;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      border: 1px solid var(--slate-200);
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: var(--primary-border);
+      transform: translateY(-2px);
+    }
+
+    .card-dark {
+      background: rgba(19, 45, 35, 0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(52, 211, 153, 0.2);
+      color: var(--text-light);
+    }
+
+    .card-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .badge-amber {
+      background: var(--accent-amber-soft);
+      color: var(--accent-amber);
+      border: 1px solid #fde68a;
+    }
+
+    .badge-emerald {
+      background: var(--primary-soft);
+      color: var(--primary-dark);
+      border: 1px solid var(--primary-border);
+    }
+
+    .badge-dark {
+      background: rgba(255, 255, 255, 0.1);
+      color: #34d399;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    .card-dark .card-title {
+      color: #ffffff;
+    }
+
+    .card-body {
+      font-size: 13px;
+      line-height: 1.65;
+      color: var(--slate-700);
+    }
+
+    .card-dark .card-body {
+      color: #cbd5e1;
+    }
+
+    /* Highlight List Rows */
+    .row-item {
+      background: #ffffff;
+      border: 1px solid var(--primary-border);
+      border-right: 5px solid var(--primary);
+      border-radius: var(--radius-md);
+      padding: 14px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .row-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--primary-dark);
+    }
+
+    .row-desc {
+      font-size: 13px;
+      color: var(--slate-700);
+      line-height: 1.6;
+    }
+
+    /* KPI metric box */
+    .kpi-box {
+      background: #ffffff;
+      border: 1px solid var(--slate-200);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 6px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .kpi-box.emerald {
+      background: var(--primary-soft);
+      border-color: var(--primary-border);
+    }
+
+    .kpi-number {
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--primary-dark);
+      letter-spacing: -0.02em;
+    }
+
+    .kpi-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Cover Styling */
+    .cover-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 40px;
+      gap: 18px;
+      position: relative;
+      z-index: 3;
+    }
+
+    .cover-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 18px;
+      border-radius: 999px;
+      background: rgba(5, 150, 105, 0.2);
+      border: 1px solid rgba(52, 211, 153, 0.4);
+      color: #6ee7b7;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .cover-title {
+      font-size: 52px;
+      font-weight: 900;
+      color: #ffffff;
+      line-height: 1.15;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .cover-title span {
+      color: #34d399;
+    }
+
+    .cover-sub {
+      font-size: 21px;
+      font-weight: 600;
+      color: #e2e8f0;
+      max-width: 820px;
+      line-height: 1.5;
+    }
+
+    .cover-desc {
+      font-size: 15px;
+      color: #94a3b8;
+      max-width: 720px;
+    }
+
+    .cover-pills {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .pill {
+      padding: 8px 18px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #e2e8f0;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* Deck Controls */
+    .deck-controls {
+      position: absolute;
+      bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      z-index: 10;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      padding: 8px 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .btn-ctrl {
+      background: transparent;
+      border: none;
+      color: #ffffff;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.2s ease, transform 0.1s ease;
+    }
+
+    .btn-ctrl:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: scale(1.08);
+    }
+
+    .btn-ctrl:active {
+      transform: scale(0.95);
+    }
+
+    .slide-counter {
+      color: #e2e8f0;
+      font-size: 13px;
+      font-weight: 600;
+      min-width: 70px;
+      text-align: center;
+    }
+
+    .progress-bar-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      z-index: 20;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981, #34d399);
+      width: 8.33%;
+      transition: width 0.3s ease;
+    }
+
+    /* Keyboard hint */
+    .keyboard-hint {
+      position: absolute;
+      top: 24px;
+      right: 28px;
+      color: #64748b;
+      font-size: 12px;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Print styles for PDF export */
+    @media print {
+      body {
+        background: #ffffff;
+      }
+      .deck-controls, .keyboard-hint, .progress-bar-container {
+        display: none !important;
+      }
+      .deck-viewport {
+        padding: 0;
+        width: 100%;
+        height: auto;
+      }
+      .slide-wrapper {
+        width: 100%;
+        height: 100vh;
+        max-height: none;
+        box-shadow: none;
+        border-radius: 0;
+      }
+      .slide {
+        display: flex !important;
+        opacity: 1 !important;
+        transform: none !important;
+        position: relative !important;
+        page-break-after: always;
+        height: 100vh;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="progress-bar-container">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <div class="keyboard-hint">
+    کلیدهای ➔ / ⬅ یا Space جهت ورق زدن • F برای تمام‌صفحه
+  </div>
+
+  <div class="deck-viewport">
+    <div class="slide-wrapper" id="slideWrapper">
+
+      <!-- ================= SLIDE 1: COVER ================= -->
+      <div class="slide slide-dark active" data-slide="1">
+        <div class="cover-content">
+          <div class="cover-badge">
+            <span>●</span>
+            PITCH DECK & EXECUTIVE BRIEF
+          </div>
+          <h1 class="cover-title">
+            BiChart <span>/ رایامیت</span>
+          </h1>
+          <p class="cover-sub">
+            نسل نوین هوش تجاری مکالمه‌محور برای صنعت پرداخت الکترونیک و بانکی
+          </p>
+          <p class="cover-desc">
+            تبدیل پرسش‌های فارسی مدیران به گزارش‌های تحلیلی، نمودارهای آنی و بینش‌های استراتژیک در چند ثانیه
+          </p>
+          <div class="cover-pills">
+            <div class="pill">🔒 معماری امن On-Premise</div>
+            <div class="pill">⚡ پاسخ‌دهی زیر ۲ ثانیه</div>
+            <div class="pill">🧠 بدون خروج ۱ بایت داده بانکی</div>
+            <div class="pill">📊 خروجی آنی اکسل و PDF</div>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="footer-brand">
+            بهپرداخت ملت • زیست‌بوم نوآوری و هوش مصنوعی
+          </div>
+          <div>ارائه به مدیران ارشد و سرمایه‌گذاران | اسلاید ۱ از ۱۲</div>
+        </div>
+      </div>
+
+      <!-- ================= SLIDE 2: THE PROBLEM ================= -->
+      <div class="slide" data-slide="2">
+        <div class="slide-header">
+          <span class="slide-kicker">THE PROBLEM | چالش‌های بنیادی بازار</span>
+          <h2 class="slide-title">چرا ابزارهای متداول BI در صنعت پرداخت پاسخگوی نیاز امروز نیستند؟</h2>
+        </div>
+        <div class="slide-body">
+          <div class="grid-2x2">
+            <div class="card">
+              <div class="card-header-row">
+                <span class="card-title">۱. صف‌های طولانی درخواست گزارش</span>
+                <span class="badge badge-amber">تاخیر ۳ تا ۷ روزه</span>
+              </div>
+              <p class="card-body">
+                مدیران ارشد و بازاریابی برای هر گزارش مقایسه‌ای یا تصمیم فوری، وابسته به کارشناسان دیتابیس و BI هستند. تا زمان آماده‌سازی گزارش، فرصت‌های تجاری و مداخله در بازار از دست می‌رود.
+              </p>
+            </div>
+
+            <div class="card">
+              <div class="card-header-row">
+                <span class="card-title">۲. پیچیدگی ابزارهای سنتی (PowerBI / Tableau)</span>
+                <span class="badge badge-amber">افت ۴۰٪ نرخ پذیرش</span>
+              </div>
+              <p class="card-body">
+                این ابزارها برای مدیران غیرفنی طراحی نشده‌اند؛ ساخت کوئری‌های پیچیده DAX/SQL هزینه‌بر است و هیچ‌کدام توانایی فهم زبان طبیعی فارسی یا ادبیات اختصاصی شبکه شاپرک را ندارند.
+              </p>
+            </div>
+
+            <div class="card">
+              <div class="card-header-row">
+                <span class="card-title">۳. خط قرمز امنیت داده‌های مالی</span>
+                <span class="badge badge-amber">عدم انطباق با شاپرک</span>
+              </div>
+              <p class="card-body">
+                استفاده از سرویس‌های عمومی هوش مصنوعی (مانند ChatGPT) به دلیل ارسال داده‌های مالی به سرورهای خارجی، نقض آشکار مقررات بانک مرکزی و پدافند سایبری بوده و ریسک امنیتی بالایی دارد.
+              </p>
+            </div>
+
+            <div class="card">
+              <div class="card-header-row">
+                <span class="card-title">۴. فقدان تحلیل روایی و توصیه‌ای</span>
+                <span class="badge badge-amber">اعداد خام بدون بینش</span>
+              </div>
+              <p class="card-body">
+                داشبوردهای متداول تنها ارقام را به شکل جدول و گراف ارائه می‌دهند و چرایی افت تراکنش‌ها، کشف رفتار غیرعادی پذیرندگان یا پیش‌بینی دوره‌های بعدی را توضیح نمی‌دهند.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="footer-brand">BiChart / Rayamate</div>
+          <div>اسلاید ۲ از ۱۲</div>
+        </div>
+      </div>
+
+      <!-- ================= SLIDE 3: THE SOLUTION ================= -->
+      <div class="slide" data-slide="3">
+        <div class="slide-header">
+          <span class="slide-kicker">THE SOLUTION | ارزش پیشنهادی منحصر‌به‌فرد</span>
+          <h2 class="slide-title">رایامیت: ترکیب گفتگوی شهودی، امنیت بانکی و تحلیل هوشمند داده‌ها</h2>
+        </div>
+        <div class="slide-body">
+          <div class="row-item">
+            <span class="row-title">۱. مکالمه کاملاً روان به زبان فارسی و فهم ادبیات پرداخت</span>
+            <p class="row-desc">درک دقیق اصطلاحات شاپرک، پایانه POS، درگاه IPG، پذیرنده، مغایرت، افت فصلی و محاسبه نرخ رشد بدون نیاز به یادگیری کوچک‌ترین دانش فنی یا کدنویسی.</p>
+          </div>
+          <div class="row-item">
+            <span class="row-title">۲. معماری On-Premise و تضمین حاکمیت داده (Data Sovereignty)</span>
+            <p class="row-desc">پشتیبانی از مدل‌های هوش مصنوعی محلی بانکی (مانند Gemma و Llama) روی سرورهای اختصاصی درون سازمان بدون نیاز به اتصال به اینترنت بین‌الملل.</p>
+          </div>
+          <div class="row-item">
+            <span class="row-title">۳. خط لوله اعتبارسنجی امنیتی و کنترل دسترسی در سطح ردیف (RLS)</span>
+            <p class="row-desc">تضمین ۱۰۰٪ جلوگیری از SQL Injection، بازنویسی خودکار کوئری با محدودیت دامنه‌ای مشتری (Scoping) و اجرای صرفاً دستورات مجاز خواندنی (SELECT).</p>
+          </div>
+          <div class="row-item">
+            <span class="row-title">۴. تولید سه‌گانه هم‌زمان: جدول داده، نمودار بصری و روایت تحلیلی</span>
+            <p class="row-desc">هر پاسخ شامل داده‌های خام جدول، نمودار تعاملی متناسب و یک پاراگراف تحلیل روایی هوشمند با ارائه پیش‌بینی روندها و توصیه‌های تجاری است.</p>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="footer-brand">BiChart / Rayamate</div>
+          <div>اسلاید ۳ از ۱۲</div>
+        </div>
+      </div>
+
+      <!-- ================= SLIDE 4: PRODUCT DEMO & UX ================= -->
+      <div class="slide" data-slide="4">
+        <div class="slide-header">
+          <span class="slide-kicker">PRODUCT EXPERIENCE | تجربه محصول</span>
+          <h2 class="slide-title">داشبورد متمرکز، سریع و آماده استفاده بدون نیاز به آموزش</h2>
+        </div>
+        <div class="slide-body">
+          <div class="grid-2x2">
+            <div class="card">
+              <span class="card-title">قابلیت‌های برجسته رابط کاربری</span>
+              <ul style="padding-right: 18px; font-size: 13px; line-height: 1.8; color: var(--slate-700);">
+                <li><strong>پیشنهادهای سریع (Quick Prompts):</strong> اجرای پرسش‌های متداول با ۱ کلیک</li>
+                <li><strong>نمایش شفاف SQL:</strong> امکان مشاهده و بازرسی کوئری تولیدشده و زمان اجرا</li>
+                <li><strong>نمودارسازی هوشمند خودکار:</strong> رسم بی‌درنگ نمودارهای میله‌ای و خطی</li>
+                <li><strong>خروجی رسمی سازمانی:</strong> دریافت گزارش شکیل در قالب Excel و PDF</li>
+                <li><strong>تنظیمات پیشرفته هوش مصنوعی:</strong> جابجایی بلادرنگ میان مدل محلی و ابری</li>
+              </ul>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="kpi-box emerald">
+                <div class="kpi-number">&lt; ۲ ثانیه</div>
+                <div class="kpi-label">میانگین زمان پاسخ</div>
+                <div class="kpi-sub">تولید SQL تا رسم نمودار</div>
+              </div>
+              <div class="kpi-box emerald">
+                <div class="kpi-number">۱۰۰٪</div>
+                <div class="kpi-label">تفکیک امنیتی داده</div>
+                <div class="kpi-sub">اسکوپینگ خودکار در سطح ردیف</div>
+              </div>
+              <div class="kpi-box emerald">
+                <div class="kpi-number">صفر</div>
+                <div class="kpi-label">نیاز به آموزش کاربری</div>
+                <div class="kpi-sub">رویکرد گفتگوی طبیعی</div>
+              </div>
+              <div class="kpi-box emerald">
+                <div class="kpi-number">۳ کلیک</div>
+                <div class="kpi-label">تا خروجی مدیریتی</div>
+                <div class="kpi-sub">اکسپورت PDF سازمانی</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="footer-brand">BiChart / Rayamate</div>
+          <div>اسلاید ۴ از ۱۲</div>
+        </div>
+      </div>
+
+      <!-- ================= SLIDE 5: ARCHITECTURE ================= -->
+      <div class="slide" data-slide="5">
+        <div class="slide-header">
+          <span class="slide-kicker">ARCHITECTURE & SECURITY | معماری فنی</span>
+          <h2 class="slide-title">معماری ماژولار با خط لوله پردازش امن ۷ مرحله‌ای</h2>
+        </div>
+        <div class="slide-body">
+          <div class="grid-4-col">
+            <div class="card" style="border-top: 4px solid var(--primary);">
+              <span class="card-title">۱. هویت و نشست</span>
+              <p class="card-body">احراز هویت چندعامله، کپچای ضد ربات، نشست‌های رمزنگاری شده و مدیریت سطح دسترسی سازمانی (RBAC).</p>
+            </div>
+            <div class="card" style="border-top: 4px solid var(--primary);">
+              <span class="card-title">۲. موتور تبدیل متن به SQL</span>
+              <p class="card-body">پرامپت‌های مهندسی‌شده با اعتبارسنجی خروجی ساختاریافته JSON و تزریق متادیتای دقیق جداول پرداخت.</p>
+            </div>
+            <div class="card" style="border-top: 4px solid var(--primary);">
+              <span class="card-title">۳. گارد امنیتی و اسکوپینگ</span>
+              <p class="card-body">تحلیل گرامری AST، فیلتر اجباری روی شناسه پذیرنده یا مشتری، سقف ۱۰۰ ردیف و مسدودسازی هرگونه تغییر در دیتابیس.</p>
+            </div>
+            <div class="card" style="border-top: 4px solid var(--primary);">
+              <span class="card-title">۴. تحلیل تفسیری و پیش‌بینی</span>
+              <p class="card-body">ارسال نتایج به همراه معیارهای محاسباتی (میانگین، روند، انحراف معیار) برای دریافت بینش کسب‌وکاری و پیش‌بینی هوشمند.</p>
+            </div>
+          </div>
+
+          <div class="row-item" style="margin-top: 4px; background: var(--primary-soft);">
+            <span class="row-title">سازگاری زیرساخت: استقرار با Docker، وب‌سرور Uvicorn/FastAPI و اتصال به دیتابیس‌های بانکی (Oracle, Postgres, SQL Server)</span>
+            <p class="row-desc">طراحی شده بر مبنای الگوی Modular Monolith با قابلیت تفکیک آسان به میکروسرویس‌های مستقل در صورت افزایش بار پردازشی.</p>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="footer-brand">BiChart / Rayamate</div>
+          <div>اسلاید ۵ از ۱۲</div>
+        </div>
+      </div>
+
+      <!-- ================= SLIDE 6: MARKET SIZE ================= -->
+      <div class="slide" data-slide="6">
+        <div class="slide-header">
+          <span class="slide-kicker">MARKET OPPORTUNITY | اندازه و فرصت بازار</span>
+          <h2 class="slide-title">بیش از ۴ میلیارد تراکنش ماهانه شاپرک در جستجوی بینش بلادرنگ</h2>
+        </div>
+        <div class="slide-body">
+          <div class="grid-3-col">
+            <div class="card" style="text-align: center; border-color: var(--primary-border);">
+              <span class="badge badge-emerald">TAM | کل بازار در دسترس</span>
+              <div class="kpi-number" style="margin: 8px 0;">+۳۵۰ میلیون $</div>
+              <p class="card-body">بازار نرم‌افزارهای BI، انبار داده و هوش مصنوعی مولد سازمانی در خاورمیانه و صنایع مالی ایران</p>
+            </div>
+            <div class="card" style="text-align: center; border-color: var(--primary);">
+              <span class="badge badge-emerald">SAM | بازار هدف صنعت پرداخت</span>
+              <div class="kpi-number" style="margin: 8px 0;">+۵۰ میلیون $</div>
+              <p class="card-body">۱۲ شرکت بزرگ PSP، بیش از ۳۰ بانک و موسسه اعتباری و ۱۵۰ پرداخت‌یار فعال متصل به شاپرک</p>
+            </div>
+            <div class="card" style="text-align: center; border-color: var(--primary-dark);">
+              <span class="badge badge-emerald">SOM | سهم قابل تصاحب در ۲ سال</span>
+              <div class="kpi-number" style="margin: 8px 0;">۵ میلیون $</div>
+              <p class="card-body">تجهیز ۴ شرکت PSP برتر، ۱۰ بانک بزرگ و ۳۰ هلدینگ بزرگ زنجیره‌ای به دستیار هوشمند رایامیت</p>
+            </div>
+          </div>
+
+          <div class="card card-dark" style="margin-top: 4px;">
+            <span class="card-title" style="color: #6ee7b7;">بهره‌برداران مستقیم سامانه در اکوسیستم بهپرداخت و شبکه بانکی:</span>
+            <p class="card-body">
+              • <strong>مدیران ارشد و هیئت مدیره:</strong> رصد لحظه‌ای درآمد کارمزدی و نوسانات سهم بازار بدون گزارش‌های کند سنتی<br>
+              • <strong>معاونت بازاریابی و عملیات پذیرندگان:</strong> کشف پایگاه‌های پرریسک و پایانه‌های با کاهش تراکنش ناگهانی<br>
+              • <strong>تیم‌های مدیریت ریسک و تطبیق:</strong> نظارت بر ناهنجاری‌ها و انحرافات تراکنشی مشکوک
+            </p>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="footer-brand">BiChart / Rayamate</div>
+          <div>اسلاید ۶ از ۱۲</div>
+        </div>
+      </div>
+
+      <!-- ================= SLIDE 7: BUSINESS MODEL ================= -->
+      <div class="slide" data-slide="7">
+        <div class="slide-header">
+          <span class="slide-kicker">BUSINESS MODEL | مدل کسب‌وکار و درآمد</span>
+          <h2 class="slide-title">جریان‌های درآمدی چندلایه B2B مبتنی بر لایسنس، اشتراک و یکپارچه‌سازی</h2>
+        </div>
+        <div class="slide-body">
+          <div class="grid-3-col">
+            <div class="card">
+              <span class="badge badge-emerald">مدل ۱: اشتراک پایه (SaaS)</span>
+              <div class="card-title">پرداخت‌یارها و فین‌تک‌ها</div>
+              <p class="card-body">
+                • استقرار بر روی کلود خصوصی اختصاصی<br>
+                • سقف تا ۵۰ کاربر و ۱۰ میلیون تراکنش در ماه<br>
+                • به‌روزرسانی فصلی مدل‌های تحلیل داده<br>
+                • درآمد تکرارشونده ماهانه و سالانه (ARR)
+              </p>
+            </div>
+            <div class="card" style="border: 2px solid var(--primary); background: var(--primary-soft);">
+              <span class="badge" style="background: var(--primary); color: white;">مدل ۲: لایسنس سازمانی (Enterprise)</span>
+              <div class="card-title" style="color: var(--primary-dark);">شرکت‌های PSP و بانک‌ها</div>
+              <p class="card-body">
+                • استقرار کامل On-Premise داخل دیتاسنتر بانک<br>
+                • کاربران نامحدود و مقیاس‌پذیری چند دیتابیسی<br>
+                • تیونینگ اختصاصی مدل‌های زبانی با متادیتای شرکت<br>
+                • قرارداد پشتیبانی ۲۴/۷ و SLA تضمین‌شده
+              </p>
+            </div>
+            <div class="card">
+              <span class="badge badge-emerald">مدل ۳: خدمات سفارشی‌سازی</span>
+              <div class="card-title">ادغام با سامانه‌های Core</div>
+              <p class="card-body">
+                • اتصال به انباره داده‌های کلان (ClickHouse / Oracle)<br>
+                • طراحی داشبوردهای اختصاصی هیئت‌مدیره<br>
+                • آموزش پرسنل و مشاوره استراتژی داده‌محور<br>
+                • کارمزد پیاده‌سازی و توسعه سفارشی
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="footer-brand">BiChart / Rayamate</div>
+          <div>اسلاید ۷ از ۱۲</div>
+        </div>
+      </div>
+
+      <!-- ================= SLIDE 8: COMPETITIVE ADVANTAGE ================= -->
+      <div class="slide" data-slide="8">
+        <div class="slide-header">
+          <span class="slide-kicker">COMPETITIVE ADVANTAGE | مزیت‌های رقابتی</span>
+          <h2 class="slide-title">چرا رایامیت گزینه برتر در برابر رقبای داخلی و خارجی است؟</h2>
+        </div>
+        <div class="slide-body">
+          <div class="grid-2x2">
+            <div class="card">
+              <span class="card-title">★ بومی‌سازی عمیق برای زبان و مفاهیم مالی ایران</span>
+              <p class="card-body">
+                درک دقیق مفاهیم شاپرکی، تاریخ شمسی، نوع پایانه و خطاهای سوییچ پرداخت که برای مدل‌های عمومی خارجی ناشناخته و گمراه‌کننده‌اند.
+              </p>
+            </div>
+            <div class="card">
+              <span class="card-title">★ استقرار صددرصد امن و آفلاین (Zero Leakage)</span>
+              <p class="card-body">
+                قابلیت کارکرد کامل در شبکه ملی اطلاعات و بدون نیاز به اینترنت جهانی، متناسب با الزامات حراست فناوری و پدافند غیرعامل بانکی.
+              </p>
+            </div>
+            <div class="card">
+              <span class="card-title">★ سرعت راه‌اندازی و بازگشت سرمایه (زیر ۲ هفته)</span>
+              <p class="card-body">
+                برخلاف پروژه‌های طاقت‌فرسای استقرار انبار داده که ماه‌ها زمان می‌برند، رایامیت در کمتر از ۲ هفته مستقیماً به دیتابیس متصل و فعال می‌شود.
+              </p>
+            </div>
+            <div class="card">
+              <span class="card-title">★ ساختار ماژولار و هزینه نگهداری بسیار پایین</span>
+              <p class="card-body">
+                عدم وابستگی به لایسنس‌های دلاری ابزارهای خارجی؛ امکان بهره‌گیری هوشمندانه از سخت‌افزارهای موجود سازمان.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="footer-brand">BiChart / Rayamate</div>
+          <div>اسلاید ۸ از ۱۲</div>
+        </div>
+      </div>
+
+      <!-- ================= SLIDE 9: USE CASES ================= -->
+      <div class="slide" data-slide="9">
+        <div class="slide-header">
+          <span class="slide-kicker">OPERATIONAL USE CASES | سناریوهای کاربردی</span>
+          <h2 class="slide-title">پاسخ به سوالات حیاتی کسب‌وکار در جلسات مدیران ارشد</h2>
+        </div>
+        <div class="slide-body">
+          <div class="row-item">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span class="row-title">پایش ریزش پذیرندگان کلیدی (Churn Detection)</span>
+              <span class="badge badge-amber">اقدام پیشگیرانه بازاریابی</span>
+            </div>
+            <p class="row-desc">
+              <strong>پرسش مدیر:</strong> «کدام پذیرندگان با گردش بیش از ۱۰۰ میلیون تومان در ۲ هفته اخیر دچار افت تراکنش بیش از ۲۵٪ شده‌اند؟»<br>
+              <strong>ارزش کسب‌وکاری:</strong> شناسایی فوری اختلال دستگاه یا اقدام رقبا قبل از مهاجرت قطعی پذیرنده به شرکت رقیب.
+            </p>
+          </div>
+
+          <div class="row-item">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span class="row-title">تحلیل و مقایسه سهم بازار اصناف</span>
+              <span class="badge badge-emerald">بهینه‌سازی توزیع دستگاه POS</span>
+            </div>
+            <p class="row-desc">
+              <strong>پرسش مدیر:</strong> «سهم مبلغی و تعدادی صنف داروخانه‌ها در شهر اصفهان نسبت به ماه گذشته چه تغییری کرده است؟»<br>
+              <strong>ارزش کسب‌وکاری:</strong> بازتوزیع هوشمند پایانه‌ها به اصناف پربازده و جمع‌آوری دستگاه‌های کم‌تراکنش و زیان‌ده.
+            </p>
+          </div>
+
+          <div class="row-item">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span class="row-title">گزارش‌گیری آنی در صحن هیئت مدیره</span>
+              <span class="badge badge-emerald">پاسخگویی بی‌درنگ</span>
+            </div>
+            <p class="row-desc">
+              <strong>پرسش مدیر:</strong> «خلاصه عملکرد کارمزدی شعب استان خراسان در مقایسه با هدف تعیین‌شده سه‌ماهه»<br>
+              <strong>ارزش کسب‌وکاری:</strong> دریافت آنی گزارش در میانه جلسه بدون ارجاع به کارشناس یا تعویق تصمیم‌گیری.
+            </p>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="footer-brand">BiChart / Rayamate</div>
+          <div>اسلاید ۹ از ۱۲</div>
+        </div>
+      </div>
+
+      <!-- ================= SLIDE 10: ROADMAP ================= -->
+      <div class="slide" data-slide="10">
+        <div class="slide-header">
+          <span class="slide-kicker">PRODUCT ROADMAP | نقشه راه محصول</span>
+          <h2 class="slide-title">برنامه توسعه گام‌به‌گام به سوی مغز متفکر هوش تجاری پرداخت</h2>
+        </div>
+        <div class="slide-body">
+          <div class="grid-4-col">
+            <div class="card" style="border-color: var(--primary); background: var(--primary-soft);">
+              <span class="badge badge-emerald">فاز ۱: وضعیت فعلی</span>
+              <div class="card-title" style="color: var(--primary-dark);">MVP عملیاتی و امن</div>
+              <p class="card-body">
+                • تبدیل دقیق متن به SQL<br>
+                • گارد امنیتی و Row-Level Scoping<br>
+                • نمودارسازی و تحلیل روایی<br>
+                • اکسپورت PDF و Excel<br>
+                • مدیریت کاربران و مدل هیبریدی
+              </p>
+            </div>
+
+            <div class="card">
+              <span class="badge badge-amber">فاز ۲: ۳ ماه آینده</span>
+              <div class="card-title">کشف هوشمند ناهنجاری</div>
+              <p class="card-body">
+                • ماژول Anomaly Detection<br>
+                • سیستم هشدار زودهنگام افت تراکنش<br>
+                • پیش‌بینی سری‌های زمانی فروش<br>
+                • ادغام با پایگاه‌های کلان ClickHouse
+              </p>
+            </div>
+
+            <div class="card">
+              <span class="badge badge-emerald">فاز ۳: ۶ ماه آینده</span>
+              <div class="card-title">دستیار صوتی و پیام‌رسان</div>
+              <p class="card-body">
+                • گزارش‌گیری صوتی به زبان فارسی<br>
+                • بات اختصاصی پیام‌رسان‌های بله/تلگرام<br>
+                • ارسال خودکار خلاصه‌های روزانه<br>
+                • ارزیابی پیشرفته رفتار پذیرندگان
+              </p>
+            </div>
+
+            <div class="card">
+              <span class="badge badge-emerald">فاز ۴: افق یک‌ساله</span>
+              <div class="card-title">هوش تجاری تجویزی</div>
+              <p class="card-body">
+                • پیشنهاد خودکار اقدامات بازاریابی<br>
+                • اتصال یکپارچه با سامانه سوییچ Core<br>
+                • عرضه لایسنس به سایر بازیگران فین‌تک<br>
+                • پشتیبانی از زبان‌های عربی و انگلیسی
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="footer-brand">BiChart / Rayamate</div>
+          <div>اسلاید ۱۰ از ۱۲</div>
+        </div>
+      </div>
+
+      <!-- ================= SLIDE 11: THE PROPOSAL & ROI ================= -->
+      <div class="slide" data-slide="11">
+        <div class="slide-header">
+          <span class="slide-kicker">THE PROPOSAL & ROI | پیشنهاد همکاری و توجیه اقتصادی</span>
+          <h2 class="slide-title">افزایش چشمگیر بهره‌وری سازمانی با بازگشت سرمایه زیر ۶ ماه</h2>
+        </div>
+        <div class="slide-body">
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;">
+            <div class="kpi-box emerald">
+              <div class="kpi-number">۷۰٪</div>
+              <div class="kpi-label">کاهش زمان گزارش‌گیری</div>
+              <div class="kpi-sub">از چند روز به چند ثانیه</div>
+            </div>
+            <div class="kpi-box emerald">
+              <div class="kpi-number">۱۵٪</div>
+              <div class="kpi-label">کاهش ریزش پذیرندگان</div>
+              <div class="kpi-sub">با هشدارهای پیشگیرانه</div>
+            </div>
+            <div class="kpi-box emerald">
+              <div class="kpi-number">۸۰٪</div>
+              <div class="kpi-label">آزادسازی زمان تیم IT</div>
+              <div class="kpi-sub">حذف صف استخراج کوئری</div>
+            </div>
+            <div class="kpi-box emerald">
+              <div class="kpi-number">&lt; ۲ هفته</div>
+              <div class="kpi-label">سرعت راه‌اندازی فاز پایلوت</div>
+              <div class="kpi-sub">بدون اختلال در کارکرد سیستم</div>
+            </div>
+          </div>
+
+          <div class="card" style="background: linear-gradient(135deg, #064e3b 0%, #047857 100%); color: white; margin-top: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span class="card-title" style="color: #6ee7b7; font-size: 17px;">پیشنهاد اجرای پایلوت عملیاتی (Pilot Implementation)</span>
+              <span class="badge" style="background: rgba(255,255,255,0.2); color: white;">۳۰ روز بدون ریسک مالی</span>
+            </div>
+            <p style="font-size: 13.5px; line-height: 1.7; color: #ecfdf5;">
+              پیشنهاد می‌شود این سامانه به مدت یک ماه در یکی از معاونت‌های عملیاتی یا امور پذیرندگان بهپرداخت ملت به صورت پایلوت راه‌اندازی گردد. پس از ارزیابی اثربخشی، سنجش رضایت مدیران و استخراج شاخص‌های واقعی بهره‌وری، تصمیم‌گیری جهت استقرار در سطح کل سازمان انجام خواهد شد.
+            </p>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="footer-brand">BiChart / Rayamate</div>
+          <div>اسلاید ۱۱ از ۱۲</div>
+        </div>
+      </div>
+
+      <!-- ================= SLIDE 12: CLOSING & Q&A ================= -->
+      <div class="slide slide-dark" data-slide="12">
+        <div class="cover-content">
+          <div class="cover-badge">
+            <span>●</span>
+            JOIN THE FUTURE OF FINTECH BI
+          </div>
+          <h1 class="cover-title" style="font-size: 42px;">
+            آینده تصمیم‌گیری هوشمند، <span>یک مکالمه ساده است</span>
+          </h1>
+          <p class="cover-sub" style="font-size: 18px; max-width: 700px;">
+            سامانه رایامیت آماده است تا جریان بینش داده‌ها را در سازمان شما دگرگون سازد.
+          </p>
+          
+          <div class="card card-dark" style="max-width: 600px; width: 100%; text-align: center; padding: 20px; border-color: rgba(52, 211, 153, 0.3);">
+            <div style="font-size: 16px; font-weight: 700; color: #34d399; margin-bottom: 8px;">درگاه‌های ارتباطی و مشاهده دمو:</div>
+            <p style="font-size: 13.5px; color: #e2e8f0; line-height: 1.8;">
+              🌐 نشانی سامانه: <strong>http://localhost:8000</strong><br>
+              📁 کاتالوگ و مستندات فنی: پوشه <strong>docs/</strong> در مخزن پروژه<br>
+              ✉️ ایمیل تیم توسعه و نوآوری: <strong>product@bichart.ir</strong>
+            </p>
+          </div>
+
+          <div style="font-size: 20px; font-weight: 800; color: #34d399; margin-top: 10px;">
+            از توجه و همراهی شما صمیمانه سپاسگزاریم • پرسش و پاسخ (Q&A)
+          </div>
+        </div>
+        <div class="slide-footer">
+          <div class="footer-brand">BiChart / Rayamate</div>
+          <div>پایان ارائه | اسلاید ۱۲ از ۱۲</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Controls Bar -->
+    <div class="deck-controls">
+      <button class="btn-ctrl" id="btnPrev" title="اسلاید قبلی (کلید ➔)">➔</button>
+      <div class="slide-counter" id="slideCounter">۱ / ۱۲</div>
+      <button class="btn-ctrl" id="btnNext" title="اسلاید بعدی (کلید ⬅)">⬅</button>
+      <button class="btn-ctrl" id="btnFullscreen" title="تمام‌صفحه (کلید F)">⛶</button>
+    </div>
+  </div>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 12;
+    const slides = document.querySelectorAll('.slide');
+    const counter = document.getElementById('slideCounter');
+    const progressBar = document.getElementById('progressBar');
+    const wrapper = document.getElementById('slideWrapper');
+
+    function showSlide(n) {
+      if (n < 1) n = 1;
+      if (n > totalSlides) n = totalSlides;
+      currentSlide = n;
+
+      slides.forEach((s) => {
+        s.classList.remove('active');
+        if (parseInt(s.getAttribute('data-slide')) === currentSlide) {
+          s.classList.add('active');
+        }
+      });
+
+      counter.textContent = `${currentSlide} / ${totalSlides}`;
+      progressBar.style.width = `${(currentSlide / totalSlides) * 100}%`;
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        showSlide(currentSlide + 1);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        showSlide(currentSlide - 1);
+      }
+    }
+
+    document.getElementById('btnNext').addEventListener('click', nextSlide);
+    document.getElementById('btnPrev').addEventListener('click', prevSlide);
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'PageDown' || e.key === ' ') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowRight' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        showSlide(1);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        showSlide(totalSlides);
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullscreen();
+      }
+    });
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {});
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
+
+    // Initial state
+    showSlide(1);
+  </script>
+</body>
+</html>

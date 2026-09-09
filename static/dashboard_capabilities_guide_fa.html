@@ -1,0 +1,920 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>راهنمای جامع و کاتالوگ قابلیت‌های داشبورد هوش تجاری</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  @page {
+    size: A4 portrait;
+    margin: 14mm 14mm 16mm 14mm;
+    @bottom-center {
+      content: counter(page);
+      font-family: 'Vazirmatn', Tahoma, sans-serif;
+      font-size: 8.5pt;
+      color: #64748b;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  
+  body {
+    margin: 0;
+    color: #1e293b;
+    background: #ffffff;
+    font-family: 'Vazirmatn', Tahoma, 'B Nazanin', Arial, sans-serif;
+    font-size: 10pt;
+    line-height: 1.85;
+  }
+
+  .page {
+    break-before: page;
+    position: relative;
+  }
+
+  /* COVER PAGE */
+  .cover {
+    break-before: auto;
+    min-height: 260mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 14mm 12mm;
+    border: 3px solid #059669;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 35%, #ffffff 80%, #ecfdf5 100%);
+  }
+
+  .cover-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #a7f3d0;
+    padding-bottom: 12px;
+  }
+
+  .cover-logo-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .cover-logo-icon {
+    width: 48px;
+    height: 48px;
+    background: #059669;
+    color: #ffffff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  .cover-brand-title {
+    font-size: 15pt;
+    font-weight: 800;
+    color: #065f46;
+    margin: 0;
+  }
+
+  .cover-brand-sub {
+    font-size: 9pt;
+    color: #047857;
+    margin: 0;
+  }
+
+  .cover-badge {
+    background: #d1fae5;
+    border: 1px solid #059669;
+    color: #065f46;
+    font-size: 8.5pt;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 20px;
+  }
+
+  .cover-body {
+    margin: 18mm 0;
+    text-align: center;
+  }
+
+  .cover-kicker {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #059669;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+
+  .cover-title {
+    font-size: 25pt;
+    font-weight: 900;
+    color: #0f2a1f;
+    line-height: 1.4;
+    margin: 0 0 16px;
+  }
+
+  .cover-title span {
+    color: #059669;
+  }
+
+  .cover-lead {
+    font-size: 11pt;
+    color: #475569;
+    max-width: 150mm;
+    margin: 0 auto 24px;
+    line-height: 1.8;
+  }
+
+  .cover-highlights-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+    text-align: right;
+  }
+
+  .cover-highlight-card {
+    background: #ffffff;
+    border: 1px solid #bbf7d0;
+    border-radius: 10px;
+    padding: 12px;
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.06);
+  }
+
+  .cover-highlight-card h4 {
+    margin: 0 0 4px;
+    font-size: 9.5pt;
+    color: #065f46;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .cover-highlight-card p {
+    margin: 0;
+    font-size: 8.2pt;
+    color: #64748b;
+    line-height: 1.6;
+  }
+
+  .cover-meta {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    text-align: right;
+  }
+
+  .cover-meta-item span {
+    display: block;
+    font-size: 7.5pt;
+    color: #64748b;
+  }
+
+  .cover-meta-item strong {
+    font-size: 8.8pt;
+    color: #0f172a;
+  }
+
+  /* HEADINGS & SECTIONS */
+  .section-header {
+    border-bottom: 2px solid #059669;
+    padding-bottom: 6px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .section-kicker {
+    font-size: 8.5pt;
+    font-weight: 700;
+    color: #059669;
+    margin-bottom: 2px;
+  }
+
+  h2 {
+    font-size: 15.5pt;
+    font-weight: 800;
+    color: #065f46;
+    margin: 0;
+  }
+
+  h3 {
+    font-size: 11.5pt;
+    font-weight: 700;
+    color: #047857;
+    margin: 14px 0 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  h4 {
+    font-size: 10pt;
+    font-weight: 700;
+    color: #0f2a1f;
+    margin: 10px 0 4px;
+  }
+
+  p {
+    margin: 0 0 10px;
+    color: #334155;
+    text-align: justify;
+  }
+
+  ul, ol {
+    margin: 0 0 12px;
+    padding-right: 20px;
+  }
+
+  li {
+    margin-bottom: 5px;
+    color: #334155;
+  }
+
+  /* CALLOUTS */
+  .callout {
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 12px 0;
+    font-size: 9.2pt;
+    break-inside: avoid;
+    line-height: 1.75;
+  }
+
+  .callout-success {
+    background: #f0fdf4;
+    border-right: 4px solid #059669;
+    color: #064e3b;
+  }
+
+  .callout-info {
+    background: #f0f9ff;
+    border-right: 4px solid #0284c7;
+    color: #0c4a6e;
+  }
+
+  .callout-warning {
+    background: #fffbeb;
+    border-right: 4px solid #d97706;
+    color: #78350f;
+  }
+
+  /* SCREENSHOT BOX */
+  .screenshot-box {
+    margin: 14px 0;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+    break-inside: avoid;
+    text-align: center;
+  }
+
+  .screenshot-box img {
+    width: 100%;
+    max-height: 110mm;
+    object-fit: contain;
+    display: block;
+    background: #f8fafc;
+  }
+
+  .screenshot-caption {
+    padding: 6px 12px;
+    background: #f1f5f9;
+    border-top: 1px solid #e2e8f0;
+    font-size: 8.2pt;
+    color: #475569;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  /* 8 FEATURES GRID (CHAPTER 1) */
+  .help-8-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 12px 0;
+  }
+
+  .help-card {
+    background: #ffffff;
+    border: 1px solid #d1fae5;
+    border-radius: 10px;
+    padding: 12px;
+    box-shadow: 0 2px 6px rgba(5, 150, 105, 0.04);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    break-inside: avoid;
+  }
+
+  .help-card-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .help-card-icon {
+    font-size: 16pt;
+  }
+
+  .help-card-title {
+    font-size: 9.5pt;
+    font-weight: 800;
+    color: #065f46;
+    margin: 0;
+  }
+
+  .help-card-tag {
+    font-size: 7.5pt;
+    font-weight: 700;
+    background: #ecfdf5;
+    color: #059669;
+    padding: 1px 6px;
+    border-radius: 10px;
+    margin-right: auto;
+  }
+
+  .help-card-desc {
+    font-size: 8.2pt;
+    color: #475569;
+    line-height: 1.6;
+    margin-bottom: 8px;
+  }
+
+  .help-card-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .help-card-list li {
+    font-size: 7.8pt;
+    color: #1e293b;
+    margin-bottom: 3px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .help-card-list li::before {
+    content: "✓";
+    color: #059669;
+    font-weight: bold;
+  }
+
+  /* TABLES */
+  .doc-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 8.8pt;
+    break-inside: avoid;
+  }
+
+  .doc-table th {
+    background: #059669;
+    color: #ffffff;
+    font-weight: 700;
+    text-align: right;
+    padding: 7px 10px;
+    border: 1px solid #047857;
+  }
+
+  .doc-table td {
+    padding: 7px 10px;
+    border: 1px solid #cbd5e1;
+    color: #1e293b;
+    vertical-align: middle;
+  }
+
+  .doc-table tr:nth-child(even) td {
+    background: #f8fafc;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 7.8pt;
+    font-weight: 700;
+  }
+
+  .badge-emerald { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+  .badge-blue { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+
+  /* CODE BLOCKS */
+  code {
+    font-family: Consolas, 'Courier New', monospace;
+    direction: ltr;
+    unicode-bidi: embed;
+    background: #f1f5f9;
+    color: #0f766e;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 8.5pt;
+  }
+
+  .code-block {
+    direction: ltr;
+    text-align: left;
+    background: #1a221f;
+    color: #38bdf8;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-family: Consolas, monospace;
+    font-size: 8.5pt;
+    line-height: 1.6;
+    margin: 8px 0;
+    overflow-x: auto;
+    break-inside: avoid;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 12px 0;
+    break-inside: avoid;
+  }
+
+  .feature-box {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-right: 4px solid #059669;
+    border-radius: 8px;
+    padding: 10px 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  }
+
+  .feature-box h4 {
+    margin: 0 0 4px;
+    color: #065f46;
+    font-size: 9.5pt;
+    font-weight: 700;
+  }
+
+  .feature-box p {
+    margin: 0;
+    font-size: 8.5pt;
+    color: #475569;
+    line-height: 1.6;
+  }
+
+  .page-footer-note {
+    position: absolute;
+    bottom: 2mm;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    font-size: 7.5pt;
+    color: #94a3b8;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 3px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== COVER PAGE ==================== -->
+<section class="cover page">
+  <div class="cover-header">
+    <div class="cover-logo-wrap">
+      <div class="cover-logo-icon">📊</div>
+      <div>
+        <h1 class="cover-brand-title">دستیار هوشمند هوش تجاری</h1>
+        <p class="cover-brand-sub">سامانه مکالمه‌محور تحلیل داده و گزارش‌ساز هوشمند</p>
+      </div>
+    </div>
+    <span class="cover-badge">کاتالوگ تخصصی داشبورد</span>
+  </div>
+
+  <div class="cover-body">
+    <div class="cover-kicker">راهنمای جامع کاربری و معرفی قابلیت‌ها</div>
+    <h2 class="cover-title">مستند جامع امکانات <span>میزکار داشبورد تحلیلی</span></h2>
+    <p class="cover-lead">
+      راهنمای کامل پردازش مکالمه‌محور پرسش‌ها به زبان طبیعی، تولید خودکار SQL، موتور ۱۰ نمودار ECharts، مدال زوم تعاملی، تحلیل هوشمند با امکان چالش و اصلاح، پوستر اینفوگرافیک و خروجی‌های سازمانی PDF/Excel.
+    </p>
+
+    <div class="cover-highlights-grid">
+      <div class="cover-highlight-card">
+        <h4>🤖 تبدیل متن به SQL</h4>
+        <p>تولید خودکار استعلام‌های ایمن، ویرایشگر زنده و رفع خودکار خطای پایگاه‌داده (Auto-Fix).</p>
+      </div>
+      <div class="cover-highlight-card">
+        <h4>📊 ۱۰ نوع نمودار ECharts</h4>
+        <p>انتخاب خودکار هوشمند (میله‌ای، خطی، نقشه ایران، گیج KPI، سانکی، دونات و...).</p>
+      </div>
+      <div class="cover-highlight-card">
+        <h4>🖼️ گزارش‌دهی و پوستر</h4>
+        <p>تولید پوستر تصویری PNG، گفتگوی تعاملی روی متن تحلیل و خروجی PDF/Excel سازمانی.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="cover-meta">
+    <div class="cover-meta-item">
+      <span>موضوع مستند</span>
+      <strong>معرفی تخصصی داشبورد</strong>
+    </div>
+    <div class="cover-meta-item">
+      <span>مخاطبان</span>
+      <strong>مدیران، تحلیل‌گران داده و کاربران کسب‌وکار</strong>
+    </div>
+    <div class="cover-meta-item">
+      <span>زبان مستند</span>
+      <strong>فارسی استاندارد (راست‌چین)</strong>
+    </div>
+    <div class="cover-meta-item">
+      <span>تاریخ بازبینی</span>
+      <strong>مرداد ۱۴۰۵ / August 2026</strong>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== CHAPTER 1: 8 CORE CAPABILITIES (HELP.HTML) ==================== -->
+<section class="page">
+  <div class="section-header">
+    <div>
+      <div class="section-kicker">فصل اول</div>
+      <h2>۱. هشت قابلیت کلیدی و محوری داشبورد هوش تجاری</h2>
+    </div>
+    <span class="badge badge-emerald">چکیده قابلیت‌ها</span>
+  </div>
+
+  <p>
+    داشبورد دستیار هوشمند هوش تجاری با تلفیق مدل‌های زبانی بزرگ (LLM) و موتورهای مصورسازی مدرن، تجربه یکپارچه‌ای از تحلیل داده‌ها را از طریق ۸ قابلیت کلیدی زیر در اختیار کاربران قرار می‌دهد:
+  </p>
+
+  <div class="help-8-grid">
+    <!-- 1 -->
+    <div class="help-card">
+      <div class="help-card-head">
+        <span class="help-card-icon">🤖</span>
+        <h3 class="help-card-title">۱. پرسش و پاسخ هوشمند و تولید خودکار SQL</h3>
+        <span class="help-card-tag">هوش مصنوعی</span>
+      </div>
+      <p class="help-card-desc">پرسش سوالات به زبان فارسی یا انگلیسی، تبدیل دقیق به کوئری SQL، اجرای امن در دیتابیس و تصحیح خودکار خطاهای احتمالی (Auto-Fix).</p>
+      <ul class="help-card-list">
+        <li>پشتیبانی کامل از زبان فارسی و انگلیسی</li>
+        <li>تولید خودکار استعلام SQL و امکان ویرایش کد</li>
+        <li>تصحیح خودکار خطاهای دیتابیس توسط مدل AI</li>
+      </ul>
+    </div>
+
+    <!-- 2 -->
+    <div class="help-card">
+      <div class="help-card-head">
+        <span class="help-card-icon">📊</span>
+        <h3 class="help-card-title">۲. موتور ECharts و انتخاب خودکار ۱۰ نمودار</h3>
+        <span class="help-card-tag">تجسم پیشرفته</span>
+      </div>
+      <p class="help-card-desc">انتخاب هوشمندانه بهترین نمودار (میله‌ای، خطی، دونات، قیفی، شمعی، گیج KPI، نقشه ایران، سانکی، تری‌مپ، هیت‌مپ) بر اساس ساختار داده.</p>
+      <ul class="help-card-list">
+        <li>انتخاب هوشمند متناسب با سوال کاربر</li>
+        <li>پشتیبانی از ۱۰ نوع نمودار مدرن ECharts</li>
+        <li>تغییر سریع نوع نمودار و ستون‌ها در مدال زوم</li>
+      </ul>
+    </div>
+
+    <!-- 3 -->
+    <div class="help-card">
+      <div class="help-card-head">
+        <span class="help-card-icon">🖼️</span>
+        <h3 class="help-card-title">۳. پوستر تصویری داده‌محور و اینفوگرافیک</h3>
+        <span class="help-card-tag">گزارش‌دهی بصری</span>
+      </div>
+      <p class="help-card-desc">تولید خودکار پوستر شاخص‌های عملکرد کلیدی (KPIs) و سهم برترین دسته‌ها با طراحی مدرن زمردی و امکان دانلود مستقیم فایل PNG.</p>
+      <ul class="help-card-list">
+        <li>طراحی گرافیکی مدرن با تم زمردی</li>
+        <li>محاسبه خودکار شاخص‌های کلیدی و سهم دسته‌ها</li>
+        <li>دانلود مستقیم فایل PNG جهت ارائه در جلسات</li>
+      </ul>
+    </div>
+
+    <!-- 4 -->
+    <div class="help-card">
+      <div class="help-card-head">
+        <span class="help-card-icon">💬</span>
+        <h3 class="help-card-title">۴. بحث و بررسی هوشمند روی نتایج تحلیل</h3>
+        <span class="help-card-tag">تعامل تحلیلی</span>
+      </div>
+      <p class="help-card-desc">امکان انتخاب یا هایلایت کردن جملات تحلیل هوش مصنوعی، ارسال اعتراض یا پرسش و جایگزینی خودکار متن اصلاح‌شده در گزارش اصلی.</p>
+      <ul class="help-card-list">
+        <li>امکان هایلایت کردن جملات از متن تحلیل</li>
+        <li>گفتگوی چندنوبتی درباره داده‌ها و بینش‌ها</li>
+        <li>اعمال مستقیم پیشنهادها در متن اصلی گزارش</li>
+      </ul>
+    </div>
+
+    <!-- 5 -->
+    <div class="help-card">
+      <div class="help-card-head">
+        <span class="help-card-icon">🔊</span>
+        <h3 class="help-card-title">۵. ورودی صوتی دو زبانه (فارسی و انگلیسی)</h3>
+        <span class="help-card-tag">گفتار به متن</span>
+      </div>
+      <p class="help-card-desc">امکان طرح پرسش‌های تراکنشی به صورت گفتاری با یک کلیک روی میکروفون و تبدیل سریع و دقیق صدا به متن بدون نیاز به تایپ.</p>
+      <ul class="help-card-list">
+        <li>پشتیبانی از صحبت کردن به فارسی و انگلیسی</li>
+        <li>تشخیص پرسرعت بدون نیاز به تایپ کردن</li>
+        <li>سازگار با مرورگرهای استاندارد Chrome و Edge</li>
+      </ul>
+    </div>
+
+    <!-- 6 -->
+    <div class="help-card">
+      <div class="help-card-head">
+        <span class="help-card-icon">📤</span>
+        <h3 class="help-card-title">۶. خروجی PDF و Excel با یک کلیک</h3>
+        <span class="help-card-tag">خروجی سازمانی</span>
+      </div>
+      <p class="help-card-desc">دانلود گزارش‌های رسمی شامل متن تحلیل، تصویر نمودارها و جدول کامل داده‌ها در قالب فایل‌های استاندارد PDF و اکسل چندشیتی.</p>
+      <ul class="help-card-list">
+        <li>فایل PDF فارسی با فونت استاندارد Vazirmatn</li>
+        <li>فایل اکسل چندشیتی (Data, Explanation, Analysis)</li>
+        <li>شامل تصویر نمودار و آمار جامع ردیف‌ها</li>
+      </ul>
+    </div>
+
+    <!-- 7 -->
+    <div class="help-card">
+      <div class="help-card-head">
+        <span class="help-card-icon">⏱️</span>
+        <h3 class="help-card-title">۷. پایش زمان‌بندی سرویس‌ها (Timings)</h3>
+        <span class="help-card-tag">شفافیت فرآیند</span>
+      </div>
+      <p class="help-card-desc">نمایش تفکیکی و میلی‌ثانیه‌ای زمان صرف‌شده در مراحل تولید SQL، گارد امنیت، اجرای پایگاه داده و تحلیل هوش مصنوعی.</p>
+      <ul class="help-card-list">
+        <li>شفافیت کامل در زمان اجرای کد SQL</li>
+        <li>نمایش تفکیکی زمان مدل‌های هوش مصنوعی</li>
+        <li>بهینه‌سازی پرسرعت زمان پاسخ‌دهی</li>
+      </ul>
+    </div>
+
+    <!-- 8 -->
+    <div class="help-card">
+      <div class="help-card-head">
+        <span class="help-card-icon">🕘</span>
+        <h3 class="help-card-title">۸. تاریخچه، سؤالات پرتکرار و نظرسنجی</h3>
+        <span class="help-card-tag">شخصی‌سازی</span>
+      </div>
+      <p class="help-card-desc">دسترسی سریع به ۱۰ سوال پرتکرار کاربران، امکان بازپخش کامل استعلام‌های قدیمی و ثبت رأی برای قابلیت‌های توسعه‌ای بعدی.</p>
+      <ul class="help-card-list">
+        <li>ذخیره‌سازی و بازپخش تاریخچه استعلام‌ها</li>
+        <li>فهرست ۱۰ سؤال پرتکرار سیستم</li>
+        <li>نظرسنجی آنلاین قابلیت‌های آینده</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== CHAPTER 2: DASHBOARD WORKSPACE & VOICE ==================== -->
+<section class="page">
+  <div class="section-header">
+    <div>
+      <div class="section-kicker">فصل دوم</div>
+      <h2>۲. محیط میزکار داشبورد، ورودی صوتی و اقدامات سریع</h2>
+    </div>
+    <span class="badge badge-emerald">میزکار تعاملی</span>
+  </div>
+
+  <p>
+    میزکار داشبورد محیطی مدرن با تم سازمانی زمردی است که امکان ارسال پرسش متنی و صوتی، مرور تاریخچه استعلام‌ها، استفاده از سوالات پرتکرار و اعمال تنظیمات مدل را فراهم می‌سازد.
+  </p>
+
+  <figure class="screenshot-box">
+    <img src="images/screen_dashboard.png" alt="نمای میزکار داشبورد">
+    <figcaption class="screenshot-caption">تصویر ۱: ساختار داشبورد شامل جعبه چت، نوار وضعیت، اقدامات سریع و تاریخچه استعلام‌ها</figcaption>
+  </figure>
+
+  <div class="features-grid">
+    <div class="feature-box">
+      <h4>⚡ کارت اقدامات سریع (Quick Actions)</h4>
+      <p>دسترسی فوری به ۴ پرسش کلیدی سازمانی (فروشندگان برتر، خلاصه امروز، نمودار ماهانه و تراکنش‌های ناموفق) با یک کلیک.</p>
+    </div>
+    <div class="feature-box">
+      <h4>🕘 نوار تاریخچه و بازپخش کامل گفتگوها</h4>
+      <p>امکان بازیابی و مرور تمامی استعلام‌های قبلی همراه با نمودارها، جداول و تحلیل‌ها بدون نیاز به اجرای مجدد کوئری.</p>
+    </div>
+    <div class="feature-box">
+      <h4>🎤 ورودی صوتی دوزبانه (فارسی / انگلیسی)</h4>
+      <p>تشخیص پرسرعت گفتار بدون نیاز به تایپ با دقت بالا در پردازش کلمات تخصصی شبکه پرداخت (تراکنش، پذیرنده، پایانه).</p>
+    </div>
+    <div class="feature-box">
+      <h4>⚙️ تنظیمات زنده مدل هوش مصنوعی</h4>
+      <p>انتخاب آنی ارائه‌دهنده استنتاج هوش مصنوعی (API ابری یا مدل‌های محلی Ollama) و انتخاب زبان خروجی.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== CHAPTER 3: SQL ENGINE & DATA TABLE ==================== -->
+<section class="page">
+  <div class="section-header">
+    <div>
+      <div class="section-kicker">فصل سوم</div>
+      <h2>۳. موتور تبدیل متن به SQL، خودترمیمی (Auto-Fix) و جدول داده‌ها</h2>
+    </div>
+    <span class="badge badge-emerald">پردازش کوئری و جدول</span>
+  </div>
+
+  <p>
+    سیستم به طور خودکار سوالات زبان طبیعی را به کوئری‌های استاندارد و بهینه تبدیل می‌کند و خروجی را در قالب جداول مالی استاندارد نمایش می‌دهد.
+  </p>
+
+  <figure class="screenshot-box">
+    <img src="images/screen_chat_result.png" alt="خروجی کامل نوبت چت">
+    <figcaption class="screenshot-caption">تصویر ۲: خروجی کامل یک نوبت شامل کادر ویرایشگر SQL، جدول داده‌های مالی، نمودارها و تحلیل هوشمند</figcaption>
+  </figure>
+
+  <h3>امکانات کلیدی موتور کوئری و جدول نتایج:</h3>
+  <ul>
+    <li><strong>کادر ویرایشگر زنده SQL:</strong> کد تولیدشده توسط هوش مصنوعی در یک جعبه ویرایشگر قرار دارد و کاربر در صورت تمایل می‌تواند تغییرات دلخواه را اعمال کرده و مستقیماً کوئری را اجرا کند.</li>
+    <li><strong>سیستم خودترمیمی (Auto-Fix):</strong> چنانچه دیتابیس خطایی اعلام کند، هوش مصنوعی علت خطا را ارزیابی، کوئری را اصلاح و به طور خودکار بازاجرا می‌نماید.</li>
+    <li><strong>قالب‌بندی مالی استاندارد:</strong> جداسازی ۳ رقمی کلیه مبالغ و ارقام ریالی همراه با برچسب‌های فارسی شفاف برای تمامی ستون‌ها.</li>
+    <li><strong>نوارهای بصری درصد سهم:</strong> نمایش میله‌های رنگی در ردیف‌ها جهت درک بلادرنگ سهم هر رکورد از کل داده‌ها.</li>
+  </ul>
+
+  <div class="code-block">
+-- نمونه کد SQL تولیدشده توسط هوش مصنوعی
+SELECT m.merchant_name, COUNT(t.id) AS tx_count, SUM(t.amount) AS total_amount
+FROM fact_transactions t
+JOIN dim_merchant m ON t.merchant_id = m.id
+WHERE t.status = 'SUCCESS'
+GROUP BY m.merchant_name ORDER BY total_amount DESC LIMIT 10;
+  </div>
+</section>
+
+<!-- ==================== CHAPTER 4: 10 ECHARTS VISUALIZATIONS ==================== -->
+<section class="page">
+  <div class="section-header">
+    <div>
+      <div class="section-kicker">فصل چهارم</div>
+      <h2>۴. گالری ۱۰ نمودار پیشرفته ECharts و انتخاب خودکار هوشمند</h2>
+    </div>
+    <span class="badge badge-emerald">مصورسازی پیشرفته</span>
+  </div>
+
+  <p>
+    داشبورد مجهز به موتور قدرتمند <strong>Apache ECharts</strong> است و متناسب با قصد سوال و ابعاد داده‌ها، بهترین نمودار تحلیلی را ترسیم می‌کند.
+  </p>
+
+  <figure class="screenshot-box">
+    <img src="images/screen_charts_10.png" alt="گالری ۱۰ نمودار تحلیلی ECharts">
+    <figcaption class="screenshot-caption">تصویر ۳: گالری و تنوع ۱۰ گانه نمودارهای مدرن تحلیلی ECharts در پلتفرم</figcaption>
+  </figure>
+
+  <table class="doc-table">
+    <thead>
+      <tr>
+        <th>ردیف</th>
+        <th>نوع نمودار</th>
+        <th>شناسه فنی</th>
+        <th>کاربرد تحلیلی و سناریوی اصلی</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>۱</td><td><strong>میله‌ای (Bar)</strong></td><td><code>bar</code></td><td>مقایسه فروشندگان، پذیرندگان و مبالغ در دسته‌های مجزا</td></tr>
+      <tr><td>۲</td><td><strong>خطی و مساحتی (Area/Line)</strong></td><td><code>line</code></td><td>تحلیل روند زمانی، نوسانات روزانه، هفتگی و ماهانه</td></tr>
+      <tr><td>۳</td><td><strong>دایره‌ای و دونات (Donut/Pie)</strong></td><td><code>pie</code></td><td>سهم ابزارهای پرداخت (کارتخوان، درگاه اینترنتی، موبایلی)</td></tr>
+      <tr><td>۴</td><td><strong>قیفی (Funnel)</strong></td><td><code>funnel</code></td><td>تحلیل قیف تبدیل و مراحل پرداخت درگاه اینترنتی</td></tr>
+      <tr><td>۵</td><td><strong>شمعی مالی (Candlestick)</strong></td><td><code>candlestick</code></td><td>بررسی کف، سقف، میانگین و نوسان مبالغ تراکنش‌ها</td></tr>
+      <tr><td>۶</td><td><strong>گیج عقربه‌ای (Gauge KPI)</strong></td><td><code>gauge</code></td><td>نمایش درصد تحقق تارگت ماهانه و پایداری شبکه</td></tr>
+      <tr><td>۷</td><td><strong>نقشه استانی (Iran Geo Map)</strong></td><td><code>map/geo</code></td><td>پراکندگی جغرافیایی تراکنش‌ها در سراسر استان‌های کشور</td></tr>
+      <tr><td>۸</td><td><strong>سانکی جریان داده (Sankey)</strong></td><td><code>sankey</code></td><td>جریان هدایت منابع مالی از درگاه به سوئیچ و تسویه</td></tr>
+      <tr><td>۹</td><td><strong>نقشه درختی (Treemap)</strong></td><td><code>treemap</code></td><td>دسته‌بندی سلسله‌مراتبی اصناف و سهم گروه‌های کالایی</td></tr>
+      <tr><td>۱۰</td><td><strong>نقشه حرارتی (Heatmap)</strong></td><td><code>heatmap</code></td><td>توزیع حجم تراکنش در ساعات شبانه‌روز و روزهای هفته</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ==================== CHAPTER 5 & 6: ZOOM MODAL & AI REFINEMENT ==================== -->
+<section class="page">
+  <div class="section-header">
+    <div>
+      <div class="section-kicker">فصل پنجم و ششم</div>
+      <h2>۵ و ۶. مدال زوم تعاملی و سیستم تحلیل و چالش هوش مصنوعی</h2>
+    </div>
+    <span class="badge badge-blue">تعامل عمیق و تحلیل</span>
+  </div>
+
+  <h3>پاپ‌آپ تعاملی بزرگ‌نمایی (Interactive Chart Modal)</h3>
+  <p>
+    با کلیک روی دکمه زوم هر نمودار، پنجره تمام‌صفحه باز می‌شود و امکان تغییر زنده نوع نمودار، محور دسته‌بندی (X) و محور مقادیر (Y)، پرینت مستقیم و دانلود تصویر باکیفیت PNG فراهم می‌گردد.
+  </p>
+
+  <figure class="screenshot-box">
+    <img src="images/screen_zoom_modal.png" alt="پاپ‌آپ بزرگ‌نمایی نمودار">
+    <figcaption class="screenshot-caption">تصویر ۴: پنجره بزرگ‌نمایی نمودار همراه با ابزارهای تغییر زنده ابعاد داده‌ها</figcaption>
+  </figure>
+
+  <h3>تحلیل هوشمند هوش مصنوعی و هایلایت تعاملی جهت بازبینی:</h3>
+  <p>
+    پس از هر پرسش، هوش مصنوعی داده‌ها را تفسیر کرده، فرصت‌ها و ناهنجاری‌ها را استخراج می‌کند. کاربر می‌تواند هر جمله از متن تحلیل را هایلایت کند و سوال یا نقد خود را بنویسد؛ سیستم متن اصلاح‌شده را تولید و در گزارش اصلی جایگزین می‌نماید.
+  </p>
+
+  <div class="callout callout-info">
+    <strong>مزیت هایلایت تعاملی:</strong> به جای ایجاد پیام‌های پراکنده، پیشنهادهای اصلاحی مستقیماً در متن رسمی گزارش درج شده و آماده استخراج PDF می‌گردد.
+  </div>
+</section>
+
+<!-- ==================== CHAPTER 7 & 8: POSTER & EXPORTS ==================== -->
+<section class="page">
+  <div class="section-header">
+    <div>
+      <div class="section-kicker">فصل هفتم و هشتم</div>
+      <h2>۷ و ۸. پوستر اینفوگرافیک داده‌محور و خروجی‌های PDF و Excel</h2>
+    </div>
+    <span class="badge badge-emerald">گزارش‌گیری سازمانی</span>
+  </div>
+
+  <h3>پوستر اینفوگرافیک داده‌محور (Infographic Poster)</h3>
+  <p>
+    سیستم به صورت خودکار شاخص‌های کلیدی عملکرد (KPIs) شامل تعداد تراکنش‌ها، حجم کل نقدینگی، نرخ موفقیت و سهم پذیرندگان برتر را در قالب یک پوستر شیک و مدرن با تم زمردی برای ارائه‌های مدیریتی تولید می‌کند.
+  </p>
+
+  <figure class="screenshot-box">
+    <img src="images/screen_poster.png" alt="پوستر اینفوگرافیک">
+    <figcaption class="screenshot-caption">تصویر ۵: نمونه پوستر اینفوگرافیک با کیفیت بالا جهت ارائه در جلسات مدیریتی</figcaption>
+  </figure>
+
+  <h3>موتور خروجی‌های رسمی سازمانی:</h3>
+  <table class="doc-table">
+    <thead>
+      <tr>
+        <th>فرمت خروجی</th>
+        <th>محتوا و ویژگی‌های فایل</th>
+        <th>مزیت کاربردی</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>فایل PDF رسمی</strong></td>
+        <td>سربرگ استاندارد، توضیح کوئری، تصاویر باکیفیت نمودارها، جدول مالی و تحلیل متن با فونت فارسی وزیرمتن</td>
+        <td>راست‌چین کامل، بدون به‌هم‌ریختگی حروف و کاملاً وکتور جهت چاپ و بایگانی</td>
+      </tr>
+      <tr>
+        <td><strong>فایل اکسل (.xlsx)</strong></td>
+        <td>شیت داده‌های خام (Data)، شیت متاداده و کوئری (Explanation) و شیت تحلیل متنی (Analysis)</td>
+        <td>فرمت‌بندی ستونی استاندارد و قابلیت انجام محاسبات فرمولی روی اعداد</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ==================== CHAPTER 9: TIMINGS, SCENARIOS & FAQ ==================== -->
+<section class="page">
+  <div class="section-header">
+    <div>
+      <div class="section-kicker">فصل نهم</div>
+      <h2>۹. پایش زمان‌بندی مراحل پردازش، سناریوهای کاربردی و FAQ</h2>
+    </div>
+    <span class="badge badge-emerald">پایش و پرسش‌ها</span>
+  </div>
+
+  <h3>شفافیت در زمان‌بندی پردازش (Pipeline Timings):</h3>
+  <p>در بالای هر پاسخ، تفکیک میلی‌ثانیه‌ای زمان فرآیند درج شده است:</p>
+  <div class="callout callout-success">
+    <code>⚡ زمان کل: ۱.۱۵ ثانیه | تولید SQL: ۰.۳۵ث | گارد امنیت: ۰.۰۴ث | اجرای دیتابیس: ۰.۱۱ث | تحلیل هوش مصنوعی: ۰.۶۵ث</code>
+  </div>
+
+  <h3>نمونه پرسش‌های کاربردی در داشبورد:</h3>
+  <ul>
+    <li><em>«۱۰ فروشنده برتر از نظر حجم تراکنش در ماه جاری را نشان بده»</em> (تولید نمودار میله‌ای + جدول مالی)</li>
+    <li><em>«روند تراکنش‌های ناموفق هفته گذشته به تفکیک علت خطا»</em> (تولید نمودار خطی مساحتی)</li>
+    <li><em>«سهم ابزارهای پرداخت (کارتخوان، اینترنتی، موبایلی) از کل مبالغ»</em> (تولید نمودار دونات)</li>
+    <li><em>«توزیع استانی تراکنش‌های درگاه پرداخت در سراسر کشور»</em> (تولید نقشه جغرافیایی ECharts)</li>
+  </ul>
+
+  <h3>سوالات متداول کاربران (FAQ):</h3>
+  <div class="callout callout-info">
+    <strong>س: آیا می‌توان بدون تایپ و به صورت صوتی پرسش کرد؟</strong><br>
+    پ: بله، با کلیک روی آیکون میکروفون (🎤) در کادر پیام، می‌توانید به زبان فارسی یا انگلیسی صحبت کنید.
+  </div>
+
+  <div class="callout callout-info">
+    <strong>س: آیا امکان تغییر نوع نمودار پس از رسم وجود دارد؟</strong><br>
+    پ: بله، با کلیک روی آیکون زوم در بالای نمودار، می‌توانید در پنجره بازشده نوع نمودار و ستون‌ها را تغییر دهید.
+  </div>
+
+  <div class="page-footer-note">
+    <span>سامانه دستیار هوشمند هوش تجاری — کلیه حقوق محفوظ است.</span>
+    <span>تولید شده توسط موتور مستندسازی خودکار پلتفرم</span>
+  </div>
+</section>
+
+</body>
+</html>

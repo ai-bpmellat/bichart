@@ -54,7 +54,7 @@ Notes:
   * "last month" / "ماه گذشته": WHERE d.full_date >= date('now','start of month','-1 month')
     AND d.full_date < date('now','start of month')
   * Use SQLite modifier 'start of month' — NEVER 'first day of month' (returns NULL in SQLite).
-  * Mock data spans approximately the last 6 months through today (rolling window from db_mock.py).
+  * Mock data spans approximately the last 6 months through yesterday (rolling window from db_mock.py).
 - Status rules:
   * dim_terminal.status: 'active' / 'inactive' (lowercase) — do not use 'Active'
   * fact_transactions.status: approved / declined / reversed

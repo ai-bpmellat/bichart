@@ -1,0 +1,949 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>کتابچه راهنمای جامع و کاتالوگ قابلیت‌های دستیار هوشمند هوش تجاری</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  @page {
+    size: A4 portrait;
+    margin: 14mm 14mm 16mm 14mm;
+    @bottom-center {
+      content: counter(page);
+      font-family: 'Vazirmatn', Tahoma, sans-serif;
+      font-size: 8.5pt;
+      color: #64748b;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  
+  body {
+    margin: 0;
+    color: #1e293b;
+    background: #ffffff;
+    font-family: 'Vazirmatn', Tahoma, 'B Nazanin', Arial, sans-serif;
+    font-size: 10pt;
+    line-height: 1.85;
+  }
+
+  .page {
+    break-before: page;
+    position: relative;
+  }
+
+  /* COVER PAGE */
+  .cover {
+    break-before: auto;
+    min-height: 260mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 14mm 12mm;
+    border: 3px solid #059669;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 35%, #ffffff 80%, #ecfdf5 100%);
+  }
+
+  .cover-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #a7f3d0;
+    padding-bottom: 12px;
+  }
+
+  .cover-logo-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .cover-logo-icon {
+    width: 48px;
+    height: 48px;
+    background: #059669;
+    color: #ffffff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  .cover-brand-title {
+    font-size: 15pt;
+    font-weight: 800;
+    color: #065f46;
+    margin: 0;
+  }
+
+  .cover-brand-sub {
+    font-size: 9pt;
+    color: #047857;
+    margin: 0;
+  }
+
+  .cover-badge {
+    background: #d1fae5;
+    border: 1px solid #059669;
+    color: #065f46;
+    font-size: 8.5pt;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 20px;
+  }
+
+  .cover-body {
+    margin: 18mm 0;
+    text-align: center;
+  }
+
+  .cover-kicker {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #059669;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+
+  .cover-title {
+    font-size: 26pt;
+    font-weight: 900;
+    color: #0f2a1f;
+    line-height: 1.4;
+    margin: 0 0 16px;
+  }
+
+  .cover-title span {
+    color: #059669;
+  }
+
+  .cover-lead {
+    font-size: 11.5pt;
+    color: #475569;
+    max-width: 150mm;
+    margin: 0 auto 24px;
+    line-height: 1.8;
+  }
+
+  .cover-highlights-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+    text-align: right;
+  }
+
+  .cover-highlight-card {
+    background: #ffffff;
+    border: 1px solid #bbf7d0;
+    border-radius: 10px;
+    padding: 12px;
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.06);
+  }
+
+  .cover-highlight-card h4 {
+    margin: 0 0 4px;
+    font-size: 9.5pt;
+    color: #065f46;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .cover-highlight-card p {
+    margin: 0;
+    font-size: 8.2pt;
+    color: #64748b;
+    line-height: 1.6;
+  }
+
+  .cover-meta {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    text-align: right;
+  }
+
+  .cover-meta-item span {
+    display: block;
+    font-size: 7.5pt;
+    color: #64748b;
+  }
+
+  .cover-meta-item strong {
+    font-size: 8.8pt;
+    color: #0f172a;
+  }
+
+  /* HEADINGS & SECTIONS */
+  .section-header {
+    border-bottom: 2px solid #059669;
+    padding-bottom: 6px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .section-kicker {
+    font-size: 8.5pt;
+    font-weight: 700;
+    color: #059669;
+    margin-bottom: 2px;
+  }
+
+  h2 {
+    font-size: 16pt;
+    font-weight: 800;
+    color: #065f46;
+    margin: 0;
+  }
+
+  h3 {
+    font-size: 11.5pt;
+    font-weight: 700;
+    color: #047857;
+    margin: 14px 0 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  h4 {
+    font-size: 10pt;
+    font-weight: 700;
+    color: #0f2a1f;
+    margin: 10px 0 4px;
+  }
+
+  p {
+    margin: 0 0 10px;
+    color: #334155;
+    text-align: justify;
+  }
+
+  ul, ol {
+    margin: 0 0 12px;
+    padding-right: 20px;
+  }
+
+  li {
+    margin-bottom: 5px;
+    color: #334155;
+  }
+
+  /* CALLOUTS */
+  .callout {
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 12px 0;
+    font-size: 9.2pt;
+    break-inside: avoid;
+    line-height: 1.75;
+  }
+
+  .callout-success {
+    background: #f0fdf4;
+    border-right: 4px solid #059669;
+    color: #064e3b;
+  }
+
+  .callout-info {
+    background: #f0f9ff;
+    border-right: 4px solid #0284c7;
+    color: #0c4a6e;
+  }
+
+  .callout-warning {
+    background: #fffbeb;
+    border-right: 4px solid #d97706;
+    color: #78350f;
+  }
+
+  .callout-tech {
+    background: #f8fafc;
+    border-right: 4px solid #475569;
+    color: #1e293b;
+  }
+
+  /* SCREENSHOT BOX */
+  .screenshot-box {
+    margin: 14px 0;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+    break-inside: avoid;
+    text-align: center;
+  }
+
+  .screenshot-box img {
+    width: 100%;
+    max-height: 110mm;
+    object-fit: contain;
+    display: block;
+    background: #f8fafc;
+  }
+
+  .screenshot-caption {
+    padding: 6px 12px;
+    background: #f1f5f9;
+    border-top: 1px solid #e2e8f0;
+    font-size: 8.2pt;
+    color: #475569;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  /* PIPELINE FLOW */
+  .pipeline-flow {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 14px 0;
+    break-inside: avoid;
+  }
+
+  .pipe-step {
+    flex: 1;
+    background: #f0fdf4;
+    border: 1px solid #a7f3d0;
+    border-radius: 8px;
+    padding: 8px;
+    text-align: center;
+    position: relative;
+  }
+
+  .pipe-step strong {
+    display: block;
+    font-size: 9pt;
+    color: #065f46;
+  }
+
+  .pipe-step small {
+    font-size: 7.5pt;
+    color: #047857;
+    display: block;
+    line-height: 1.4;
+    margin-top: 2px;
+  }
+
+  .pipe-arrow {
+    display: flex;
+    align-items: center;
+    color: #059669;
+    font-weight: bold;
+    font-size: 12pt;
+  }
+
+  /* TABLES */
+  .doc-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 8.8pt;
+    break-inside: avoid;
+  }
+
+  .doc-table th {
+    background: #059669;
+    color: #ffffff;
+    font-weight: 700;
+    text-align: right;
+    padding: 7px 10px;
+    border: 1px solid #047857;
+  }
+
+  .doc-table td {
+    padding: 7px 10px;
+    border: 1px solid #cbd5e1;
+    color: #1e293b;
+    vertical-align: middle;
+  }
+
+  .doc-table tr:nth-child(even) td {
+    background: #f8fafc;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 7.8pt;
+    font-weight: 700;
+  }
+
+  .badge-emerald { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+  .badge-blue { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+  .badge-amber { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+  .badge-purple { background: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; }
+
+  /* CODE BLOCKS */
+  code {
+    font-family: Consolas, 'Courier New', monospace;
+    direction: ltr;
+    unicode-bidi: embed;
+    background: #f1f5f9;
+    color: #0f766e;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 8.5pt;
+  }
+
+  .code-block {
+    direction: ltr;
+    text-align: left;
+    background: #1a221f;
+    color: #38bdf8;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-family: Consolas, monospace;
+    font-size: 8.5pt;
+    line-height: 1.6;
+    margin: 8px 0;
+    overflow-x: auto;
+    break-inside: avoid;
+  }
+
+  /* GRID CARDS */
+  .features-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 12px 0;
+    break-inside: avoid;
+  }
+
+  .feature-box {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-right: 4px solid #059669;
+    border-radius: 8px;
+    padding: 10px 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  }
+
+  .feature-box h4 {
+    margin: 0 0 4px;
+    color: #065f46;
+    font-size: 9.5pt;
+    font-weight: 700;
+  }
+
+  .feature-box p {
+    margin: 0;
+    font-size: 8.5pt;
+    color: #475569;
+    line-height: 1.6;
+  }
+
+  /* FOOTER NOTE */
+  .page-footer-note {
+    position: absolute;
+    bottom: 2mm;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    font-size: 7.5pt;
+    color: #94a3b8;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 3px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== COVER PAGE ==================== -->
+<section class="cover page">
+  <div class="cover-header">
+    <div class="cover-logo-wrap">
+      <div class="cover-logo-icon">📊</div>
+      <div>
+        <h1 class="cover-brand-title">Rayamate · رایامیت</h1>
+        <p class="cover-brand-sub">دستیار هوشمند هوش تجاری و تحلیل داده (PSP BI Assistant)</p>
+      </div>
+    </div>
+    <span class="cover-badge">نسخه سازمانی ۲.۴</span>
+  </div>
+
+  <div class="cover-body">
+    <div class="cover-kicker">راهنمای جامع کاربری و کاتالوگ مستندات سامانه</div>
+    <h2 class="cover-title">کتابچه معرفی و آموزش <span>تمامی قابلیت‌ها</span> و امکانات پلتفرم</h2>
+    <p class="cover-lead">
+      راهنمای گام‌به‌گام کار با هوش مصنوعی تبدیل گفتار و متن طبیعی به کوئری SQL، موتور پیشرفته ECharts با ۱۰ نوع نمودار، پاپ‌آپ تعاملی بزرگ‌نمایی، تحلیل و چالش هوشمند داده‌ها، پوستر اینفوگرافیک و خروجی‌های رسمی PDF/Excel.
+    </p>
+
+    <div class="cover-highlights-grid">
+      <div class="cover-highlight-card">
+        <h4>🤖 پردازش زبان طبیعی فارسی</h4>
+        <p>تولید خودکار SQL با امنیت بالا، ویرایشگر زنده و رفع خودکار خطای پایگاه‌داده (Auto-Fix).</p>
+      </div>
+      <div class="cover-highlight-card">
+        <h4>📊 ۱۰ نوع نمودار تحلیلی</h4>
+        <p>انتخاب خودکار هوشمندانه ECharts (میله‌ای، نقشه ایران، گیج KPI، سانکی، دونات و...).</p>
+      </div>
+      <div class="cover-highlight-card">
+        <h4>🖼️ گزارش‌دهی چندرسانه‌ای</h4>
+        <p>تولید پوستر تصویری PNG، گفتگوی تعاملی روی متن تحلیل و خروجی PDF/Excel سازمانی.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="cover-meta">
+    <div class="cover-meta-item">
+      <span>نوع سند</span>
+      <strong>دفترچه راهنمای جامع کاربران</strong>
+    </div>
+    <div class="cover-meta-item">
+      <span>مخاطبان</span>
+      <strong>مدیران، تحلیل‌گران داده و کاربران کسب‌وکار</strong>
+    </div>
+    <div class="cover-meta-item">
+      <span>زبان مستند</span>
+      <strong>فارسی استاندارد (راست‌چین)</strong>
+    </div>
+    <div class="cover-meta-item">
+      <span>تاریخ بازبینی</span>
+      <strong>مرداد ۱۴۰۵ / August 2026</strong>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== CHAPTER 1: OVERVIEW & PIPELINE ==================== -->
+<section class="page">
+  <div class="section-header">
+    <div>
+      <div class="section-kicker">فصل اول</div>
+      <h2>۱. نمای کلی سامانه و معماری جریان پردازش داده</h2>
+    </div>
+    <span class="badge badge-emerald">معماری کلان</span>
+  </div>
+
+  <p>
+    <strong>سامانه هوش تجاری رایامیت (Rayamate BI Assistant)</strong> یک دستیار پیشرفته هوش تجاری مکالمه‌محور است که به منظور تسهیل دسترسی به داده‌های تراکنشی شرکت‌های ارائه‌دهنده خدمات پرداخت (PSP) و پذیرندگان طراحی شده است. کاربران بدون نیاز به تسلط بر زبان SQL، می‌توانند سوالات تحلیلی خود را به زبان طبیعی (فارسی یا انگلیسی) مطرح کرده و در کسری از ثانیه پاسخ‌های بصری و تحلیلی دریافت نمایند.
+  </p>
+
+  <figure class="screenshot-box">
+    <img src="images/screen_landing.png" alt="صفحه معرفی و لندینگ سامانه">
+    <figcaption class="screenshot-caption">تصویر ۱: صفحه معرفی و قابلیت‌های عمومی سامانه در آدرس نخست (Landing Page)</figcaption>
+  </figure>
+
+  <h3>جریان گام‌به‌گام پردازش پیام (End-to-End Execution Pipeline)</h3>
+  <p>هر بار که کاربر سوالی را ارسال می‌کند، سیستم یک فرایند ۵ مرحله‌ای امن و هماهنگ را به صورت غیرهمگام (Async) طی می‌کند:</p>
+
+  <div class="pipeline-flow">
+    <div class="pipe-step">
+      <strong>۱. احراز هویت</strong>
+      <small>تشخیص کاربر و کلید دسترسی</small>
+    </div>
+    <div class="pipe-arrow">←</div>
+    <div class="pipe-step">
+      <strong>۲. تولید SQL</strong>
+      <small>تبدیل متن به کوئری با مدل AI</small>
+    </div>
+    <div class="pipe-arrow">←</div>
+    <div class="pipe-step">
+      <strong>۳. گارد امنیت</strong>
+      <small>کنترل SELECT و RLS</small>
+    </div>
+    <div class="pipe-arrow">←</div>
+    <div class="pipe-step">
+      <strong>۴. اجرای دیتابیس</strong>
+      <small>دریافت سطرها از SQLAlchemy</small>
+    </div>
+    <div class="pipe-arrow">←</div>
+    <div class="pipe-step">
+      <strong>۵. تحلیل هوشمند</strong>
+      <small>استخراج بینش و الگوها</small>
+    </div>
+  </div>
+
+  <div class="callout callout-success">
+    <strong>ویژگی ممتاز معماری:</strong> معماری سیستم به صورت <em>Modular Monolith</em> در قالب فریم‌ورک سریع <strong>FastAPI + Uvicorn</strong> پیاده‌سازی شده است که پاسخ‌دهی روان همزمان، مدیریت نشست امن و ماژولار بودن کامل بخش‌های Identity، Chat، LLM، SQL Guard، Data و Reporting را تضمین می‌نماید.
+  </div>
+</section>
+
+<!-- ==================== CHAPTER 2: AUTH, ROLES & SECURITY ==================== -->
+<section class="page">
+  <div class="section-header">
+    <div>
+      <div class="section-kicker">فصل دوم</div>
+      <h2>۲. احراز هویت، سطوح دسترسی و امنیت چندمستاجری</h2>
+    </div>
+    <span class="badge badge-blue">امنیت و کنترل دسترسی</span>
+  </div>
+
+  <p>
+    سامانه رایامیت مجهز به مکانیزم احراز هویت دومرحله‌ای و کنترل دسترسی مبتنی بر نقش (RBAC) است. در کنار حساب‌های کاربری، جدول مشتریان (<code>dim_customer</code>) سطوح داده‌های در دسترس هر کاربر را مشخص می‌کند.
+  </p>
+
+  <figure class="screenshot-box">
+    <img src="images/screen_login.png" alt="صفحه ورود و حساب‌های دمو">
+    <figcaption class="screenshot-caption">تصویر ۲: صفحه لاگین با پشتیبانی از حساب‌های سازمانی و حساب‌های تستی یک‌کلیکه</figcaption>
+  </figure>
+
+  <h3>تفکیک نقش‌های کاربری و ایزوله‌سازی ردیف‌های داده (Row-Level Security)</h3>
+  <table class="doc-table">
+    <thead>
+      <tr>
+        <th>نقش کاربری</th>
+        <th>دامنه دسترسی به داده‌ها</th>
+        <th>امکانات مدیریتی</th>
+        <th>کاربرد اصلی</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>مدیر ارشد (Admin)</strong></td>
+        <td>مشاهده تمامی تراکنش‌های کل شبکه، تمام پذیرندگان و پایانه‌ها</td>
+        <td>مدیریت کاربران، لاگ‌ها، تغییر تنظیمات مدل AI و نظرسنجی</td>
+        <td>مدیران ارشد، کارشناسان BI و نظارت شبکه PSP</td>
+      </tr>
+      <tr>
+        <td><strong>مشتری / پذیرنده (Customer)</strong></td>
+        <td>محدود به پذیرندگان و تراکنش‌های متعلق به شرکت خود (فیلتر خودکار)</td>
+        <td>پرسش و پاسخ، مصورسازی، گزارش‌گیری PDF و Excel</td>
+        <td>فروشگاه‌ها (مانند دیجی‌کالا، اسنپ، هایپراستار و...)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <figure class="screenshot-box">
+    <img src="images/screen_users.png" alt="پنل مدیریت کاربران">
+    <figcaption class="screenshot-caption">تصویر ۳: پنل مدیریت کاربران و تعیین نقش‌های دسترسی (Users Management)</figcaption>
+  </figure>
+
+  <div class="callout callout-warning">
+    <strong>گارد امنیتی SQL Guard:</strong> هر کوئری تولیدشده ابتدا اعتبارسنجی می‌شود تا فقط از دستورات مجاز <code>SELECT</code> و <code>WITH</code> استفاده کند. هرگونه دستور مخرب نظیر <code>DROP</code>, <code>DELETE</code>, <code>INSERT</code> یا <code>ALTER</code> فوراً متوقف و مسدود می‌شود.
+  </div>
+</section>
+
+<!-- ==================== CHAPTER 3: WORKSPACE & VOICE INPUT ==================== -->
+<section class="page">
+  <div class="section-header">
+    <div>
+      <div class="section-kicker">فصل سوم</div>
+      <h2>۳. میز کار داشبورد، نوار تاریخچه و ورودی صوتی هوشمند</h2>
+    </div>
+    <span class="badge badge-emerald">رابط کاربری و تعامل</span>
+  </div>
+
+  <p>
+    داشبورد اصلی محیطی یکپارچه، سریع و کاملاً فارسی است که تمامی ابزارهای پرسش، تنظیمات و دسترسی‌های سریع را در اختیار کاربر قرار می‌دهد.
+  </p>
+
+  <figure class="screenshot-box">
+    <img src="images/screen_dashboard.png" alt="میز کار و داشبورد اصلی چت">
+    <figcaption class="screenshot-caption">تصویر ۴: نمای داشبورد کاربری شامل جعبه چت، نوار وضعیت، اقدامات سریع و تاریخچه</figcaption>
+  </figure>
+
+  <div class="features-grid">
+    <div class="feature-box">
+      <h4>⚡ کارت اقدامات سریع (Quick Actions)</h4>
+      <p>دسترسی فوری به ۴ سوال کلیدی و پرتکرار سازمانی جهت بررسی سریع وضعیت بدون نیاز به نوشتن متن.</p>
+    </div>
+    <div class="feature-box">
+      <h4>🕘 تاریخچه استعلام‌ها و بازپخش</h4>
+      <p>امکان مشاهده استعلام‌های پیشین و بارگذاری مجدد کامل نمودارها و داده‌های هر نوبت با یک کلیک.</p>
+    </div>
+    <div class="feature-box">
+      <h4>❓ فهرست ۱۰ سوال پرتکرار</h4>
+      <p>لیست مرتب‌شده از پرکاربردترین تحلیل‌های درخواستی شبکه جهت استفاده مدیران و کاربران جدید.</p>
+    </div>
+    <div class="feature-box">
+      <h4>⚙️ تنظیمات زنده مدل و زبان</h4>
+      <p>امکان تغییر آنی ارائه‌دهنده هوش مصنوعی (API یا Ollama محلی) و تغییر زبان پاسخ‌ها (فارسی / انگلیسی).</p>
+    </div>
+  </div>
+
+  <h3>ورودی صوتی دو زبانه بدون نیاز به تایپ (Bilingual Voice Input)</h3>
+  <p>
+    با کلیک روی دکمه میکروفون (🎤)، کاربر می‌تواند سوال خود را به زبان فارسی یا انگلیسی به صورت شفاهی بپرسد. سامانه با استفاده از موتور تشخیص گفتار پیشرفته مرورگر، صدا را به متن دقیق تبدیل کرده و در کادر پیام درج می‌نماید.
+  </p>
+
+  <div class="callout callout-info">
+    <strong>نکته کاربردی:</strong> ورودی صوتی بر روی مرورگرهای مدرن (Google Chrome, Microsoft Edge, Safari) کاملاً فعال بوده و با دقت بالایی کلمات تخصصی مالی نظیر «تراکنش»، «پایانه»، «پذیرنده» و «درگاه پرداخت» را شناسایی می‌کند.
+  </div>
+</section>
+
+<!-- ==================== CHAPTER 4 & 5: SQL ENGINE & DATA TABLES ==================== -->
+<section class="page">
+  <div class="section-header">
+    <div>
+      <div class="section-kicker">فصل چهارم و پنجم</div>
+      <h2>۴ و ۵. موتور تولید SQL، خودترمیمی (Auto-Fix) و جدول داده‌ها</h2>
+    </div>
+    <span class="badge badge-purple">پردازش داده و جدول</span>
+  </div>
+
+  <p>
+    هنگامی که کاربر سوال خود را ارسال می‌کند، موتور هوش مصنوعی با توجه به طرح‌واره (Schema) پایگاه داده، کوئری استاندارد SQLite را تولید می‌کند.
+  </p>
+
+  <figure class="screenshot-box">
+    <img src="images/screen_chat_result.png" alt="نمایش نوبت چت شامل SQL، جدول داده‌ها و تحلیل">
+    <figcaption class="screenshot-caption">تصویر ۵: خروجی کامل یک پرسش شامل کادر SQL، جدول نتایج مالی، نمودارها و تحلیل هوشمند</figcaption>
+  </figure>
+
+  <h3>قابلیت‌های کلیدی موتور SQL و جدول داده‌ها:</h3>
+  <ul>
+    <li><strong>ویرایشگر زنده کد SQL:</strong> کاربر در صورت تمایل می‌تواند کد SQL تولیدشده را ویرایش کرده و مستقیماً کلید اجرای کوئری را بزند.</li>
+    <li><strong>مکانیزم خودترمیمی (Auto-Fix / Self-Healing):</strong> چنانچه دیتابیس خطایی به دلیل نام ستون نامعتبر یا ساختار اشتباه بازگرداند، هوش مصنوعی خطا را بررسی و در پشت صحنه کوئری را تصحیح و مجدداً اجرا می‌نماید.</li>
+    <li><strong>قالب‌بندی مالی استاندارد (۳ رقم ۳ رقم):</strong> کلیه مبالغ و مقادیر عددی با جداکننده هزارتایی نمایش داده شده و ستون‌ها دارای برچسب‌های استاندارد فارسی می‌باشند.</li>
+    <li><strong>نوارهای بصری درصد سهم:</strong> در کنار مقادیر عددی، میله‌های بصری کوچکی جهت درک سریع سهم هر ردیف از مجموع داده‌ها ترسیم می‌شود.</li>
+  </ul>
+
+  <div class="code-block">
+-- نمونه کد SQL تولیدشده با فیلتر خودکار امنیت و دسته‌بندی
+SELECT m.merchant_name, COUNT(t.id) AS tx_count, SUM(t.amount) AS total_amount
+FROM fact_transactions t
+JOIN dim_merchant m ON t.merchant_id = m.id
+WHERE t.status = 'SUCCESS'
+GROUP BY m.merchant_name ORDER BY total_amount DESC LIMIT 10;
+  </div>
+</section>
+
+<!-- ==================== CHAPTER 6: 10 ECHARTS VISUALIZATIONS ==================== -->
+<section class="page">
+  <div class="section-header">
+    <div>
+      <div class="section-kicker">فصل ششم</div>
+      <h2>۶. گالری ۱۰ نمودار پیشرفته ECharts و انتخاب هوشمند خودکار</h2>
+    </div>
+    <span class="badge badge-emerald">مصورسازی داده‌ها</span>
+  </div>
+
+  <p>
+    سامانه مجهز به موتور مصورسازی قدرتمند <strong>Apache ECharts</strong> است. هوش مصنوعی سامانه به طور خودکار بر اساس ساختار داده‌ها و قصد سوال کاربر (Intent)، مناسب‌ترین نوع نمودار را برمی‌گزیند.
+  </p>
+
+  <figure class="screenshot-box">
+    <img src="images/screen_charts_10.png" alt="گالری ۱۰ نوع نمودار تحلیلی ECharts">
+    <figcaption class="screenshot-caption">تصویر ۶: گالری و تنوع ۱۰ گانه نمودارهای مدرن ECharts پیاده‌سازی شده در پلتفرم</figcaption>
+  </figure>
+
+  <h3>معرفی و کاربرد انواع نمودارهای سامانه:</h3>
+  <table class="doc-table">
+    <thead>
+      <tr>
+        <th>ردیف</th>
+        <th>نوع نمودار</th>
+        <th>شناسه ECharts</th>
+        <th>کاربرد و سناریوی اصلی</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>۱</td>
+        <td><strong>میله‌ای (Bar Chart)</strong></td>
+        <td><code>bar</code></td>
+        <td>مقایسه فروشندگان، پذیرندگان و مبالغ تراکنش در دسته‌های مجزا</td>
+      </tr>
+      <tr>
+        <td>۲</td>
+        <td><strong>خطی و مساحتی (Area / Line)</strong></td>
+        <td><code>line</code></td>
+        <td>بررسی روندهای زمانی، تغییرات هفتگی، ماهانه و نوسانات تراکنش‌ها</td>
+      </tr>
+      <tr>
+        <td>۳</td>
+        <td><strong>دایره‌ای و دونات (Donut / Pie / Rose)</strong></td>
+        <td><code>pie</code></td>
+        <td>سهم ابزارهای پرداخت (کارتخوان، اینترنتی، موبایلی) و توزیع صنفی</td>
+      </tr>
+      <tr>
+        <td>۴</td>
+        <td><strong>قیفی (Funnel Chart)</strong></td>
+        <td><code>funnel</code></td>
+        <td>تحلیل قیف تبدیل درگاه پرداخت (ورود به درگاه → ثبت کارت → پرداخت موفق)</td>
+      </tr>
+      <tr>
+        <td>۵</td>
+        <td><strong>شمعی مالی (Candlestick)</strong></td>
+        <td><code>candlestick</code></td>
+        <td>تحلیل نوسان مبالغ تراکنش، بالاترین و پایین‌ترین سقف در دوره‌ها</td>
+      </tr>
+      <tr>
+        <td>۶</td>
+        <td><strong>گیج عقربه‌ای (Gauge KPI)</strong></td>
+        <td><code>gauge</code></td>
+        <td>نمایش درصد تحقق تارگت ماهانه یا نرخ موفقیت تراکنش‌های شبکه</td>
+      </tr>
+      <tr>
+        <td>۷</td>
+        <td><strong>نقشه استانی (Iran Geo Map)</strong></td>
+        <td><code>map / geo</code></td>
+        <td>پراکندگی جغرافیایی تراکنش‌ها و پذیرندگان در استان‌های کشور</td>
+      </tr>
+      <tr>
+        <td>۸</td>
+        <td><strong>سانکی جریان داده (Sankey Flow)</strong></td>
+        <td><code>sankey</code></td>
+        <td>جریان هدایت تراکنش از درگاه‌ها به سوئیچ‌های بانکی و وضعیت تسویه</td>
+      </tr>
+      <tr>
+        <td>۹</td>
+        <td><strong>نقشه درختی (Treemap)</strong></td>
+        <td><code>treemap</code></td>
+        <td>دسته‌بندی سلسله‌مراتبی صنایع و سهم گروه‌های مختلف کالایی</td>
+      </tr>
+      <tr>
+        <td>۱۰</td>
+        <td><strong>نقشه حرارتی (Heatmap Matrix)</strong></td>
+        <td><code>heatmap</code></td>
+        <td>توزیع حجم تراکنش در ساعات شبانه‌روز و روزهای هفته (پیک ترافیک)</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ==================== CHAPTER 7 & 8: ZOOM MODAL & AI ANALYSIS ==================== -->
+<section class="page">
+  <div class="section-header">
+    <div>
+      <div class="section-kicker">فصل هفتم و هشتم</div>
+      <h2>۷ و ۸. پاپ‌آپ زوم تعاملی و سیستم تحلیل و چالش هوش مصنوعی</h2>
+    </div>
+    <span class="badge badge-blue">تعامل عمیق و تحلیل</span>
+  </div>
+
+  <h3>پاپ‌آپ تعاملی بزرگ‌نمایی و تغییر زنده ابعاد (Interactive Zoom Modal)</h3>
+  <p>
+    با کلیک روی آیکون زوم هر نمودار، پنجره بزرگ‌نمایی باز می‌شود. در این پنجره کاربر می‌تواند بدون نیاز به پرسش مجدد، نوع نمودار، محور دسته‌بندی (X) و محور مقادیر (Y) را تغییر داده و تصویر باکیفیت PNG یا پرینت مستقیم دریافت کند.
+  </p>
+
+  <figure class="screenshot-box">
+    <img src="images/screen_zoom_modal.png" alt="پاپ‌آپ تعاملی بزرگ‌نمایی نمودار">
+    <figcaption class="screenshot-caption">تصویر ۷: پنجره بزرگ‌نمایی نمودار با جعبه‌ابزار تغییر نوع و ابعاد داده‌ها</figcaption>
+  </figure>
+
+  <h3>تحلیل هوش مصنوعی و هایلایت تعاملی جهت بازبینی (Analysis & Discussion Refinement)</h3>
+  <p>
+    پس از اجرای هر کوئری، هوش مصنوعی داده‌ها را تحلیل کرده و نکات آماری و پیشنهادهای کسب‌وکاری ارائه می‌دهد.
+  </p>
+
+  <div class="features-grid">
+    <div class="feature-box">
+      <h4>🔍 شناسایی خودکار ناهنجاری‌ها</h4>
+      <p>شناسایی افت ناگهانی تراکنش‌ها، پذیرندگان کم‌کار و هشدارهای امنیتی در متن تحلیل.</p>
+    </div>
+    <div class="feature-box">
+      <h4>💬 امکان هایلایت و چالش تحلیلی</h4>
+      <p>کاربر می‌تواند هر جمله از تحلیل را انتخاب و اعتراض خود را بنویسد؛ سیستم متن را اصلاح و جایگزین می‌کند.</p>
+    </div>
+  </div>
+
+  <div class="callout callout-info">
+    <strong>مزیت هایلایت تعاملی:</strong> به جای تولید پاسخ‌های مکرر و نامرتب، اصلاحیه‌ها مستقیماً در متن اصلی گزارش جایگزین می‌شوند و گزارش آماده خروجی رسمی می‌گردد.
+  </div>
+</section>
+
+<!-- ==================== CHAPTER 9 & 10: INFOGRAPHIC POSTER & EXPORTS ==================== -->
+<section class="page">
+  <div class="section-header">
+    <div>
+      <div class="section-kicker">فصل نهم و دهم</div>
+      <h2>۹ و ۱۰. پوستر اینفوگرافیک داده‌محور و خروجی‌های سازمانی PDF / Excel</h2>
+    </div>
+    <span class="badge badge-emerald">گزارش‌گیری سازمانی</span>
+  </div>
+
+  <h3>پوستر اینفوگرافیک داده‌محور (Data-driven Infographic Poster)</h3>
+  <p>
+    پلتفرم به صورت خودکار شاخص‌های کلیدی عملکرد (KPIs) شامل مجموع تراکنش، حجم نقدینگی، نرخ موفقیت و سهم پذیرندگان برتر را در قالب یک پوستر گرافیکی شیک و مدرن با تم رنگی زمردی محاسبه و آماده دانلود PNG می‌کند.
+  </p>
+
+  <figure class="screenshot-box">
+    <img src="images/screen_poster.png" alt="پوستر اینفوگرافیک داده‌محور">
+    <figcaption class="screenshot-caption">تصویر ۸: پوستر اینفوگرافیک با رزولوشن بالا مناسب ارائه در جلسات هیئت‌مدیره و مدیریتی</figcaption>
+  </figure>
+
+  <h3>موتور خروجی‌های رسمی سازمانی (PDF & Excel Exports)</h3>
+  <table class="doc-table">
+    <thead>
+      <tr>
+        <th>فرمت خروجی</th>
+        <th>محتویات فایل</th>
+        <th>ویژگی‌های فنی و مزایا</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>فایل PDF رسمی</strong></td>
+        <td>عنوان گزارش، توضیح متنی، تصاویر نمودارهای ترسیم‌شده، جدول کامل داده‌ها با فرمت مالی، تحلیل نهایی هوش مصنوعی</td>
+        <td>طراحی با فونت فارسی استاندارد وزیرمتن، راست‌چین کامل، صفحه‌بندی هوشمند، بدون به‌هم‌ریختگی حروف و کاملاً وکتور</td>
+      </tr>
+      <tr>
+        <td><strong>فایل اکسل چندشیتی (.xlsx)</strong></td>
+        <td>شیت ۱: داده‌های خام (Data)<br>شیت ۲: توضیحات و کوئری (Explanation)<br>شیت ۳: متن کامل تحلیل (Analysis)</td>
+        <td>ساختار ستونی مرتب، فرمت‌بندی اعداد به صورت عددی جهت محاسبات فرمولی، سربرگ‌های رنگی رسمی</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-success">
+    <strong>خروجی با یک کلیک:</strong> در انتهای هر نوبت گفتگو، دکمه‌های دانلود PDF و Excel به صورت خودکار فعال شده و گزارش را با نام تاریخ و عنوان سوال در رایانه شما ذخیره می‌نمایند.
+  </div>
+</section>
+
+<!-- ==================== CHAPTER 11: TIMINGS, USE CASES & FAQ ==================== -->
+<section class="page">
+  <div class="section-header">
+    <div>
+      <div class="section-kicker">فصل یازدهم</div>
+      <h2>۱۱. پایش زمان‌بندی، سناریوهای کاربردی و سوالات متداول</h2>
+    </div>
+    <span class="badge badge-tech">پایش و پرسش‌های متداول</span>
+  </div>
+
+  <h3>شفافیت و پایش زمان‌بندی مراحل پردازش (Pipeline Timings)</h3>
+  <p>
+    در بالای هر پاسخ، یک نشانگر زمان‌بندی دقیق درج شده است که نشان می‌دهد هر بخش چه مقدار زمان مصرف کرده است:
+  </p>
+  <div class="callout callout-tech">
+    <code>⚡ زمان پاسخ‌دهی: ۱.۱۵ ثانیه | تولید SQL: ۰.۳۵ث | گارد امنیت: ۰.۰۴ث | اجرای دیتابیس: ۰.۱۱ث | تحلیل هوش مصنوعی: ۰.۶۵ث</code>
+  </div>
+
+  <h3>سناریوهای نمونه و عبارات پرکاربرد جهت پرسش:</h3>
+  <ul>
+    <li><em>«۱۰ فروشنده برتر از نظر مجموع مبلغ فروش در ماه جاری را نشان بده»</em> (تولید نمودار میله‌ای + جدول)</li>
+    <li><em>«روند تراکنش‌های ناموفق هفته گذشته به تفکیک علت خطا»</em> (تولید نمودار خطی مساحتی)</li>
+    <li><em>«سهم ابزارهای پرداخت (کارتخوان، اینترنتی، کیوسک) از کل مبالغ»</em> (تولید نمودار دونات)</li>
+    <li><em>«توزیع استانی تراکنش‌های درگاه پرداخت در سراسر کشور»</em> (تولید نقشه جغرافیایی)</li>
+  </ul>
+
+  <h3>سوالات متداول کاربران (FAQ):</h3>
+  <div class="callout callout-info">
+    <strong>س: آیا امکان استفاده از سیستم به زبان انگلیسی وجود دارد؟</strong><br>
+    پ: بله، سامانه به صورت کامل دوزبانه (Bilingual) بوده و هم ورودی متنی/صوتی و هم خروجی‌ها را به هر دو زبان فارسی و انگلیسی ارائه می‌دهد.
+  </div>
+
+  <div class="callout callout-info">
+    <strong>س: اگر در کوئری SQL تولیدشده نقصی باشد چه کنیم؟</strong><br>
+    پ: علاوه بر سیستم تصحیح خودکار (Auto-Fix)، می‌توانید متن کد را در کادر مربوطه ویرایش کرده و دکمه «اجرای SQL» را بزنید.
+  </div>
+
+  <div class="callout callout-info">
+    <strong>س: چگونه می‌توان این دفترچه راهنما را در برنامه دانلود کرد؟</strong><br>
+    پ: در صفحه راهنمای سیستم (`/help`) و بالای هدر برنامه، لینک دانلود مستقیم فایل PDF کتابچه قرار داده شده است.
+  </div>
+
+  <div class="page-footer-note">
+    <span>© پلتفرم هوش تجاری رایامیت (Rayamate) — کلیه حقوق محفوظ است.</span>
+    <span>تولید شده توسط موتور مستندسازی خودکار پلتفرم</span>
+  </div>
+</section>
+
+</body>
+</html>
