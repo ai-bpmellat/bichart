@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Allow: /static/
+Allow: /help
+Allow: /manual
+Allow: /pitch
+Disallow: /app
+Disallow: /api/
+Disallow: /users
+Disallow: /login
+
+Sitemap: https://rayamate.ir/sitemap.xml

@@ -29,6 +29,7 @@ DOCS_DIR = os.path.join(BASE_DIR, "docs")
 PUBLIC_PATHS = frozenset({
     "/", "/login", "/help", "/manual", "/manual/pdf",
     "/pitch", "/pitch/pdf", "/pitch/pptx",
+    "/robots.txt", "/sitemap.xml",
     "/api/login", "/favicon.ico"
 })
 PUBLIC_PREFIXES = ("/static/",)
@@ -67,6 +68,18 @@ def _startup_init_users():
 @app.get("/favicon.ico")
 def favicon():
     return FileResponse(os.path.join(STATIC_DIR, "favicon-32.png"), media_type="image/png")
+
+
+@app.get("/robots.txt")
+def robots_txt():
+    """Search engine robots exclusion file."""
+    return FileResponse(os.path.join(STATIC_DIR, "robots.txt"), media_type="text/plain")
+
+
+@app.get("/sitemap.xml")
+def sitemap_xml():
+    """XML Sitemap for search engine indexers."""
+    return FileResponse(os.path.join(STATIC_DIR, "sitemap.xml"), media_type="application/xml")
 
 
 @app.get("/")

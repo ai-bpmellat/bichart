@@ -208,7 +208,7 @@ def build_pitch_deck():
             pass
 
     add_textbox(s, Inches(1.0), Inches(2.1), Inches(11.333), Inches(0.5), "PITCH DECK  |  ارائه معرفی محصول به مدیران و سرمایه‌گذاران", size=14, bold=True, color=EMERALD_BORDER, align=PP_ALIGN.CENTER)
-    add_textbox(s, Inches(1.0), Inches(2.65), Inches(11.333), Inches(1.1), "BiChart  /  رایامیت", size=48, bold=True, color=WHITE, align=PP_ALIGN.CENTER)
+    add_textbox(s, Inches(1.0), Inches(2.65), Inches(11.333), Inches(1.1), "رایامیت | از داده تا تصمیم هوشمند", size=42, bold=True, color=WHITE, align=PP_ALIGN.CENTER)
     add_textbox(s, Inches(1.0), Inches(3.85), Inches(11.333), Inches(0.8), "نسل نوین هوش تجاری مکالمه‌محور برای صنعت پرداخت الکترونیک و بانکی", size=22, bold=True, color=EMERALD_LIGHT, align=PP_ALIGN.CENTER)
     add_textbox(s, Inches(1.5), Inches(4.7), Inches(10.333), Inches(0.6), "تبدیل داده‌های چندمیلیونی تراکنش‌ها به بینش‌های استراتژیک تنها با یک مکالمه طبیعی فارسی", size=16, color=WHITE, align=PP_ALIGN.CENTER)
 
