@@ -48,6 +48,7 @@ for p in [venv_lib64, venv_lib]:
 # ── 3. Default environment variables ───────────────────────────────────
 os.environ.setdefault("AVALAI_API_KEY", "aa-PqX6XTobrcQv8r4zFGaIIhl4lur7e1kNswrKsIh2sAKjcczu")
 os.environ.setdefault("SESSION_SECRET", "bichart-super-secret-key-change-in-production")
+os.environ.setdefault("GOOGLE_CLIENT_ID", "287844662924-oq9gpis6urq8g7g35pmpnejq1vvk1ofv.apps.googleusercontent.com")
 
 # ── 4. Import and wrap the FastAPI application ─────────────────────────
 _startup_error = None
