@@ -631,14 +631,15 @@
     }
 
     .reg-modal {
-      width: min(530px, 100%);
+      width: min(540px, calc(100vw - 32px));
       background: #ffffff;
-      border-radius: 20px;
+      border-radius: 22px;
       box-shadow: 0 24px 60px rgba(15, 42, 31, 0.22);
       border: 1px solid rgba(5, 150, 105, 0.16);
-      padding: 16px 20px 18px;
+      padding: 20px 28px 22px;
       max-height: calc(100vh - 28px);
       overflow-y: auto;
+      overflow-x: hidden;
       overscroll-behavior: contain;
       box-sizing: border-box;
       margin: auto;
@@ -665,8 +666,10 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       gap: 12px;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .reg-modal-title {
@@ -707,7 +710,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 5px 10px;
+      padding: 6px 12px;
       border-radius: 10px;
       background: #ecfdf5;
       border: 1px solid #a7f3d0;
@@ -715,37 +718,59 @@
       font-size: 0.75rem;
       font-weight: 600;
       line-height: 1.45;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+      width: 100%;
+      box-sizing: border-box;
+      min-width: 0;
+    }
+
+    #reg-form {
       width: 100%;
       box-sizing: border-box;
     }
 
     .reg-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px 12px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 14px;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .reg-grid .field {
       margin-bottom: 0;
+      min-width: 0;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .reg-grid .field label {
       display: block;
-      margin-bottom: 2px;
-      font-size: 0.77rem;
+      margin-bottom: 3px;
+      font-size: 0.78rem;
       font-weight: 600;
       color: #204236;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .reg-grid .input-wrap {
       height: 38px;
       border-radius: 10px;
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      padding: 0 10px;
     }
 
     .reg-grid .input-wrap input {
-      padding: 6px 8px;
+      padding: 6px 6px;
       font-size: 0.84rem;
+      flex: 1;
+      width: 0;
+      min-width: 0;
+      box-sizing: border-box;
     }
 
     .reg-grid .full {
@@ -754,8 +779,10 @@
 
     .reg-modal .turnstile-wrap {
       margin-bottom: 2px;
-      margin-top: 2px;
+      margin-top: 4px;
       min-height: 65px;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .reg-modal .btn-primary {
@@ -763,7 +790,9 @@
       padding: 0 16px;
       font-size: 0.92rem;
       border-radius: 12px;
-      margin-top: 8px;
+      margin-top: 10px;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     /* RTL / LTR Modal Overrides */
