@@ -23,12 +23,20 @@
 <div class="app-shell dashboard-layout">
 
   <header class="topbar app-header">
-    <h1 class="app-header-title">دستیار هوشمند هوش تجاری</h1>
-    <div id="user-tier-badge" class="user-tier-badge" style="display:none;margin-inline-end:auto;"></div>
-    <a id="help-btn" class="ghost-btn app-header-help" href="/static/help.html" title="راهنمای جامع سیستم و قابلیت‌ها">📖 راهنما</a>
-    <button id="lang-toggle-btn" class="ghost-btn app-header-lang" title="Toggle AI response language" aria-label="Toggle AI response language">FA</button>
-    <a id="users-mgmt-btn" class="ghost-btn app-header-users" href="/users" hidden title="مدیریت کاربران و سطوح">کاربران</a>
-    <button id="logout-btn" class="ghost-btn app-header-logout" type="button" title="Sign out">خروج</button>
+    <div class="app-header-brand">
+      <h1 class="app-header-title">دستیار هوشمند هوش تجاری</h1>
+    </div>
+
+    <div class="app-header-center">
+      <div id="user-tier-badge" class="user-tier-badge" style="display:none;"></div>
+    </div>
+
+    <div class="app-header-actions">
+      <a id="users-mgmt-btn" class="ghost-btn app-header-btn" href="/users" hidden title="مدیریت کاربران و سطوح">کاربران</a>
+      <button id="lang-toggle-btn" class="ghost-btn app-header-btn" title="Toggle AI response language" aria-label="Toggle AI response language">FA</button>
+      <a id="help-btn" class="ghost-btn app-header-btn app-header-help" href="/static/help.html" title="راهنمای جامع سیستم و قابلیت‌ها">📖 راهنما</a>
+      <button id="logout-btn" class="ghost-btn app-header-btn" type="button" title="خروج از حساب">خروج</button>
+    </div>
   </header>
 
   <div class="dashboard-body">

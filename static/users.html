@@ -71,7 +71,9 @@
   }
   .badge-admin { background: rgba(5,150,105,0.14); color: #047857; }
   .badge-user { background: rgba(15,42,31,0.06); color: #4a6b5e; }
-  .badge-tier1 { background: rgba(37,99,235,0.1); color: #1d4ed8; }
+  .badge-tier1 { background: rgba(217,119,6,0.14); color: #b45309; }
+  .badge-tier2 { background: rgba(37,99,235,0.1); color: #1d4ed8; }
+  .badge-tier3 { background: rgba(107,114,128,0.14); color: #4b5563; }
   .badge-premium { background: rgba(217,119,6,0.14); color: #b45309; }
   .badge-off { background: rgba(161,61,47,0.1); color: #a13d2f; }
   .badge-on { background: rgba(5,150,105,0.12); color: #047857; }
@@ -158,7 +160,7 @@
     <div class="users-top">
       <div>
         <h1>مدیریت کاربران و سطح‌بندی</h1>
-        <div style="color:#5a7a6d;font-size:0.9rem;margin-top:4px;">تعیین سطوح دسترسی (سطح ۱ رایگان، کاربر برتر، مدیر) و نظارت بر مصرف روزانه</div>
+        <div style="color:#5a7a6d;font-size:0.9rem;margin-top:4px;">تعیین سطوح دسترسی (سطح ۳: ۵ پیام کل، سطح ۲: ۱۰ پیام روزانه، سطح ۱: نامحدود، مدیر) و نظارت بر مصرف</div>
       </div>
       <div class="users-actions">
         <a class="ghost-btn tiny" href="/app">بازگشت به برنامه</a>
@@ -180,7 +182,7 @@
               <th>موبایل</th>
               <th>نقش سیستم</th>
               <th>سطح کاربری</th>
-              <th>مصرف امروز</th>
+              <th>میزان مصرف</th>
               <th>وضعیت</th>
               <th>عملیات</th>
             </tr>
@@ -213,8 +215,9 @@
 
         <label for="f-tier">سطح کاربری</label>
         <select id="f-tier">
-          <option value="tier1">کاربر سطح ۱ (رایگان — محدود به ۱۰ سوال در روز)</option>
-          <option value="premium">کاربر برتر (نامحدود)</option>
+          <option value="tier3">کاربر سطح ۳ (محدود به ۵ پیام در کل — پیش‌فرض ثبت‌نام)</option>
+          <option value="tier2">کاربر سطح ۲ (محدود به ۱۰ پیام در روز)</option>
+          <option value="tier1">کاربر سطح ۱ (نامحدود)</option>
         </select>
 
         <label for="f-role">نقش سیستمی</label>

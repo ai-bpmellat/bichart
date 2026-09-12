@@ -44,7 +44,7 @@ function openModal(editUser) {
     document.getElementById('f-email').value = editUser.email || '';
     document.getElementById('f-mobile').value = editUser.mobile || '';
     document.getElementById('f-password').value = '';
-    document.getElementById('f-tier').value = editUser.tier || 'tier1';
+    document.getElementById('f-tier').value = editUser.tier || 'tier3';
     document.getElementById('f-role').value = editUser.role || 'user';
     document.getElementById('f-active').value = editUser.is_active ? 'true' : 'false';
     pwdHint.textContent = '(اختیاری — فقط در صورت تغییر رمز)';
@@ -52,7 +52,7 @@ function openModal(editUser) {
   } else {
     modalTitle.textContent = 'افزودن کاربر جدید';
     document.getElementById('user-id').value = '';
-    document.getElementById('f-tier').value = 'tier1';
+    document.getElementById('f-tier').value = 'tier3';
     document.getElementById('f-role').value = 'user';
     pwdHint.textContent = '(الزامی)';
     activeWrap.hidden = true;
@@ -80,13 +80,27 @@ function renderUsers(users) {
       ? `<span class="badge badge-admin">👑 مدیر سیستم</span>`
       : `<span class="badge badge-user">کاربر عادی</span>`;
 
-    const tierBadge = u.tier === 'premium'
-      ? `<span class="badge badge-premium">🌟 کاربر برتر</span>`
-      : `<span class="badge badge-tier1">کاربر سطح ۱</span>`;
+    let tierBadge = '';
+    if (u.role === 'admin') {
+      tierBadge = `<span class="badge badge-tier1">🌟 سطح ۱ (نامحدود)</span>`;
+    } else if (u.tier === 'tier1' || u.tier === 'premium') {
+      tierBadge = `<span class="badge badge-tier1">🌟 سطح ۱ (نامحدود)</span>`;
+    } else if (u.tier === 'tier2') {
+      tierBadge = `<span class="badge badge-tier2">سطح ۲ (۱۰ روزانه)</span>`;
+    } else {
+      tierBadge = `<span class="badge badge-tier3">سطح ۳ (۵ پیام کل)</span>`;
+    }
 
-    const usageText = u.role === 'admin' || u.tier === 'premium'
-      ? `<span class="usage-pill" title="بدون سقف روزانه">${u.queries_today ?? 0} (نامحدود)</span>`
-      : `<span class="usage-pill" title="سقف ۱۰ پرسش در روز">${u.queries_today ?? 0} از ${u.daily_limit ?? 10}</span>`;
+    let usageText = '';
+    if (u.role === 'admin' || u.tier === 'tier1' || u.tier === 'premium') {
+      usageText = `<span class="usage-pill" title="بدون محدودیت پیام">${u.total_queries ?? 0} کل (${u.queries_today ?? 0} امروز) — نامحدود</span>`;
+    } else if (u.tier === 'tier2') {
+      const today = u.queries_today ?? 0;
+      usageText = `<span class="usage-pill" title="سقف ۱۰ پیام در روز">${today} از ۱۰ امروز (${u.total_queries ?? 0} کل)</span>`;
+    } else {
+      const total = u.total_queries ?? 0;
+      usageText = `<span class="usage-pill" title="سقف ۵ پیام در کل">${total} از ۵ پیام کل</span>`;
+    }
 
     tr.innerHTML = `
       <td><strong>${escapeHtml(u.display_name || '')}</strong></td>

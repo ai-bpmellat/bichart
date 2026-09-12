@@ -82,7 +82,7 @@ class UserCreateRequest(BaseModel):
     email: str = ""
     display_name: str = ""
     role: str = "user"
-    tier: str = "tier1"
+    tier: str = "tier3"
 
 
 class UserUpdateRequest(BaseModel):

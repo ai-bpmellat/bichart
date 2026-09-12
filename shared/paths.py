@@ -30,7 +30,7 @@ def _load_dotenv() -> None:
                 k, v = line.split("=", 1)
                 k = k.strip()
                 v = v.strip().strip("'\"")
-                if k:
+                if k and v:
                     os.environ[k] = v
     except Exception:
         pass

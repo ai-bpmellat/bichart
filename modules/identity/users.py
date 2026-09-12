@@ -2,8 +2,12 @@
 users.py
 --------
 App user accounts (separate from BI dim_customer).
-Stores username, hashed password, mobile, email, display_name, role, tier.
-Also manages daily query quotas per user tier.
+Stores username, hashed password, mobile, email, display_name, role, tier, total_queries.
+Also manages query quotas per user tier:
+- Tier 3: 5 messages total lifetime (default for new registrations)
+- Tier 2: 10 messages per day
+- Tier 1: Unlimited messages
+- Admin: Tier 1 (unlimited) + user management access
 """
 
 from __future__ import annotations
@@ -27,13 +31,20 @@ BOOTSTRAP_ADMIN_MOBILE = os.environ.get("AUTH_ADMIN_MOBILE", "09120000000")
 BOOTSTRAP_ADMIN_EMAIL = os.environ.get("AUTH_ADMIN_EMAIL", "admin@rayamate.ir")
 BOOTSTRAP_ADMIN_DISPLAY = os.environ.get("AUTH_ADMIN_DISPLAY", "مدیر سیستم")
 
-TIER_TIER1 = "tier1"        # کاربر سطح ۱ (محدود به ۱۰ پرسش در روز)
-TIER_PREMIUM = "premium"    # کاربر برتر (بدون محدودیت)
+TIER_TIER1 = "tier1"        # کاربر سطح ۱: نامحدود
+TIER_TIER2 = "tier2"        # کاربر سطح ۲: ۱۰ پیام روزانه
+TIER_TIER3 = "tier3"        # کاربر سطح ۳: ۵ پیام در کل (پیش‌فرض ثبت‌نام)
+TIER_PREMIUM = "tier1"      # backward-compatibility alias
 ROLE_USER = "user"
 ROLE_ADMIN = "admin"
 
-DAILY_FREE_LIMIT = 10
-EXCEEDED_MESSAGE = "مهلت استفاده رایگان شما تمام شده است و فردا مراجعه کنید یا سطح کاربری خود را با پیغام به ما ارتقا دهید"
+TIER3_TOTAL_LIMIT = 5
+TIER2_DAILY_LIMIT = 10
+
+TIER3_EXCEEDED_MESSAGE = "سقف مجاز ۵ پیام آزمایشی شما به پایان رسیده است. جهت ادامه استفاده و ارتقا به سطح ۲، لطفاً با ارسال پیام به ما اقدام فرمایید."
+TIER2_EXCEEDED_MESSAGE = "مهلت استفاده روزانه شما به پایان رسیده است و فردا مراجعه کنید یا سطح کاربری خود را با پیغام به ما ارتقا دهید."
+# Backward compatibility
+EXCEEDED_MESSAGE = TIER2_EXCEEDED_MESSAGE
 
 
 class AppUser(Base):
@@ -45,8 +56,9 @@ class AppUser(Base):
     mobile = Column(String(20), nullable=False, default="")
     email = Column(String(120), nullable=True, index=True)
     display_name = Column(String(120), nullable=False, default="")
-    role = Column(String(20), nullable=False, default=ROLE_USER)  # admin | user
-    tier = Column(String(20), nullable=False, default=TIER_TIER1)  # tier1 | premium
+    role = Column(String(20), nullable=False, default=ROLE_USER)       # admin | user
+    tier = Column(String(20), nullable=False, default=TIER_TIER3)      # tier1 | tier2 | tier3
+    total_queries = Column(Integer, nullable=False, default=0)         # کل پیام‌های ارسالی کاربر
     google_id = Column(String(120), nullable=True, index=True)
     is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
@@ -97,11 +109,19 @@ def _migrate_app_users_columns() -> None:
             if "email" not in existing_cols:
                 conn.execute(text("ALTER TABLE app_users ADD COLUMN email VARCHAR(120)"))
             if "tier" not in existing_cols:
-                conn.execute(text("ALTER TABLE app_users ADD COLUMN tier VARCHAR(20) DEFAULT 'tier1'"))
+                conn.execute(text("ALTER TABLE app_users ADD COLUMN tier VARCHAR(20) DEFAULT 'tier3'"))
+            if "total_queries" not in existing_cols:
+                conn.execute(text("ALTER TABLE app_users ADD COLUMN total_queries INTEGER DEFAULT 0"))
             if "google_id" not in existing_cols:
                 conn.execute(text("ALTER TABLE app_users ADD COLUMN google_id VARCHAR(120)"))
     except Exception as exc:
         print(f"[users migration] Notice: {exc}")
+
+
+try:
+    _migrate_app_users_columns()
+except Exception:
+    pass
 
 
 def init_users_table() -> None:
@@ -121,8 +141,8 @@ def seed_bootstrap_admin() -> None:
             if existing.role != ROLE_ADMIN:
                 existing.role = ROLE_ADMIN
                 changed = True
-            if getattr(existing, "tier", None) != TIER_PREMIUM:
-                existing.tier = TIER_PREMIUM
+            if getattr(existing, "tier", None) != TIER_TIER1:
+                existing.tier = TIER_TIER1
                 changed = True
             if not existing.is_active:
                 existing.is_active = True
@@ -141,7 +161,8 @@ def seed_bootstrap_admin() -> None:
             email=BOOTSTRAP_ADMIN_EMAIL,
             display_name=BOOTSTRAP_ADMIN_DISPLAY,
             role=ROLE_ADMIN,
-            tier=TIER_PREMIUM,
+            tier=TIER_TIER1,
+            total_queries=0,
             is_active=True,
         )
         db.add(admin)
@@ -186,7 +207,10 @@ def get_user_today_queries(user_id: int) -> int:
 def check_and_consume_query_quota(user_id: int) -> tuple[bool, str, int, Optional[int]]:
     """
     Checks whether user can make a chat query.
-    Returns: (allowed, message, queries_used_today, daily_limit_or_none)
+    Returns: (allowed, message, used_count, limit_count)
+    - Admin or Tier 1: Unlimited queries
+    - Tier 2: 10 queries per day
+    - Tier 3: 5 queries lifetime
     """
     db = SessionLocal()
     try:
@@ -194,8 +218,12 @@ def check_and_consume_query_quota(user_id: int) -> tuple[bool, str, int, Optiona
         if not user or not user.is_active:
             return False, "حساب کاربری نامعتبر یا غیرفعال است.", 0, 0
 
-        # Admin or Premium has unlimited queries
-        if user.role == ROLE_ADMIN or user.tier == TIER_PREMIUM:
+        user_tier = getattr(user, "tier", TIER_TIER3)
+        if user_tier == "premium":
+            user_tier = TIER_TIER1
+
+        # Admin or Tier 1: Unlimited queries
+        if user.role == ROLE_ADMIN or user_tier == TIER_TIER1:
             today_str = get_today_date_str()
             row = db.query(UserDailyUsage).filter(
                 UserDailyUsage.user_id == user_id,
@@ -206,27 +234,49 @@ def check_and_consume_query_quota(user_id: int) -> tuple[bool, str, int, Optiona
                 db.add(row)
             else:
                 row.query_count += 1
+            user.total_queries = (getattr(user, "total_queries", 0) or 0) + 1
             db.commit()
             return True, "", row.query_count, None
 
-        # Tier 1 (Free user)
+        # Tier 2: 10 queries per day
+        if user_tier == TIER_TIER2:
+            today_str = get_today_date_str()
+            row = db.query(UserDailyUsage).filter(
+                UserDailyUsage.user_id == user_id,
+                UserDailyUsage.usage_date == today_str,
+            ).first()
+            current_count = row.query_count if row else 0
+
+            if current_count >= TIER2_DAILY_LIMIT:
+                return False, TIER2_EXCEEDED_MESSAGE, current_count, TIER2_DAILY_LIMIT
+
+            if not row:
+                row = UserDailyUsage(user_id=user_id, usage_date=today_str, query_count=1)
+                db.add(row)
+            else:
+                row.query_count += 1
+            user.total_queries = (getattr(user, "total_queries", 0) or 0) + 1
+            db.commit()
+            return True, "", row.query_count, TIER2_DAILY_LIMIT
+
+        # Tier 3: 5 queries total lifetime
+        total_used = getattr(user, "total_queries", 0) or 0
+        if total_used >= TIER3_TOTAL_LIMIT:
+            return False, TIER3_EXCEEDED_MESSAGE, total_used, TIER3_TOTAL_LIMIT
+
         today_str = get_today_date_str()
         row = db.query(UserDailyUsage).filter(
             UserDailyUsage.user_id == user_id,
             UserDailyUsage.usage_date == today_str,
         ).first()
-        current_count = row.query_count if row else 0
-
-        if current_count >= DAILY_FREE_LIMIT:
-            return False, EXCEEDED_MESSAGE, current_count, DAILY_FREE_LIMIT
-
         if not row:
             row = UserDailyUsage(user_id=user_id, usage_date=today_str, query_count=1)
             db.add(row)
         else:
             row.query_count += 1
+        user.total_queries = total_used + 1
         db.commit()
-        return True, "", row.query_count, DAILY_FREE_LIMIT
+        return True, "", user.total_queries, TIER3_TOTAL_LIMIT
     finally:
         db.close()
 
@@ -234,7 +284,6 @@ def check_and_consume_query_quota(user_id: int) -> tuple[bool, str, int, Optiona
 def authenticate_user(username: str, password: str) -> Optional[dict]:
     db = SessionLocal()
     try:
-        # Check by username or email
         user = (
             db.query(AppUser)
             .filter((AppUser.username == username.strip()) | (AppUser.email == username.strip().lower()))
@@ -250,6 +299,10 @@ def authenticate_user(username: str, password: str) -> Optional[dict]:
 
 
 def user_to_dict(user: AppUser, include_sensitive: bool = False, include_usage: bool = True) -> dict:
+    raw_tier = getattr(user, "tier", TIER_TIER3) or TIER_TIER3
+    tier = TIER_TIER1 if raw_tier == "premium" else raw_tier
+    total_q = getattr(user, "total_queries", 0) or 0
+
     data = {
         "id": user.id,
         "username": user.username,
@@ -257,7 +310,8 @@ def user_to_dict(user: AppUser, include_sensitive: bool = False, include_usage: 
         "mobile": user.mobile or "",
         "display_name": user.display_name or "",
         "role": user.role,
-        "tier": getattr(user, "tier", TIER_TIER1) or TIER_TIER1,
+        "tier": tier,
+        "total_queries": total_q,
         "google_id": getattr(user, "google_id", "") or "",
         "is_active": bool(user.is_active),
         "created_at": user.created_at.isoformat() if user.created_at else None,
@@ -265,10 +319,24 @@ def user_to_dict(user: AppUser, include_sensitive: bool = False, include_usage: 
     }
     if include_usage:
         today_count = get_user_today_queries(user.id)
-        limit = None if (user.role == ROLE_ADMIN or getattr(user, "tier", "") == TIER_PREMIUM) else DAILY_FREE_LIMIT
         data["queries_today"] = today_count
-        data["daily_limit"] = limit
-        data["queries_remaining"] = max(0, limit - today_count) if limit is not None else None
+
+        if user.role == ROLE_ADMIN or tier == TIER_TIER1:
+            data["limit_type"] = "unlimited"
+            data["daily_limit"] = None
+            data["lifetime_limit"] = None
+            data["queries_remaining"] = None
+        elif tier == TIER_TIER2:
+            data["limit_type"] = "daily"
+            data["daily_limit"] = TIER2_DAILY_LIMIT
+            data["lifetime_limit"] = None
+            data["queries_remaining"] = max(0, TIER2_DAILY_LIMIT - today_count)
+        else:  # tier3
+            data["limit_type"] = "lifetime"
+            data["daily_limit"] = None
+            data["lifetime_limit"] = TIER3_TOTAL_LIMIT
+            data["queries_remaining"] = max(0, TIER3_TOTAL_LIMIT - total_q)
+
     if include_sensitive:
         data["password_hash"] = user.password_hash
     return data
@@ -290,14 +358,17 @@ def create_user(
     email: str = "",
     display_name: str = "",
     role: str = ROLE_USER,
-    tier: str = TIER_TIER1,
+    tier: str = TIER_TIER3,
 ) -> tuple[Optional[dict], Optional[str]]:
     username = username.strip()
     if not username or not password:
         return None, "نام کاربری و رمز عبور الزامی است."
     if role not in (ROLE_ADMIN, ROLE_USER):
         return None, "نقش کاربری نامعتبر است."
-    if tier not in (TIER_TIER1, TIER_PREMIUM):
+
+    if tier == "premium":
+        tier = TIER_TIER1
+    if tier not in (TIER_TIER1, TIER_TIER2, TIER_TIER3):
         return None, "سطح کاربری نامعتبر است."
 
     db = SessionLocal()
@@ -315,6 +386,7 @@ def create_user(
             display_name=(display_name or username).strip(),
             role=role,
             tier=tier,
+            total_queries=0,
             is_active=True,
         )
         db.add(user)
@@ -357,6 +429,7 @@ def register_user(
         if mobile and db.query(AppUser).filter(AppUser.mobile == mobile).first():
             return None, "این شماره موبایل قبلاً ثبت شده است."
 
+        # Newly registered users start as Tier 3 (5 total messages)
         user = AppUser(
             username=username,
             password_hash=hash_password(password),
@@ -364,7 +437,8 @@ def register_user(
             email=email,
             display_name=name,
             role=ROLE_USER,
-            tier=TIER_TIER1,
+            tier=TIER_TIER3,
+            total_queries=0,
             is_active=True,
         )
         db.add(user)
@@ -401,7 +475,7 @@ def get_or_create_google_user(
                 return None, "حساب کاربری شما غیرفعال شده است."
             return user_to_dict(user), None
 
-        # Auto-create new user with tier1
+        # Auto-create new user with Tier 3 (5 total messages)
         base_username = email.split("@")[0].replace(".", "_").replace("-", "_") if "@" in email else f"google_{google_id[:8]}"
         username = base_username
         suffix = 1
@@ -417,7 +491,8 @@ def get_or_create_google_user(
             email=email,
             display_name=display_name or username,
             role=ROLE_USER,
-            tier=TIER_TIER1,
+            tier=TIER_TIER3,
+            total_queries=0,
             google_id=google_id,
             is_active=True,
         )
@@ -490,7 +565,9 @@ def update_user(
             user.role = role
 
         if tier is not None:
-            if tier not in (TIER_TIER1, TIER_PREMIUM):
+            if tier == "premium":
+                tier = TIER_TIER1
+            if tier not in (TIER_TIER1, TIER_TIER2, TIER_TIER3):
                 return None, "سطح کاربری نامعتبر است."
             user.tier = tier
 
