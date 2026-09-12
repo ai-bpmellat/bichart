@@ -339,7 +339,7 @@ function openRegistrationModal() {
         regWidgetId = window.turnstile.render('#reg-turnstile', {
           sitekey: authConfig.turnstile_site_key,
           theme: 'light',
-          language: 'fa',
+          language: currentLang || 'fa',
           size: 'normal',
           callback: (token) => {
             regTurnstileToken = token;
@@ -692,7 +692,7 @@ function setupTurnstile() {
         loginWidgetId = window.turnstile.render('#login-turnstile', {
           sitekey: authConfig.turnstile_site_key,
           theme: 'light',
-          language: 'fa',
+          language: currentLang || 'fa',
           size: 'normal',
           callback: (token) => {
             loginTurnstileToken = token;
