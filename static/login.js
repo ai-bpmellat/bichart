@@ -91,6 +91,9 @@ function openRegistrationModal() {
       } else {
         regWidgetId = window.turnstile.render('#reg-turnstile', {
           sitekey: authConfig.turnstile_site_key,
+          theme: 'light',
+          language: 'fa',
+          size: 'normal',
           callback: (token) => {
             regTurnstileToken = token;
           },
@@ -208,6 +211,12 @@ if (regForm) {
 
       if (!res.ok) {
         showRegError(json.error || 'خطا در ثبت‌نام.');
+        if (window.turnstile && regWidgetId !== null) {
+          try {
+            regTurnstileToken = '';
+            window.turnstile.reset(regWidgetId);
+          } catch (_) {}
+        }
         return;
       }
 
@@ -270,7 +279,10 @@ if (loginForm) {
       if (!res.ok) {
         showLoginError(json.error || 'ورود ناموفق بود.');
         if (window.turnstile && loginWidgetId !== null) {
-          try { window.turnstile.reset(loginWidgetId); } catch (_) {}
+          try {
+            loginTurnstileToken = '';
+            window.turnstile.reset(loginWidgetId);
+          } catch (_) {}
         }
         return;
       }
@@ -415,6 +427,9 @@ function setupTurnstile() {
       try {
         loginWidgetId = window.turnstile.render('#login-turnstile', {
           sitekey: authConfig.turnstile_site_key,
+          theme: 'light',
+          language: 'fa',
+          size: 'normal',
           callback: (token) => {
             loginTurnstileToken = token;
           },
