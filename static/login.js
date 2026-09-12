@@ -180,6 +180,13 @@ if (regForm) {
     }
 
     let token = regTurnstileToken;
+    if (!token && window.turnstile && regWidgetId !== null) {
+      try { token = window.turnstile.getResponse(regWidgetId); } catch (_) {}
+    }
+    if (!token) {
+      const hInput = document.querySelector('#reg-turnstile input[name="cf-turnstile-response"]');
+      if (hInput && hInput.value) token = hInput.value;
+    }
     if (!token && regFallbackCheckbox && regFallbackCheckbox.checked) {
       token = 'bypass_dev_captcha';
     }
@@ -250,6 +257,13 @@ if (loginForm) {
     }
 
     let token = loginTurnstileToken;
+    if (!token && window.turnstile && loginWidgetId !== null) {
+      try { token = window.turnstile.getResponse(loginWidgetId); } catch (_) {}
+    }
+    if (!token) {
+      const hInput = document.querySelector('#login-turnstile input[name="cf-turnstile-response"]');
+      if (hInput && hInput.value) token = hInput.value;
+    }
     if (!token && loginFallbackCheckbox && loginFallbackCheckbox.checked) {
       token = 'bypass_dev_captcha';
     }

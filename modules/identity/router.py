@@ -34,20 +34,32 @@ def verify_turnstile_captcha(token: Optional[str], client_ip: Optional[str] = No
         return False
     if token in ("test_passed", "bypass_dev_captcha"):
         return True
-    secret = os.environ.get("TURNSTILE_SECRET_KEY", "1x0000000000000000000000000000000AA") or "1x0000000000000000000000000000000AA"
+    secret = (os.environ.get("TURNSTILE_SECRET_KEY") or "").strip()
+    if not secret:
+        secret = "1x0000000000000000000000000000000AA"
+
+    payload = {
+        "secret": secret,
+        "response": token.strip(),
+    }
+    # Only pass public internet-routable client IPs to Cloudflare (skip 127.0.0.1/private)
+    if client_ip and not client_ip.startswith(("127.", "10.", "192.168.", "172.16.", "::1", "localhost")):
+        payload["remoteip"] = client_ip
+
     try:
         resp = requests.post(
             "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-            data={
-                "secret": secret,
-                "response": token.strip(),
-                "remoteip": client_ip or "",
-            },
+            data=payload,
             timeout=6.0,
         )
         if resp.ok:
             data = resp.json()
-            return bool(data.get("success"))
+            is_success = bool(data.get("success"))
+            if not is_success:
+                print(f"[Turnstile verification failed]: error-codes={data.get('error-codes')}")
+            return is_success
+        else:
+            print(f"[Turnstile HTTP error]: status={resp.status_code}")
     except Exception as exc:
         print(f"[Turnstile verification notice]: {exc}")
         if secret == "1x0000000000000000000000000000000AA":
