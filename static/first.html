@@ -466,18 +466,21 @@
                     <span style="color:#059669; font-weight:400; font-size:1.15rem;">رایامیت</span></span>
             </a>
             <div class="hidden md:flex items-center gap-8" style="font-size:0.875rem; color:#5a7a6d;">
-                <a href="#features" class="hover:text-brand-dark transition-colors" style="color:inherit;">ویژگی‌ها</a>
-                <a href="#screens" class="hover:text-brand-dark transition-colors" style="color:inherit;">نمایش</a>
-                <a href="#" class="hover:text-brand-dark transition-colors" style="color:inherit;">درباره ما</a>
-                <a href="#" class="hover:text-brand-dark transition-colors" style="color:inherit;">تماس</a>
+                <a href="#features" class="hover:text-brand-dark transition-colors" style="color:inherit;" id="nav-link-features">ویژگی‌ها</a>
+                <a href="#screens" class="hover:text-brand-dark transition-colors" style="color:inherit;" id="nav-link-screens">نمایش</a>
+                <a href="#about" class="hover:text-brand-dark transition-colors" style="color:inherit;" id="nav-link-about">درباره ما</a>
+                <a href="#contact" class="hover:text-brand-dark transition-colors" style="color:inherit;" id="nav-link-contact">تماس</a>
             </div>
             <div class="flex items-center gap-3">
-                <a id="nav-login-btn" href="http://rayamate.ir/login"
+                <button id="landing-lang-btn" type="button" class="px-3 py-1.5 text-xs font-bold rounded-full transition-all" style="background:rgba(5,150,105,0.08); color:#047857; border:1px solid rgba(5,150,105,0.25); cursor:pointer;" title="تغییر زبان / Switch Language">
+                    🌐 <span id="landing-lang-label">EN</span>
+                </button>
+                <a id="nav-login-btn" href="/login"
                     class="hidden sm:inline-flex px-5 py-2.5 text-sm rounded-full hover:bg-black/5 transition-all"
                     style="color:#334840; border:1px solid rgba(0,0,0,0.1); text-decoration:none;">
                     ورود
                 </a>
-                <a id="nav-start-btn" href="http://rayamate.ir/login"
+                <a id="nav-start-btn" href="/login"
                     class="inline-flex px-5 py-2.5 text-sm rounded-full hover:opacity-90 transition-all"
                     style="color:#fff; background:#059669; box-shadow: 0 6px 20px rgba(5,150,105,0.3); text-decoration:none;">
                     شروع رایگان
@@ -817,6 +820,108 @@
         </div>
     </section>
 
+    <!-- ===== ABOUT US SECTION ===== -->
+    <section id="about" class="section-b relative z-10 py-24 px-6 lg:px-8" style="border-top:1px solid rgba(0,0,0,0.04);">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-4"
+                    style="background:rgba(5,150,105,0.08); color:#047857; border:1px solid rgba(5,150,105,0.2);">
+                    <span id="txt-about-badge">درباره رایامیت</span>
+                </div>
+                <h2 class="text-3xl sm:text-5xl font-bold tracking-tight text-heading mb-4" id="txt-about-title">
+                    از داده تا تصمیم هوشمند
+                </h2>
+                <p class="max-w-2xl mx-auto text-muted text-base leading-relaxed" id="txt-about-desc">
+                    رایامیت دستیار هوش تجاری مکالمه‌محور (Conversational BI) نسل جدید است که دسترسی به بینش‌های عمیق تحلیلی داده‌های پرداخت، بانکی و پذیرندگان را برای تمام اعضای سازمان سریع، امن و بدون نیاز به دانش SQL امکان‌پذیر می‌سازد.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                <div class="glow-card p-8 rounded-3xl" style="background:#fff; border:1px solid rgba(5,150,105,0.12); box-shadow: 0 12px 30px rgba(5,150,105,0.04);">
+                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-6" style="background:rgba(5,150,105,0.1);">
+                        <iconify-icon icon="lucide:sparkles" style="color:#059669; font-size:24px;"></iconify-icon>
+                    </div>
+                    <h3 class="text-lg font-bold text-heading mb-3" id="txt-about-card1-t">پرسش و پاسخ مکالمه‌محور</h3>
+                    <p class="text-sm text-muted leading-relaxed" id="txt-about-card1-d">
+                        تنها با تایپ یا بیان صوتی سؤال به زبان فارسی یا انگلیسی، سیستم نیت تحلیلی را استخراج کرده و دقیق‌ترین گزارش را تولید می‌کند.
+                    </p>
+                </div>
+
+                <div class="glow-card p-8 rounded-3xl" style="background:#fff; border:1px solid rgba(5,150,105,0.12); box-shadow: 0 12px 30px rgba(5,150,105,0.04);">
+                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-6" style="background:rgba(37,99,235,0.1);">
+                        <iconify-icon icon="lucide:pie-chart" style="color:#2563eb; font-size:24px;"></iconify-icon>
+                    </div>
+                    <h3 class="text-lg font-bold text-heading mb-3" id="txt-about-card2-t">مصورسازی و پیش‌بینی داده</h3>
+                    <p class="text-sm text-muted leading-relaxed" id="txt-about-card2-d">
+                        پیشنهاد هوشمند نوع نمودار، تحلیل روند ماهانه، دسته‌بندی استانی پذیرندگان، مقایسه سالانه و شناسایی روندهای فرصت‌ساز.
+                    </p>
+                </div>
+
+                <div class="glow-card p-8 rounded-3xl" style="background:#fff; border:1px solid rgba(5,150,105,0.12); box-shadow: 0 12px 30px rgba(5,150,105,0.04);">
+                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center mb-6" style="background:rgba(217,119,6,0.1);">
+                        <iconify-icon icon="lucide:shield-check" style="color:#d97706; font-size:24px;"></iconify-icon>
+                    </div>
+                    <h3 class="text-lg font-bold text-heading mb-3" id="txt-about-card3-t">امنیت و سطوح دسترسی سازمانی</h3>
+                    <p class="text-sm text-muted leading-relaxed" id="txt-about-card3-d">
+                        سیستم سهمیه‌بندی دقیق، محافظت پیشرفته در برابر تزریق SQL، مدیریت کاربران و تطابق با الزامات امنیتی شبکه بانکی و پرداخت.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== CONTACT SECTION ===== -->
+    <section id="contact" class="section-a relative z-10 py-24 px-6 lg:px-8" style="border-top:1px solid rgba(0,0,0,0.04);">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-16">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-4"
+                    style="background:rgba(5,150,105,0.08); color:#047857; border:1px solid rgba(5,150,105,0.2);">
+                    <span id="txt-contact-badge">تماس با ما</span>
+                </div>
+                <h2 class="text-3xl sm:text-5xl font-bold tracking-tight text-heading mb-4" id="txt-contact-title">
+                    همراه و پاسخگوی شما هستیم
+                </h2>
+                <p class="max-w-xl mx-auto text-muted text-base leading-relaxed" id="txt-contact-desc">
+                    جهت دریافت دموی اختصاصی، مشاوره پیاده‌سازی سازمانی یا پشتیبانی با کارشناسان رایامیت در ارتباط باشید.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+                <!-- Phone Card -->
+                <div class="glow-card p-8 rounded-3xl flex items-center gap-6"
+                    style="background:#fff; border:1px solid rgba(5,150,105,0.14); box-shadow:0 14px 35px rgba(5,150,105,0.06);">
+                    <div class="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
+                        style="background:linear-gradient(135deg, rgba(5,150,105,0.15), rgba(5,150,105,0.05));">
+                        <iconify-icon icon="lucide:phone-call" style="color:#047857; font-size:28px;"></iconify-icon>
+                    </div>
+                    <div>
+                        <div class="text-xs text-muted font-medium mb-1" id="txt-contact-phone-lbl">تلفن پشتیبانی و فروش</div>
+                        <a href="tel:09398742296" class="text-xl font-bold text-heading hover:text-brand-dark transition-colors" dir="ltr" style="text-decoration:none; display:block;">
+                            09398742296
+                        </a>
+                        <span class="text-xs text-brand-dark font-medium mt-1 inline-block" id="txt-contact-phone-sub">پاسخگویی مستقیم</span>
+                    </div>
+                </div>
+
+                <!-- Email Card -->
+                <div class="glow-card p-8 rounded-3xl flex items-center gap-6"
+                    style="background:#fff; border:1px solid rgba(5,150,105,0.14); box-shadow:0 14px 35px rgba(5,150,105,0.06);">
+                    <div class="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
+                        style="background:linear-gradient(135deg, rgba(37,99,235,0.15), rgba(37,99,235,0.05));">
+                        <iconify-icon icon="lucide:mail" style="color:#1d4ed8; font-size:28px;"></iconify-icon>
+                    </div>
+                    <div>
+                        <div class="text-xs text-muted font-medium mb-1" id="txt-contact-email-lbl">ایمیل رسمی سامانه</div>
+                        <a href="mailto:support@rayamate.ir" class="text-lg font-bold text-heading hover:text-brand-dark transition-colors" dir="ltr" style="text-decoration:none; display:block;">
+                            support@rayamate.ir
+                        </a>
+                        <span class="text-xs text-brand-dark font-medium mt-1 inline-block" id="txt-contact-email-sub">پاسخ در سریع‌ترین زمان</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- ===== CTA ===== -->
     <section class="section-b relative z-10 py-24 px-6 lg:px-8">
         <div class="max-w-4xl mx-auto text-center">
@@ -829,25 +934,25 @@
                     style="background:rgba(217,119,6,0.04);"></div>
 
                 <div class="relative z-10">
-                    <h2
+                    <h2 id="txt-cta-title"
                         class="font-display text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tighter leading-[0.95] mb-6 text-heading">
                         آماده تحلیل<br>داده‌هایتان هستید؟
                     </h2>
-                    <p class="max-w-lg mx-auto mb-10 text-body">
+                    <p id="txt-cta-desc" class="max-w-lg mx-auto mb-10 text-body">
                         همین حالا رایامیت را امتحان کنید و قدرت تحلیل داده هوشمند را تجربه نمایید
                     </p>
                     <div class="flex flex-wrap items-center justify-center gap-4">
-                        <a id="cta-start-btn" href="http://rayamate.ir/login"
+                        <a id="cta-start-btn" href="/login"
                             class="group px-10 py-4 rounded-2xl font-bold text-sm flex items-center gap-2 hover:scale-105 transition-all"
                             style="color:#fff; background:#059669; box-shadow: 0 12px 35px rgba(5,150,105,0.25); text-decoration:none;">
-                            شروع رایگان
+                            <span id="txt-cta-btn1">شروع رایگان</span>
                             <iconify-icon icon="lucide:arrow-left" style="font-size:18px;"
                                 class="group-hover:-translate-x-1 transition-transform"></iconify-icon>
                         </a>
-                        <a href="#features"
+                        <a href="#contact" id="txt-cta-btn2"
                             class="px-10 py-4 rounded-2xl font-medium text-sm hover:bg-black/5 transition-all"
                             style="color:#334840; border:1px solid rgba(0,0,0,0.08); text-decoration:none;">
-                            تماس با فروش
+                            تماس با ما
                         </a>
                     </div>
                 </div>
@@ -865,15 +970,12 @@
                 </div>
                 <span class="text-heading font-bold text-sm">Rayamate رایامیت</span>
             </div>
-            <p class="text-muted" style="font-size:0.75rem;">© ۲۰۲۵ رایامیت. تمامی حقوق محفوظ است.</p>
+            <p class="text-muted" style="font-size:0.75rem;" id="txt-footer-copy">© ۲۰۲۶ رایامیت. تمامی حقوق محفوظ است.</p>
             <div class="flex items-center gap-4 text-muted">
-                <a href="#" class="hover:text-brand-dark transition-colors"><iconify-icon icon="lucide:twitter"
-                        style="font-size:18px;"></iconify-icon></a>
                 <a href="https://www.linkedin.com/company/rayamate" target="_blank" rel="noopener noreferrer"
-                    class="hover:text-brand-dark transition-colors"><iconify-icon icon="lucide:linkedin"
-                        style="font-size:18px;"></iconify-icon></a>
-                <a href="#" class="hover:text-brand-dark transition-colors"><iconify-icon icon="lucide:github"
-                        style="font-size:18px;"></iconify-icon></a>
+                    class="hover:text-brand-dark transition-colors" title="LinkedIn">
+                    <iconify-icon icon="lucide:linkedin" style="font-size:22px; color:#059669;"></iconify-icon>
+                </a>
             </div>
         </div>
     </footer>
@@ -1011,6 +1113,182 @@
                 card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateY(0) scale(1)';
             });
         });
+
+        // ==========================================
+        // Full Bilingual System (FA / EN)
+        // ==========================================
+        const LANG_STORAGE_KEY = 'rayamate_lang';
+        const I18N_LANDING = {
+            fa: {
+                navFeatures: 'ویژگی‌ها',
+                navScreens: 'نمایش',
+                navAbout: 'درباره ما',
+                navContact: 'تماس',
+                navLogin: 'ورود',
+                navStart: 'شروع رایگان',
+                heroBadge: 'پلتفرم تحلیل داده هوشمند',
+                heroSub: 'تحلیل هوشمند داده‌ها با هوش مصنوعی — از پرس‌وجوی SQL تا مصورسازی بصری، همه در یک پلتفرم یکپارچه',
+                heroBtn1: 'شروع تحلیل داده',
+                heroBtn2: 'مشاهده دمو',
+                aboutBadge: 'درباره رایامیت',
+                aboutTitle: 'از داده تا تصمیم هوشمند',
+                aboutDesc: 'رایامیت دستیار هوش تجاری مکالمه‌محور (Conversational BI) نسل جدید است که دسترسی به بینش‌های عمیق تحلیلی داده‌های پرداخت، بانکی و پذیرندگان را برای تمام اعضای سازمان سریع، امن و بدون نیاز به دانش SQL امکان‌پذیر می‌سازد.',
+                aboutCard1T: 'پرسش و پاسخ مکالمه‌محور',
+                aboutCard1D: 'تنها با تایپ یا بیان صوتی سؤال به زبان فارسی یا انگلیسی، سیستم نیت تحلیلی را استخراج کرده و دقیق‌ترین گزارش را تولید می‌کند.',
+                aboutCard2T: 'مصورسازی و پیش‌بینی داده',
+                aboutCard2D: 'پیشنهاد هوشمند نوع نمودار، تحلیل روند ماهانه، دسته‌بندی استانی پذیرندگان، مقایسه سالانه و شناسایی روندهای فرصت‌ساز.',
+                aboutCard3T: 'امنیت و سطوح دسترسی سازمانی',
+                aboutCard3D: 'سیستم سهمیه‌بندی دقیق، محافظت پیشرفته در برابر تزریق SQL، مدیریت کاربران و تطابق با الزامات امنیتی شبکه بانکی و پرداخت.',
+                contactBadge: 'تماس با ما',
+                contactTitle: 'همراه و پاسخگوی شما هستیم',
+                contactDesc: 'جهت دریافت دموی اختصاصی، مشاوره پیاده‌سازی سازمانی یا پشتیبانی با کارشناسان رایامیت در ارتباط باشید.',
+                contactPhoneLbl: 'تلفن پشتیبانی و فروش',
+                contactPhoneSub: 'پاسخگویی مستقیم',
+                contactEmailLbl: 'ایمیل رسمی سامانه',
+                contactEmailSub: 'پاسخ در سریع‌ترین زمان',
+                ctaTitle: 'آماده تحلیل<br>داده‌هایتان هستید؟',
+                ctaDesc: 'همین حالا رایامیت را امتحان کنید و قدرت تحلیل داده هوشمند را تجربه نمایید',
+                ctaBtn1: 'شروع رایگان',
+                ctaBtn2: 'تماس با ما',
+                footerCopy: '© ۲۰۲۶ رایامیت. تمامی حقوق محفوظ است.',
+            },
+            en: {
+                navFeatures: 'Features',
+                navScreens: 'Preview',
+                navAbout: 'About Us',
+                navContact: 'Contact',
+                navLogin: 'Sign In',
+                navStart: 'Get Started Free',
+                heroBadge: 'AI-Powered Data Analytics Platform',
+                heroSub: 'Intelligent conversational business intelligence — from automated SQL queries to instant charts and executive insights.',
+                heroBtn1: 'Start Analytics',
+                heroBtn2: 'View Demo',
+                aboutBadge: 'About Rayamate',
+                aboutTitle: 'From Data to Intelligent Decisions',
+                aboutDesc: 'Rayamate is the next-generation conversational Business Intelligence assistant that empowers finance, banking, and payment network teams to uncover deep analytical insights instantly without writing SQL.',
+                aboutCard1T: 'Conversational Querying',
+                aboutCard1D: 'Simply type or speak your questions in Persian or English. Rayamate detects analytical intent and generates precise reports.',
+                aboutCard2T: 'Smart Charting & Forecasting',
+                aboutCard2D: 'Intelligent chart selection, monthly trend tracking, provincial merchant clustering, and anomaly detection.',
+                aboutCard3T: 'Enterprise-Grade Security',
+                aboutCard3D: 'Role-based access controls, robust query quota tiers, SQL-injection prevention, and banking security compliance.',
+                contactBadge: 'Contact Us',
+                contactTitle: 'We Are Here to Help',
+                contactDesc: 'Connect with Rayamate experts for personalized demos, enterprise integration, or technical support.',
+                contactPhoneLbl: 'Sales & Support Phone',
+                contactPhoneSub: 'Direct Consultation',
+                contactEmailLbl: 'Official Email',
+                contactEmailSub: 'Prompt response',
+                ctaTitle: 'Ready to Analyze<br>Your Data?',
+                ctaDesc: 'Try Rayamate now and experience the power of intelligent conversational analytics.',
+                ctaBtn1: 'Get Started Free',
+                ctaBtn2: 'Contact Us',
+                footerCopy: '© 2026 Rayamate. All rights reserved.',
+            }
+        };
+
+        let currentLandingLang = localStorage.getItem(LANG_STORAGE_KEY) || 'fa';
+
+        function applyLandingLanguage(lang) {
+            currentLandingLang = lang === 'en' ? 'en' : 'fa';
+            localStorage.setItem(LANG_STORAGE_KEY, currentLandingLang);
+
+            document.documentElement.lang = currentLandingLang;
+            document.documentElement.dir = currentLandingLang === 'en' ? 'ltr' : 'rtl';
+
+            const t = I18N_LANDING[currentLandingLang];
+            const btnLabel = document.getElementById('landing-lang-label');
+            if (btnLabel) btnLabel.textContent = currentLandingLang === 'en' ? 'FA' : 'EN';
+
+            // Navbar
+            const elNavFeat = document.getElementById('nav-link-features');
+            if (elNavFeat) elNavFeat.textContent = t.navFeatures;
+            const elNavScr = document.getElementById('nav-link-screens');
+            if (elNavScr) elNavScr.textContent = t.navScreens;
+            const elNavAbout = document.getElementById('nav-link-about');
+            if (elNavAbout) elNavAbout.textContent = t.navAbout;
+            const elNavContact = document.getElementById('nav-link-contact');
+            if (elNavContact) elNavContact.textContent = t.navContact;
+            const elNavLog = document.getElementById('nav-login-btn');
+            if (elNavLog) elNavLog.textContent = t.navLogin;
+            const elNavStart = document.getElementById('nav-start-btn');
+            if (elNavStart) elNavStart.textContent = t.navStart;
+
+            // Hero
+            const elHeroBadge = document.querySelector('.float-badge .relative');
+            if (elHeroBadge && elHeroBadge.lastChild) elHeroBadge.lastChild.textContent = ' ' + t.heroBadge;
+            const elHeroSub = document.querySelector('.section-a p.leading-relaxed');
+            if (elHeroSub) elHeroSub.textContent = t.heroSub;
+            const elHeroStart = document.getElementById('hero-start-btn');
+            if (elHeroStart) {
+                const iconZap = elHeroStart.querySelector('iconify-icon[icon="lucide:zap"]');
+                const iconArr = elHeroStart.querySelector('iconify-icon[icon="lucide:arrow-left"]');
+                elHeroStart.innerHTML = '';
+                if (iconZap) elHeroStart.appendChild(iconZap);
+                elHeroStart.append(' ' + t.heroBtn1 + ' ');
+                if (iconArr) elHeroStart.appendChild(iconArr);
+            }
+
+            // About Us
+            const elAbBadge = document.getElementById('txt-about-badge');
+            if (elAbBadge) elAbBadge.textContent = t.aboutBadge;
+            const elAbTitle = document.getElementById('txt-about-title');
+            if (elAbTitle) elAbTitle.textContent = t.aboutTitle;
+            const elAbDesc = document.getElementById('txt-about-desc');
+            if (elAbDesc) elAbDesc.textContent = t.aboutDesc;
+            const elAbC1T = document.getElementById('txt-about-card1-t');
+            if (elAbC1T) elAbC1T.textContent = t.aboutCard1T;
+            const elAbC1D = document.getElementById('txt-about-card1-d');
+            if (elAbC1D) elAbC1D.textContent = t.aboutCard1D;
+            const elAbC2T = document.getElementById('txt-about-card2-t');
+            if (elAbC2T) elAbC2T.textContent = t.aboutCard2T;
+            const elAbC2D = document.getElementById('txt-about-card2-d');
+            if (elAbC2D) elAbC2D.textContent = t.aboutCard2D;
+            const elAbC3T = document.getElementById('txt-about-card3-t');
+            if (elAbC3T) elAbC3T.textContent = t.aboutCard3T;
+            const elAbC3D = document.getElementById('txt-about-card3-d');
+            if (elAbC3D) elAbC3D.textContent = t.aboutCard3D;
+
+            // Contact
+            const elCoBadge = document.getElementById('txt-contact-badge');
+            if (elCoBadge) elCoBadge.textContent = t.contactBadge;
+            const elCoTitle = document.getElementById('txt-contact-title');
+            if (elCoTitle) elCoTitle.textContent = t.contactTitle;
+            const elCoDesc = document.getElementById('txt-contact-desc');
+            if (elCoDesc) elCoDesc.textContent = t.contactDesc;
+            const elCoPhLbl = document.getElementById('txt-contact-phone-lbl');
+            if (elCoPhLbl) elCoPhLbl.textContent = t.contactPhoneLbl;
+            const elCoPhSub = document.getElementById('txt-contact-phone-sub');
+            if (elCoPhSub) elCoPhSub.textContent = t.contactPhoneSub;
+            const elCoEmLbl = document.getElementById('txt-contact-email-lbl');
+            if (elCoEmLbl) elCoEmLbl.textContent = t.contactEmailLbl;
+            const elCoEmSub = document.getElementById('txt-contact-email-sub');
+            if (elCoEmSub) elCoEmSub.textContent = t.contactEmailSub;
+
+            // CTA
+            const elCtaT = document.getElementById('txt-cta-title');
+            if (elCtaT) elCtaT.innerHTML = t.ctaTitle;
+            const elCtaD = document.getElementById('txt-cta-desc');
+            if (elCtaD) elCtaD.textContent = t.ctaDesc;
+            const elCtaB1 = document.getElementById('txt-cta-btn1');
+            if (elCtaB1) elCtaB1.textContent = t.ctaBtn1;
+            const elCtaB2 = document.getElementById('txt-cta-btn2');
+            if (elCtaB2) elCtaB2.textContent = t.ctaBtn2;
+
+            // Footer
+            const elFootCopy = document.getElementById('txt-footer-copy');
+            if (elFootCopy) elFootCopy.textContent = t.footerCopy;
+        }
+
+        const landingLangBtn = document.getElementById('landing-lang-btn');
+        if (landingLangBtn) {
+            landingLangBtn.addEventListener('click', () => {
+                applyLandingLanguage(currentLandingLang === 'fa' ? 'en' : 'fa');
+            });
+        }
+
+        // Initialize language
+        applyLandingLanguage(currentLandingLang);
     </script>
 </body>
 

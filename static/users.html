@@ -54,6 +54,13 @@
     padding: 12px 10px;
     border-bottom: 1px solid rgba(5,150,105,0.1);
   }
+  html[dir="ltr"] .users-table th,
+  html[dir="ltr"] .users-table td {
+    text-align: left;
+  }
+  html[dir="ltr"] .modal-actions {
+    justify-content: flex-end;
+  }
   .users-table th {
     color: #047857;
     font-size: 0.82rem;
@@ -159,11 +166,12 @@
   <div class="users-shell">
     <div class="users-top">
       <div>
-        <h1>مدیریت کاربران و سطح‌بندی</h1>
-        <div style="color:#5a7a6d;font-size:0.9rem;margin-top:4px;">تعیین سطوح دسترسی (سطح ۳: ۵ پیام کل، سطح ۲: ۱۰ پیام روزانه، سطح ۱: نامحدود، مدیر) و نظارت بر مصرف</div>
+        <h1 id="page-title">مدیریت کاربران و سطح‌بندی</h1>
+        <div id="page-subtitle" style="color:#5a7a6d;font-size:0.9rem;margin-top:4px;">تعیین سطوح دسترسی (سطح ۳: ۵ پیام کل، سطح ۲: ۱۰ پیام روزانه، سطح ۱: نامحدود، مدیر) و نظارت بر مصرف</div>
       </div>
       <div class="users-actions">
-        <a class="ghost-btn tiny" href="/app">بازگشت به برنامه</a>
+        <a class="ghost-btn tiny" id="btn-back" href="/app">بازگشت به برنامه</a>
+        <button class="ghost-btn tiny" id="btn-lang" type="button" title="Switch Language">EN</button>
         <button class="primary-btn tiny" id="btn-add" type="button">افزودن کاربر</button>
         <button class="ghost-btn tiny" id="btn-logout" type="button">خروج</button>
       </div>
@@ -176,15 +184,15 @@
         <table class="users-table" id="users-table" hidden>
           <thead>
             <tr>
-              <th>نام نمایشی</th>
-              <th>نام کاربری</th>
-              <th>ایمیل</th>
-              <th>موبایل</th>
-              <th>نقش سیستم</th>
-              <th>سطح کاربری</th>
-              <th>میزان مصرف</th>
-              <th>وضعیت</th>
-              <th>عملیات</th>
+              <th id="th-display">نام نمایشی</th>
+              <th id="th-username">نام کاربری</th>
+              <th id="th-email">ایمیل</th>
+              <th id="th-mobile">موبایل</th>
+              <th id="th-role">نقش سیستم</th>
+              <th id="th-tier">سطح کاربری</th>
+              <th id="th-usage">میزان مصرف</th>
+              <th id="th-status">وضعیت</th>
+              <th id="th-actions">عملیات</th>
             </tr>
           </thead>
           <tbody id="users-tbody"></tbody>
@@ -198,39 +206,39 @@
       <h2 id="modal-title">افزودن کاربر</h2>
       <form id="user-form">
         <input type="hidden" id="user-id" />
-        <label for="f-display">نام و نام خانوادگی</label>
+        <label for="f-display" id="lbl-display">نام و نام خانوادگی</label>
         <input id="f-display" type="text" required placeholder="مثلاً علی رضایی" />
 
-        <label for="f-username">نام کاربری</label>
+        <label for="f-username" id="lbl-username">نام کاربری</label>
         <input id="f-username" type="text" required placeholder="username" autocomplete="off" />
 
-        <label for="f-email">آدرس ایمیل</label>
+        <label for="f-email" id="lbl-email">آدرس ایمیل</label>
         <input id="f-email" type="email" placeholder="user@example.com" />
 
-        <label for="f-mobile">شماره موبایل</label>
+        <label for="f-mobile" id="lbl-mobile">شماره موبایل</label>
         <input id="f-mobile" type="text" placeholder="0912xxxxxxx" />
 
-        <label for="f-password">رمز عبور <span id="pwd-hint" style="font-weight:400;color:#7a9e90;">(الزامی)</span></label>
+        <label for="f-password"><span id="lbl-pwd-text">رمز عبور</span> <span id="pwd-hint" style="font-weight:400;color:#7a9e90;">(الزامی)</span></label>
         <input id="f-password" type="password" placeholder="رمز عبور" autocomplete="new-password" />
 
-        <label for="f-tier">سطح کاربری</label>
+        <label for="f-tier" id="lbl-tier">سطح کاربری</label>
         <select id="f-tier">
-          <option value="tier3">کاربر سطح ۳ (محدود به ۵ پیام در کل — پیش‌فرض ثبت‌نام)</option>
-          <option value="tier2">کاربر سطح ۲ (محدود به ۱۰ پیام در روز)</option>
-          <option value="tier1">کاربر سطح ۱ (نامحدود)</option>
+          <option id="opt-tier3" value="tier3">کاربر سطح ۳ (محدود به ۵ پیام در کل — پیش‌فرض ثبت‌نام)</option>
+          <option id="opt-tier2" value="tier2">کاربر سطح ۲ (محدود به ۱۰ پیام در روز)</option>
+          <option id="opt-tier1" value="tier1">کاربر سطح ۱ (نامحدود)</option>
         </select>
 
-        <label for="f-role">نقش سیستمی</label>
+        <label for="f-role" id="lbl-role">نقش سیستمی</label>
         <select id="f-role">
-          <option value="user">کاربر عادی</option>
-          <option value="admin">مدیر سیستم (دسترسی کامل و مدیریت کاربران)</option>
+          <option id="opt-role-user" value="user">کاربر عادی</option>
+          <option id="opt-role-admin" value="admin">مدیر سیستم (دسترسی کامل و مدیریت کاربران)</option>
         </select>
 
         <label for="f-active" id="active-wrap" hidden>
-          وضعیت حساب
+          <span id="lbl-active">وضعیت حساب</span>
           <select id="f-active">
-            <option value="true">فعال</option>
-            <option value="false">غیرفعال</option>
+            <option id="opt-active-true" value="true">فعال</option>
+            <option id="opt-active-false" value="false">غیرفعال</option>
           </select>
         </label>
 

@@ -24,7 +24,7 @@
 
   <header class="topbar app-header">
     <div class="app-header-brand">
-      <h1 class="app-header-title">دستیار هوشمند هوش تجاری</h1>
+      <h1 class="app-header-title" id="app-header-title">دستیار هوشمند هوش تجاری</h1>
     </div>
 
     <div class="app-header-center">
@@ -33,7 +33,7 @@
 
     <div class="app-header-actions">
       <a id="users-mgmt-btn" class="ghost-btn app-header-btn" href="/users" hidden title="مدیریت کاربران و سطوح">کاربران</a>
-      <button id="lang-toggle-btn" class="ghost-btn app-header-btn" title="Toggle AI response language" aria-label="Toggle AI response language">FA</button>
+      <button id="lang-toggle-btn" class="ghost-btn app-header-btn" title="تغییر زبان سامانه / Change Language" aria-label="تغییر زبان سامانه">FA</button>
       <a id="help-btn" class="ghost-btn app-header-btn app-header-help" href="/static/help.html" title="راهنمای جامع سیستم و قابلیت‌ها">📖 راهنما</a>
       <button id="logout-btn" class="ghost-btn app-header-btn" type="button" title="خروج از حساب">خروج</button>
     </div>
@@ -44,19 +44,19 @@
       <main class="chat-area" id="chat-area">
         <div class="welcome-block" id="welcome-block">
           <div class="welcome-bot" aria-hidden="true">🤖</div>
-          <h2>Ask about your transactions</h2>
-          <p class="welcome-hint">برای شروع، سؤال خود را بپرسید یا از پیشنهادهای زیر استفاده کنید.</p>
-          <p>Try: <em>"Show top 10 merchants by volume"</em> یا <em>"نمایش تراکنش های دیروز"</em></p>
+          <h2 id="welcome-title">درباره تراکنش‌های خود بپرسید</h2>
+          <p class="welcome-hint" id="welcome-hint">برای شروع، سؤال خود را بپرسید یا از پیشنهادهای زیر استفاده کنید.</p>
+          <p id="welcome-eg">نمونه: <em>"۱۰ پذیرنده برتر از نظر مبلغ"</em> یا <em>"نمایش تراکنش‌های دیروز"</em></p>
         </div>
       </main>
 
       <footer class="composer">
-        <button id="voice-input-btn" class="ghost-btn voice-btn" type="button" title="Voice input (FA/EN)" aria-label="Voice input (FA/EN)" aria-pressed="false">🎤</button>
-        <textarea id="message-input" placeholder="Ask a question about your transactions… (Persian or English)" rows="1"></textarea>
+        <button id="voice-input-btn" class="ghost-btn voice-btn" type="button" title="ورودی صوتی (فارسی/انگلیسی)" aria-label="ورودی صوتی" aria-pressed="false">🎤</button>
+        <textarea id="message-input" placeholder="سؤال خود را درباره تراکنش‌ها بپرسید... (فارسی یا انگلیسی)" rows="1"></textarea>
         <div class="composer-actions">
-          <button id="export-pdf-btn" class="ghost-btn" title="Export last result to PDF" disabled>PDF</button>
-          <button id="export-excel-btn" class="ghost-btn" title="Export last result to Excel" disabled>Excel</button>
-          <button id="send-btn" class="primary-btn">Send</button>
+          <button id="export-pdf-btn" class="ghost-btn" title="خروجی PDF" disabled>PDF</button>
+          <button id="export-excel-btn" class="ghost-btn" title="خروجی اکسل" disabled>Excel</button>
+          <button id="send-btn" class="primary-btn">ارسال</button>
         </div>
       </footer>
     </section>
@@ -66,7 +66,7 @@
         <div class="dash-card-title" role="button" tabindex="0" aria-expanded="false">
           <div class="dash-card-title-main">
             <span aria-hidden="true">🕘</span>
-            <span data-i18n="historyTitle">تاریخچه گفتگو</span>
+            <span id="dash-history-title">تاریخچه گفتگو</span>
           </div>
           <span class="dash-card-chevron" aria-hidden="true">▾</span>
         </div>
@@ -82,7 +82,7 @@
         <div class="dash-card-title" role="button" tabindex="0" aria-expanded="false">
           <div class="dash-card-title-main">
             <span aria-hidden="true">❓</span>
-            <span>۱۰ سؤال پرتکرار</span>
+            <span id="dash-freq-title">۱۰ سؤال پرتکرار</span>
           </div>
           <span class="dash-card-chevron" aria-hidden="true">▾</span>
         </div>
@@ -97,16 +97,16 @@
         <div class="dash-card-title" role="button" tabindex="0" aria-expanded="false">
           <div class="dash-card-title-main">
             <span aria-hidden="true">⚡</span>
-            <span>اقدامات سریع</span>
+            <span id="dash-quick-title">اقدامات سریع</span>
           </div>
           <span class="dash-card-chevron" aria-hidden="true">▾</span>
         </div>
         <div class="dash-card-body">
           <div class="quick-grid">
-            <button type="button" class="quick-tile qt-green" data-q="۱۰ فروشنده برتر از نظر حجم تراکنش را نشان بده">Top Merchants</button>
-            <button type="button" class="quick-tile qt-blue" data-q="خلاصه تراکنش‌های امروز را بده">Today Summary</button>
-            <button type="button" class="quick-tile qt-purple" data-q="نمودار حجم تراکنش ماهانه">Transaction Chart</button>
-            <button type="button" class="quick-tile qt-orange" data-q="تراکنش‌های ناموفق دیروز را نشان بده">Advanced Search</button>
+            <button type="button" class="quick-tile qt-green" id="qt-merchants" data-q="۱۰ فروشنده برتر از نظر حجم تراکنش را نشان بده">۱۰ فروشنده برتر</button>
+            <button type="button" class="quick-tile qt-blue" id="qt-summary" data-q="خلاصه تراکنش‌های امروز را بده">خلاصه امروز</button>
+            <button type="button" class="quick-tile qt-purple" id="qt-chart" data-q="نمودار حجم تراکنش ماهانه">نمودار تراکنش‌ها</button>
+            <button type="button" class="quick-tile qt-orange" id="qt-failed" data-q="تراکنش‌های ناموفق دیروز را نشان بده">تراکنش‌های ناموفق</button>
           </div>
         </div>
       </div>
@@ -115,18 +115,18 @@
         <div class="dash-card-title" role="button" tabindex="0" aria-expanded="false">
           <div class="dash-card-title-main">
             <span aria-hidden="true">⚙</span>
-            <span>تنظیمات</span>
+            <span id="dash-settings-title">تنظیمات</span>
           </div>
           <span class="dash-card-chevron" aria-hidden="true">▾</span>
         </div>
         <div class="dash-card-body">
           <button type="button" class="settings-row" id="settings-model-btn">
-            <span>مدل</span>
+            <span id="dash-lbl-model">مدل هوش مصنوعی</span>
             <span class="settings-value" id="settings-model-value">API ›</span>
           </button>
           <button type="button" class="settings-row" id="settings-lang-btn">
-            <span>زبان</span>
-            <span class="settings-value" id="settings-lang-value">FA ›</span>
+            <span id="dash-lbl-lang">زبان سامانه</span>
+            <span class="settings-value" id="settings-lang-value">فارسی ›</span>
           </button>
         </div>
       </div>
@@ -134,12 +134,12 @@
       <div class="dash-card about-card" id="card-about">
         <div class="dash-card-title" role="button" tabindex="0" aria-expanded="false">
           <div class="dash-card-title-main">
-            <span>درباره این دستیار</span>
+            <span id="dash-about-title">درباره این دستیار</span>
           </div>
           <span class="dash-card-chevron" aria-hidden="true">▾</span>
         </div>
         <div class="dash-card-body">
-          <p>دستیار هوشمند هوش تجاری به شما کمک می‌کند داده‌های تراکنشی را تحلیل و درک کنید.</p>
+          <p id="dash-about-desc">دستیار هوشمند هوش تجاری رایامیت به شما کمک می‌کند داده‌های تراکنشی را با هوش مصنوعی تحلیل و بصری‌سازی کنید.</p>
         </div>
       </div>
 
@@ -147,12 +147,12 @@
         <div class="dash-card-title" role="button" tabindex="0" aria-expanded="false">
           <div class="dash-card-title-main">
             <span aria-hidden="true">🗳️</span>
-            <span>نظرسنجی قابلیت‌های آینده</span>
+            <span id="dash-poll-title">نظرسنجی قابلیت‌های آینده</span>
           </div>
           <span class="dash-card-chevron" aria-hidden="true">▾</span>
         </div>
         <div class="dash-card-body">
-          <p class="poll-hint">کدام قابلیت‌ها را زودتر می‌خواهید؟ (حداکثر ۳ مورد)</p>
+          <p class="poll-hint" id="dash-poll-hint">کدام قابلیت‌ها را زودتر می‌خواهید؟ (حداکثر ۳ مورد)</p>
           <div class="poll-options" id="poll-options"></div>
           <div class="poll-custom-wrap">
             <input type="text" id="poll-custom-input" class="poll-custom-input" placeholder="پیشنهاد خودت… (حداکثر ۱۰۰ کاراکتر)" maxlength="100" />

@@ -633,12 +633,25 @@
       width: min(520px, 100%);
       background: #ffffff;
       border-radius: 24px;
-      box-shadow: 0 32px 70px rgba(15, 42, 31, 0.2);
+      box-shadow: 0 32px 70px rgba(15, 42, 31, 0.25);
       border: 1px solid rgba(5, 150, 105, 0.16);
-      padding: 28px 26px;
-      max-height: 90vh;
+      padding: 22px 24px 26px;
+      max-height: calc(100vh - 40px);
       overflow-y: auto;
+      overscroll-behavior: contain;
+      box-sizing: border-box;
       animation: modalPop .22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .reg-modal::-webkit-scrollbar {
+      width: 6px;
+    }
+    .reg-modal::-webkit-scrollbar-thumb {
+      background: rgba(5, 150, 105, 0.22);
+      border-radius: 999px;
+    }
+    .reg-modal::-webkit-scrollbar-thumb:hover {
+      background: rgba(5, 150, 105, 0.45);
     }
 
     @keyframes modalPop {
@@ -650,19 +663,19 @@
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      margin-bottom: 18px;
+      margin-bottom: 12px;
     }
 
     .reg-modal-title {
-      font-size: 1.3rem;
+      font-size: 1.22rem;
       font-weight: 800;
       color: var(--ink);
     }
 
     .reg-modal-subtitle {
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       color: var(--muted);
-      margin-top: 4px;
+      margin-top: 3px;
     }
 
     .reg-close-btn {
@@ -687,7 +700,22 @@
     .reg-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      gap: 10px;
+    }
+
+    .reg-grid .field label {
+      margin-bottom: 3px;
+      font-size: 0.8rem;
+    }
+
+    .reg-grid .input-wrap {
+      height: 40px;
+      border-radius: 12px;
+    }
+
+    .reg-grid .input-wrap input {
+      padding: 8px 10px;
+      font-size: 0.88rem;
     }
 
     .reg-grid .full {
@@ -703,10 +731,34 @@
       background: #ecfdf5;
       border: 1px solid #a7f3d0;
       color: #065f46;
-      font-size: 0.82rem;
+      font-size: 0.78rem;
       font-weight: 600;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       width: 100%;
+      box-sizing: border-box;
+    }
+
+    .lang-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(5, 150, 105, 0.2);
+      background: rgba(255, 255, 255, 0.9);
+      color: #047857;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(5, 150, 105, 0.08);
+      transition: all .15s ease;
+    }
+
+    .lang-toggle-btn:hover {
+      background: #059669;
+      color: #ffffff;
+      border-color: #059669;
+      transform: translateY(-1px);
     }
 
     .footer {
@@ -776,42 +828,42 @@
           <div class="brand-name">RAYAMATE</div>
         </a>
 
-        <h2 class="hero-title">به سامانه هوشمند <em>رایامیت</em> خوش آمدید</h2>
-        <p class="hero-sub">دسترسی سریع و امن به ابزارهای تحلیل داده، گزارش‌گیری و داشبوردهای هوشمند بانکی و پرداخت</p>
+        <h2 class="hero-title" id="t-hero-title">به سامانه هوشمند <em>رایامیت</em> خوش آمدید</h2>
+        <p class="hero-sub" id="t-hero-sub">دسترسی سریع و امن به ابزارهای تحلیل داده، گزارش‌گیری و داشبوردهای هوشمند بانکی و پرداخت</p>
 
         <div class="hero-art">
-          <div class="float-badge a">▲ رشد دقیق داده</div>
+          <div class="float-badge a" id="t-art-badge-a">▲ رشد دقیق داده</div>
           <div class="hero-art-frame">
             <div class="dash-top"><i></i><i></i><i></i></div>
             <div class="dash-grid">
               <div class="panel">
-                <div style="font-size:12px;color:#5a7a6d;font-weight:600;">روند ماهانه</div>
+                <div style="font-size:12px;color:#5a7a6d;font-weight:600;" id="t-art-monthly">روند ماهانه</div>
                 <div class="line-chart"></div>
               </div>
               <div class="panel">
-                <div style="font-size:12px;color:#5a7a6d;font-weight:600;">تراکنش‌ها</div>
+                <div style="font-size:12px;color:#5a7a6d;font-weight:600;" id="t-art-txns">تراکنش‌ها</div>
                 <div class="bars"><span></span><span></span><span></span><span></span><span></span></div>
               </div>
             </div>
           </div>
-          <div class="float-badge b">تحلیل آنی مکالمه‌محور</div>
+          <div class="float-badge b" id="t-art-badge-b">تحلیل آنی مکالمه‌محور</div>
         </div>
 
         <div class="features">
           <div class="feature">
             <div class="feature-icon">🛡️</div>
-            <h3>ایمن و مطمئن</h3>
-            <p>تضمین امنیت اطلاعات و اعتبارسنجی پیشرفته</p>
+            <h3 id="t-feat1-title">ایمن و مطمئن</h3>
+            <p id="t-feat1-desc">تضمین امنیت اطلاعات و اعتبارسنجی پیشرفته</p>
           </div>
           <div class="feature">
             <div class="feature-icon">⚡</div>
-            <h3>سریع و هوشمند</h3>
-            <p>پرسش و پاسخ مکالمه‌محور بدون نیاز به کدنویسی</p>
+            <h3 id="t-feat2-title">سریع و هوشمند</h3>
+            <p id="t-feat2-desc">پرسش و پاسخ مکالمه‌محور بدون نیاز به کدنویسی</p>
           </div>
           <div class="feature">
             <div class="feature-icon">🎁</div>
-            <h3>سهمیه پرسش آزمایشی</h3>
-            <p>۵ پرسش تحلیلی اولیه پس از ثبت‌نام با قابلیت ارتقای سطح</p>
+            <h3 id="t-feat3-title">سهمیه پرسش آزمایشی</h3>
+            <p id="t-feat3-desc">۵ پرسش تحلیلی اولیه پس از ثبت‌نام با قابلیت ارتقای سطح</p>
           </div>
         </div>
       </section>
@@ -824,13 +876,19 @@
           </div>
 
           <div class="login-content">
-            <div class="chip">RAYAMATE · BI</div>
-            <h1>ورود به دستیار هوش تجاری</h1>
-            <p class="desc">نام کاربری یا ایمیل و رمز عبور خود را وارد کنید.</p>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <div class="chip" style="margin-bottom:0;">RAYAMATE · BI</div>
+              <button type="button" class="lang-toggle-btn" id="login-lang-btn" title="تغییر زبان / Switch Language">
+                <span>🌐</span>
+                <span id="login-lang-label">EN</span>
+              </button>
+            </div>
+            <h1 id="t-login-title">ورود به دستیار هوش تجاری</h1>
+            <p class="desc" id="t-login-desc">نام کاربری یا ایمیل و رمز عبور خود را وارد کنید.</p>
 
             <form id="login-form" novalidate>
               <div class="field">
-                <label for="username-input">نام کاربری یا ایمیل</label>
+                <label for="username-input" id="t-lbl-user">نام کاربری یا ایمیل</label>
                 <div class="input-wrap">
                   <span class="icon" aria-hidden="true">👤</span>
                   <input id="username-input" type="text" name="username" autocomplete="username" required
@@ -839,7 +897,7 @@
               </div>
 
               <div class="field">
-                <label for="password-input">رمز عبور</label>
+                <label for="password-input" id="t-lbl-pass">رمز عبور</label>
                 <div class="input-wrap">
                   <span class="icon" aria-hidden="true">🔒</span>
                   <input id="password-input" type="password" name="password" autocomplete="current-password" required
@@ -851,7 +909,7 @@
               <div class="row-between">
                 <label class="remember">
                   <input type="checkbox" id="remember-me" />
-                  <span>مرا به خاطر بسپار</span>
+                  <span id="t-lbl-remember">مرا به خاطر بسپار</span>
                 </label>
                 <a class="forgot" href="#" id="forgot-link">فراموشی رمز عبور؟</a>
               </div>
@@ -862,19 +920,19 @@
                 <!-- Fallback in case Turnstile script doesn't load -->
                 <label class="turnstile-fallback-box" id="login-turnstile-fallback" style="display:none;">
                   <input type="checkbox" id="login-fallback-checkbox" />
-                  <span>من ربات نیستم (تایید امنیتی)</span>
+                  <span id="t-lbl-notrobot">من ربات نیستم (تایید امنیتی)</span>
                 </label>
               </div>
 
               <button type="submit" class="btn-primary" id="login-btn">ورود به سامانه</button>
 
               <div class="register-cta">
-                <span>حساب کاربری ندارید؟</span>
-                <a id="open-register-modal-btn">ثبت‌نام و دریافت ۱۰ سوال رایگان</a>
+                <span id="t-no-acc">حساب کاربری ندارید؟</span>
+                <a id="open-register-modal-btn">ثبت‌نام و دریافت ۵ سوال آزمایشی</a>
               </div>
             </form>
 
-            <div class="divider">یا ورود با حساب کاربری دیگر</div>
+            <div class="divider" id="t-divider">یا ورود با حساب کاربری دیگر</div>
 
             <!-- Google Sign-In Button -->
             <button type="button" class="btn-google" id="btn-google-login">
@@ -884,7 +942,7 @@
                 <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.97 0 12s.46 3.84 1.26 5.42l4.02-3.15z"/>
                 <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.25 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
               </svg>
-              <span>ورود / ثبت‌نام سریع با گوگل</span>
+              <span id="t-btn-google">ورود / ثبت‌نام سریع با گوگل</span>
             </button>
             <div id="g_id_signin_holder" style="display:none;margin-top:10px;"></div>
 
@@ -896,11 +954,11 @@
     </main>
 
     <footer class="footer">
-      <div>© تمامی حقوق برای سامانه هوش تجاری Rayamate محفوظ است.</div>
+      <div id="t-footer-copy">© ۲۰۲۶ تمامی حقوق برای سامانه هوش تجاری Rayamate محفوظ است.</div>
       <div class="footer-links">
-        <a href="/help">راهنمای سیستم</a>
-        <a href="/manual">مستندات</a>
-        <a href="#">پشتیبانی و ارتقای پلن</a>
+        <a href="/help" id="t-foot-help">راهنمای سیستم</a>
+        <a href="/manual" id="t-foot-manual">مستندات</a>
+        <a href="mailto:support@rayamate.ir" id="t-foot-support">پشتیبانی و ارتقای پلن</a>
       </div>
     </footer>
   </div>
@@ -910,21 +968,21 @@
     <div class="reg-modal">
       <div class="reg-modal-top">
         <div>
-          <h2 class="reg-modal-title">ثبت‌نام در سامانه رایامیت</h2>
-          <div class="reg-modal-subtitle">لطفاً مشخصات خود را وارد کنید (کاربر سطح ۳)</div>
+          <h2 class="reg-modal-title" id="t-reg-title">ثبت‌نام در سامانه رایامیت</h2>
+          <div class="reg-modal-subtitle" id="t-reg-subtitle">لطفاً مشخصات خود را وارد کنید (کاربر سطح ۳)</div>
         </div>
         <button type="button" class="reg-close-btn" id="reg-close-btn" aria-label="بستن">✕</button>
       </div>
 
-      <div class="tier-perk-badge">
+      <div class="tier-perk-badge" id="t-reg-badge">
         <span>🎁</span>
-        <span>ثبت‌نام اولیه با <strong>سطح ۳ (شامل ۵ پرسش آزمایشی)</strong> فعال خواهد شد. امکان ارتقا به سطح ۲ و ۱ با هماهنگی مدیریت وجود دارد.</span>
+        <span id="t-reg-badge-txt">ثبت‌نام اولیه با <strong>سطح ۳ (شامل ۵ پرسش آزمایشی)</strong> فعال خواهد شد. امکان ارتقا به سطح ۲ و ۱ با هماهنگی مدیریت وجود دارد.</span>
       </div>
 
       <form id="reg-form" novalidate>
         <div class="reg-grid">
           <div class="field">
-            <label for="reg-name">نام و نام خانوادگی *</label>
+            <label for="reg-name" id="t-reg-lbl-name">نام و نام خانوادگی *</label>
             <div class="input-wrap">
               <span class="icon">👤</span>
               <input id="reg-name" type="text" required placeholder="مثلاً: علی محمدی" />
@@ -932,7 +990,7 @@
           </div>
 
           <div class="field">
-            <label for="reg-mobile">شماره موبایل *</label>
+            <label for="reg-mobile" id="t-reg-lbl-mobile">شماره موبایل *</label>
             <div class="input-wrap">
               <span class="icon">📱</span>
               <input id="reg-mobile" type="tel" required placeholder="09123456789" dir="ltr" />
@@ -940,7 +998,7 @@
           </div>
 
           <div class="field full">
-            <label for="reg-email">آدرس ایمیل *</label>
+            <label for="reg-email" id="t-reg-lbl-email">آدرس ایمیل *</label>
             <div class="input-wrap">
               <span class="icon">✉️</span>
               <input id="reg-email" type="email" required placeholder="example@domain.com" dir="ltr" />
@@ -948,7 +1006,7 @@
           </div>
 
           <div class="field full">
-            <label for="reg-username">نام کاربری دلخواه *</label>
+            <label for="reg-username" id="t-reg-lbl-uname">نام کاربری دلخواه *</label>
             <div class="input-wrap">
               <span class="icon">🆔</span>
               <input id="reg-username" type="text" required placeholder="username (حروف انگلیسی یا اعداد)" dir="ltr" />
@@ -956,7 +1014,7 @@
           </div>
 
           <div class="field">
-            <label for="reg-password">رمز عبور *</label>
+            <label for="reg-password" id="t-reg-lbl-pass">رمز عبور *</label>
             <div class="input-wrap">
               <span class="icon">🔒</span>
               <input id="reg-password" type="password" required placeholder="حداقل ۶ کاراکتر" />
@@ -964,7 +1022,7 @@
           </div>
 
           <div class="field">
-            <label for="reg-password-confirm">تکرار رمز عبور *</label>
+            <label for="reg-password-confirm" id="t-reg-lbl-pass2">تکرار رمز عبور *</label>
             <div class="input-wrap">
               <span class="icon">🔐</span>
               <input id="reg-password-confirm" type="password" required placeholder="تکرار رمز عبور" />
@@ -977,7 +1035,7 @@
               <div id="reg-turnstile"></div>
               <label class="turnstile-fallback-box" id="reg-turnstile-fallback" style="display:none;">
                 <input type="checkbox" id="reg-fallback-checkbox" />
-                <span>من ربات نیستم (تایید امنیتی)</span>
+                <span id="t-reg-lbl-notrobot">من ربات نیستم (تایید امنیتی)</span>
               </label>
             </div>
           </div>

@@ -34,13 +34,18 @@ window.addEventListener('DOMContentLoaded', async () => {
   ensureIranMapRegistered().catch(() => {});
   messageInput.focus();
 
+  const savedLang = localStorage.getItem('rayamate_lang');
+  if (savedLang === 'fa' || savedLang === 'en') {
+    state.language = savedLang;
+  }
+
   try {
     const res = await apiFetch('/api/preferences');
     const prefs = await res.json();
     if (prefs.provider === 'ollama' || prefs.provider === 'avalai') {
       state.provider = prefs.provider;
     }
-    if (prefs.language === 'fa' || prefs.language === 'en') {
+    if (!savedLang && (prefs.language === 'fa' || prefs.language === 'en')) {
       state.language = prefs.language;
     }
   } catch (_) {
@@ -317,23 +322,203 @@ messageInput.addEventListener('input', () => {
   messageInput.dir = isRtlText(messageInput.value) ? 'rtl' : 'ltr';
 });
 
+const I18N_APP = {
+  fa: {
+    pageTitle: 'رایامیت | از داده تا تصمیم هوشمند — داشبورد هوش تجاری',
+    headerTitle: 'دستیار هوشمند هوش تجاری',
+    usersBtn: 'کاربران',
+    usersBtnTitle: 'مدیریت کاربران و سطوح',
+    langBtn: 'EN',
+    langBtnTitle: 'تغییر به زبان انگلیسی',
+    helpBtn: '📖 راهنما',
+    helpBtnTitle: 'راهنمای جامع سیستم و قابلیت‌ها',
+    logoutBtn: 'خروج',
+    logoutBtnTitle: 'خروج از حساب',
+    welcomeTitle: 'درباره تراکنش‌های خود بپرسید',
+    welcomeHint: 'برای شروع، سؤال خود را بپرسید یا از پیشنهادهای زیر استفاده کنید.',
+    welcomeEg: 'نمونه: <em>"۱۰ پذیرنده برتر از نظر مبلغ"</em> یا <em>"نمایش تراکنش‌های دیروز"</em>',
+    inputPlaceholder: 'سؤال خود را درباره تراکنش‌ها بپرسید... (فارسی یا انگلیسی)',
+    sendBtn: 'ارسال',
+    voiceTitle: 'ورودی صوتی (فارسی/انگلیسی)',
+    exportPdfTitle: 'خروجی PDF',
+    exportExcelTitle: 'خروجی اکسل',
+    historyTitle: 'تاریخچه گفتگو',
+    historyEmpty: 'هنوز گفتگویی ثبت نشده است.',
+    historyRefresh: 'به‌روزرسانی تاریخچه',
+    freqTitle: '۱۰ سؤال پرتکرار',
+    freqEmpty: 'هنوز سؤالی ثبت نشده است.',
+    quickTitle: 'اقدامات سریع',
+    qtMerchants: '۱۰ فروشنده برتر',
+    qtSummary: 'خلاصه امروز',
+    qtChart: 'نمودار تراکنش‌ها',
+    qtFailed: 'تراکنش‌های ناموفق',
+    settingsTitle: 'تنظیمات',
+    lblModel: 'مدل هوش مصنوعی',
+    lblLang: 'زبان سامانه',
+    settingsLangVal: 'فارسی ›',
+    aboutTitle: 'درباره این دستیار',
+    aboutDesc: 'دستیار هوشمند هوش تجاری رایامیت به شما کمک می‌کند داده‌های تراکنشی را با هوش مصنوعی تحلیل و بصری‌سازی کنید.',
+    pollTitle: 'نظرسنجی قابلیت‌های آینده',
+    pollHint: 'کدام قابلیت‌ها را زودتر می‌خواهید؟ (حداکثر ۳ مورد)',
+    pollCustomPlaceholder: 'پیشنهاد خودت… (حداکثر ۱۰۰ کاراکتر)',
+    pollSubmit: 'ثبت رأی',
+  },
+  en: {
+    pageTitle: 'Rayamate | From Data to Smart Decisions — BI Assistant',
+    headerTitle: 'Intelligent BI Assistant',
+    usersBtn: 'Users',
+    usersBtnTitle: 'User & Tier Management',
+    langBtn: 'FA',
+    langBtnTitle: 'Switch to Persian / تغییر به فارسی',
+    helpBtn: '📖 Help',
+    helpBtnTitle: 'Comprehensive Guide & Documentation',
+    logoutBtn: 'Logout',
+    logoutBtnTitle: 'Sign out of your account',
+    welcomeTitle: 'Ask about your transactions',
+    welcomeHint: 'To get started, ask your question or pick an example below.',
+    welcomeEg: 'Try: <em>"Show top 10 merchants by volume"</em> or <em>"Show yesterday transactions"</em>',
+    inputPlaceholder: 'Ask a question about your transactions… (Persian or English)',
+    sendBtn: 'Send',
+    voiceTitle: 'Voice input (FA/EN)',
+    exportPdfTitle: 'Export to PDF',
+    exportExcelTitle: 'Export to Excel',
+    historyTitle: 'Chat History',
+    historyEmpty: 'No conversations yet.',
+    historyRefresh: 'Refresh History',
+    freqTitle: '10 Frequent Queries',
+    freqEmpty: 'No frequent queries yet.',
+    quickTitle: 'Quick Actions',
+    qtMerchants: 'Top Merchants',
+    qtSummary: 'Today Summary',
+    qtChart: 'Transaction Chart',
+    qtFailed: 'Failed Queries',
+    settingsTitle: 'Settings',
+    lblModel: 'AI Model',
+    lblLang: 'System Language',
+    settingsLangVal: 'English ›',
+    aboutTitle: 'About this Assistant',
+    aboutDesc: 'Rayamate AI BI Assistant helps you analyze and visualize transaction data using AI.',
+    pollTitle: 'Upcoming Features Poll',
+    pollHint: 'Which features would you like first? (Up to 3)',
+    pollCustomPlaceholder: 'Your suggestion... (max 100 chars)',
+    pollSubmit: 'Submit Vote',
+  }
+};
+
 function applyLanguageUI(language) {
   state.language = language;
-  langToggleBtn.textContent = state.language.toUpperCase();
-  if (settingsLangValue) {
-    settingsLangValue.textContent = `${state.language.toUpperCase()} ›`;
+  localStorage.setItem('rayamate_lang', language);
+  document.documentElement.lang = language;
+  document.documentElement.dir = (language === 'en' ? 'ltr' : 'rtl');
+
+  const dict = I18N_APP[language] || I18N_APP.fa;
+
+  document.title = dict.pageTitle;
+  const headerTitle = document.getElementById('app-header-title');
+  if (headerTitle) headerTitle.textContent = dict.headerTitle;
+
+  const usersBtn = document.getElementById('users-mgmt-btn');
+  if (usersBtn) {
+    usersBtn.textContent = dict.usersBtn;
+    usersBtn.title = dict.usersBtnTitle;
   }
+
+  if (langToggleBtn) {
+    langToggleBtn.textContent = dict.langBtn;
+    langToggleBtn.title = dict.langBtnTitle;
+    langToggleBtn.setAttribute('aria-label', dict.langBtnTitle);
+  }
+
+  const helpBtn = document.getElementById('help-btn');
+  if (helpBtn) {
+    helpBtn.textContent = dict.helpBtn;
+    helpBtn.title = dict.helpBtnTitle;
+  }
+
+  if (logoutBtn) {
+    logoutBtn.textContent = dict.logoutBtn;
+    logoutBtn.title = dict.logoutBtnTitle;
+  }
+
+  const wTitle = document.getElementById('welcome-title');
+  if (wTitle) wTitle.textContent = dict.welcomeTitle;
+  const wHint = document.getElementById('welcome-hint');
+  if (wHint) wHint.textContent = dict.welcomeHint;
+  const wEg = document.getElementById('welcome-eg');
+  if (wEg) wEg.innerHTML = dict.welcomeEg;
+
+  if (messageInput) {
+    messageInput.placeholder = dict.inputPlaceholder;
+  }
+
+  if (sendBtn) sendBtn.textContent = dict.sendBtn;
+
+  const pdfBtn = document.getElementById('export-pdf-btn');
+  if (pdfBtn) pdfBtn.title = dict.exportPdfTitle;
+  const excelBtn = document.getElementById('export-excel-btn');
+  if (excelBtn) excelBtn.title = dict.exportExcelTitle;
+
+  const hTitle = document.getElementById('dash-history-title');
+  if (hTitle) hTitle.textContent = dict.historyTitle;
+  if (historyEmpty) historyEmpty.textContent = dict.historyEmpty;
+  if (historyRefreshBtn) historyRefreshBtn.textContent = dict.historyRefresh;
+
+  const fTitle = document.getElementById('dash-freq-title');
+  if (fTitle) fTitle.textContent = dict.freqTitle;
+  if (freqEmpty) freqEmpty.textContent = dict.freqEmpty;
+
+  const qTitle = document.getElementById('dash-quick-title');
+  if (qTitle) qTitle.textContent = dict.quickTitle;
+
+  const qm = document.getElementById('qt-merchants');
+  if (qm) qm.textContent = dict.qtMerchants;
+  const qs = document.getElementById('qt-summary');
+  if (qs) qs.textContent = dict.qtSummary;
+  const qc = document.getElementById('qt-chart');
+  if (qc) qc.textContent = dict.qtChart;
+  const qf = document.getElementById('qt-failed');
+  if (qf) qf.textContent = dict.qtFailed;
+
+  const sTitle = document.getElementById('dash-settings-title');
+  if (sTitle) sTitle.textContent = dict.settingsTitle;
+  const lblM = document.getElementById('dash-lbl-model');
+  if (lblM) lblM.textContent = dict.lblModel;
+  const lblL = document.getElementById('dash-lbl-lang');
+  if (lblL) lblL.textContent = dict.lblLang;
+
+  if (settingsLangValue) {
+    settingsLangValue.textContent = dict.settingsLangVal;
+  }
+
+  const abTitle = document.getElementById('dash-about-title');
+  if (abTitle) abTitle.textContent = dict.aboutTitle;
+  const abDesc = document.getElementById('dash-about-desc');
+  if (abDesc) abDesc.textContent = dict.aboutDesc;
+
+  const pTitle = document.getElementById('dash-poll-title');
+  if (pTitle) pTitle.textContent = dict.pollTitle;
+  const pHint = document.getElementById('dash-poll-hint');
+  if (pHint) pHint.textContent = dict.pollHint;
+  const pCustom = document.getElementById('poll-custom-input');
+  if (pCustom) pCustom.placeholder = dict.pollCustomPlaceholder;
+  const pSubmit = document.getElementById('poll-submit-btn');
+  if (pSubmit) pSubmit.textContent = dict.pollSubmit;
+
   if (typeof Chart !== 'undefined') {
     Chart.defaults.font.family = chartFontFamily();
   }
   const voiceBtn = document.getElementById('voice-input-btn');
   if (voiceBtn && !voiceListening) {
-    voiceBtn.title =
-      language === 'fa' ? 'ورودی صوتی (فارسی/انگلیسی)' : 'Voice input (FA/EN)';
+    voiceBtn.title = dict.voiceTitle;
     voiceBtn.setAttribute('aria-label', voiceBtn.title);
   }
   if (voiceRecognition && voiceListening) {
     voiceRecognition.lang = speechLocale(language);
+  }
+
+  if (state.currentUser) {
+    const tierBadge = document.getElementById('user-tier-badge');
+    if (tierBadge) renderUserTierBadge(tierBadge, state.currentUser);
   }
 }
 
@@ -392,40 +577,40 @@ function renderUserTierBadge(container, user) {
   const rawTier = user.tier || 'tier3';
   const isTier1 = rawTier === 'tier1' || rawTier === 'premium';
   const isTier2 = rawTier === 'tier2';
+  const isEn = state.language === 'en';
   let tierLabel = '';
   let badgeColor = '';
   let badgeBg = '';
   let usageDetails = '';
 
   if (isAdm) {
-    tierLabel = '👑 مدیر سیستم';
+    tierLabel = isEn ? '👑 System Admin' : '👑 مدیر سیستم';
     badgeBg = 'rgba(5,150,105,0.14)';
     badgeColor = '#047857';
-    usageDetails = 'نامحدود';
+    usageDetails = isEn ? 'Unlimited' : 'نامحدود';
   } else if (isTier1) {
-    tierLabel = '🌟 کاربر سطح ۱';
+    tierLabel = isEn ? '🌟 Tier 1 User' : '🌟 کاربر سطح ۱';
     badgeBg = 'rgba(217,119,6,0.14)';
     badgeColor = '#b45309';
-    usageDetails = 'پرسش نامحدود';
+    usageDetails = isEn ? 'Unlimited Queries' : 'پرسش نامحدود';
   } else if (isTier2) {
-    tierLabel = 'کاربر سطح ۲';
+    tierLabel = isEn ? 'Tier 2 User' : 'کاربر سطح ۲';
     badgeBg = 'rgba(37,99,235,0.1)';
     badgeColor = '#1d4ed8';
     const used = user.queries_today ?? 0;
     const limit = user.daily_limit ?? 10;
-    usageDetails = `${used} از ${limit} سوال امروز`;
+    usageDetails = isEn ? `${used} of ${limit} today` : `${used} از ${limit} سوال امروز`;
   } else {
-    // tier3: 5 total messages
-    tierLabel = 'کاربر سطح ۳';
+    tierLabel = isEn ? 'Tier 3 User' : 'کاربر سطح ۳';
     badgeBg = 'rgba(107,114,128,0.14)';
     badgeColor = '#4b5563';
     const total = user.total_queries ?? 0;
     const limit = user.lifetime_limit ?? 5;
-    usageDetails = `${total} از ${limit} پیام کل`;
+    usageDetails = isEn ? `${total} of ${limit} total` : `${total} از ${limit} پیام کل`;
   }
 
   const displayName = user.display_name || user.username;
-  const showName = (isAdm && displayName === 'مدیر سیستم')
+  const showName = (isAdm && (displayName === 'مدیر سیستم' || displayName === 'System Admin'))
     ? ''
     : `<span style="font-weight: 700; color: #0f2a1f;">${escapeHtml(displayName)}</span><span style="color: #9ca3af;">•</span>`;
 
