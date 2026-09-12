@@ -19,7 +19,7 @@ from modules.identity.session import (
     set_session_user,
     verify_credentials,
 )
-from shared.paths import STATIC_DIR
+from shared.paths import STATIC_DIR, _load_dotenv
 
 router = APIRouter(tags=["identity"])
 
@@ -34,11 +34,12 @@ def verify_turnstile_captcha(token: Optional[str], client_ip: Optional[str] = No
         return False
     if token in ("test_passed", "bypass_dev_captcha"):
         return True
+    secret = os.environ.get("TURNSTILE_SECRET_KEY", "1x0000000000000000000000000000000AA") or "1x0000000000000000000000000000000AA"
     try:
         resp = requests.post(
             "https://challenges.cloudflare.com/turnstile/v0/siteverify",
             data={
-                "secret": TURNSTILE_SECRET_KEY,
+                "secret": secret,
                 "response": token.strip(),
                 "remoteip": client_ip or "",
             },
@@ -49,8 +50,7 @@ def verify_turnstile_captcha(token: Optional[str], client_ip: Optional[str] = No
             return bool(data.get("success"))
     except Exception as exc:
         print(f"[Turnstile verification notice]: {exc}")
-        # In development with test secret, allow gracefully if network to cloudflare fails
-        if TURNSTILE_SECRET_KEY == "1x0000000000000000000000000000000AA":
+        if secret == "1x0000000000000000000000000000000AA":
             return True
     return False
 
@@ -107,9 +107,10 @@ def require_admin(request: Request):
 @router.get("/api/auth/config")
 def auth_config():
     """Provides client-side keys for Turnstile and Google Sign-In."""
+    _load_dotenv()
     return {
-        "turnstile_site_key": TURNSTILE_SITE_KEY,
-        "google_client_id": GOOGLE_CLIENT_ID,
+        "turnstile_site_key": os.environ.get("TURNSTILE_SITE_KEY", "1x00000000000000000000AA") or "1x00000000000000000000AA",
+        "google_client_id": os.environ.get("GOOGLE_CLIENT_ID", "").strip(),
     }
 
 

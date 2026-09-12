@@ -324,28 +324,67 @@ async function handleGoogleCredentialResponse(response) {
   }
 }
 
+function setupGoogle() {
+  if (authConfig.google_client_id && window.google && window.google.accounts) {
+    try {
+      window.google.accounts.id.initialize({
+        client_id: authConfig.google_client_id,
+        callback: handleGoogleCredentialResponse,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+      });
+
+      if (googleHolder) {
+        window.google.accounts.id.renderButton(googleHolder, {
+          theme: 'outline',
+          size: 'large',
+          width: 320,
+          text: 'signin_with',
+          locale: 'fa',
+        });
+      }
+      return true;
+    } catch (e) {
+      console.warn('[google gsi error]', e);
+    }
+  }
+  return false;
+}
+
 if (btnGoogleLogin) {
-  btnGoogleLogin.addEventListener('click', () => {
+  btnGoogleLogin.addEventListener('click', async () => {
+    if (!authConfig.google_client_id) {
+      try {
+        const res = await fetch('/api/auth/config');
+        if (res.ok) {
+          authConfig = await res.json();
+          if (authConfig.google_client_id) {
+            setupGoogle();
+          }
+        }
+      } catch (_) {}
+    }
+
     if (!authConfig.google_client_id) {
       alert(
         'تنظیمات ورود با گوگل:\n' +
-        'شناسه GOOGLE_CLIENT_ID هنوز در فایل .env تعریف نشده است.\n\n' +
-        'لطفاً از دکمه «ثبت‌نام و دریافت ۱۰ سوال رایگان» برای ایجاد سریع حساب کاربری استفاده فرمایید.'
+        'شناسه GOOGLE_CLIENT_ID هنوز در فایل .env خالی است یا فایل ذخیره (Ctrl+S) نشده است.\n\n' +
+        'لطفاً پس از قرار دادن شناسه، فایل .env را ذخیره فرمایید.'
       );
       openRegistrationModal();
       return;
     }
 
     if (window.google && window.google.accounts && window.google.accounts.id) {
+      setupGoogle();
       window.google.accounts.id.prompt((notification) => {
         if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          // If prompt doesn't show, trigger standard click on rendered button
           const btnEl = googleHolder.querySelector('div[role="button"]');
           if (btnEl) btnEl.click();
         }
       });
     } else {
-      showLoginError('کتابخانه گوگل لود نشد. لطفاً از فرم ثبت‌نام عادی استفاده نمایید.');
+      showLoginError('کتابخانه گوگل در مرورگر شما در دسترس نیست. لطفاً اتصال اینترنت خود را بررسی نمایید.');
     }
   });
 }
@@ -367,28 +406,7 @@ async function initAuth() {
   setupTurnstile();
 
   // Setup Google Identity Services if client_id is available
-  if (authConfig.google_client_id && window.google && window.google.accounts) {
-    try {
-      window.google.accounts.id.initialize({
-        client_id: authConfig.google_client_id,
-        callback: handleGoogleCredentialResponse,
-        auto_select: false,
-        cancel_on_tap_outside: true,
-      });
-
-      if (googleHolder) {
-        window.google.accounts.id.renderButton(googleHolder, {
-          theme: 'outline',
-          size: 'large',
-          width: 320,
-          text: 'signin_with',
-          locale: 'fa',
-        });
-      }
-    } catch (e) {
-      console.warn('[google gsi error]', e);
-    }
-  }
+  setupGoogle();
 }
 
 function setupTurnstile() {
