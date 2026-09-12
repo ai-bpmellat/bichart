@@ -4,18 +4,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>رایامیت | از داده تا تصمیم هوشمند — ورود</title>
+  <title>رایامیت | از داده تا تصمیم هوشمند — ورود و ثبت‌نام</title>
 
   <!-- SEO Meta Tags -->
   <meta name="description"
-    content="ورود به سامانه رایامیت | از داده تا تصمیم هوشمند — دستیار هوش تجاری مکالمه‌محور و تحلیل داده‌های پرداخت و بانکی." />
+    content="ورود و ثبت‌نام در سامانه رایامیت | دستیار هوش تجاری مکالمه‌محور و تحلیل داده‌های پرداخت و بانکی با ۱۰ پرسش روزانه رایگان." />
   <meta name="keywords"
-    content="رایامیت, از داده تا تصمیم هوشمند, ورود به سامانه هوش تجاری, Rayamate, پنل هوش تجاری" />
+    content="رایامیت, ثبت‌نام رایامیت, ورود به سامانه هوش تجاری, Rayamate, پنل هوش تجاری" />
   <meta name="robots" content="index, follow" />
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="رایامیت | از داده تا تصمیم هوشمند — ورود" />
+  <meta property="og:title" content="رایامیت | از داده تا تصمیم هوشمند — ورود و ثبت‌نام" />
   <meta property="og:description" content="سامانه هوش تجاری مکالمه‌محور رایامیت | از داده تا تصمیم هوشمند." />
   <meta property="og:image" content="/static/logo.png" />
 
@@ -27,6 +27,11 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Vazirmatn:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
+
+  <!-- Cloudflare Turnstile & Google Identity Services -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
   <style>
     :root {
       --green: #059669;
@@ -97,14 +102,12 @@
       gap: 40px;
       align-items: center;
       direction: ltr;
-      /* marketing on left, login on right */
     }
 
     .left,
     .login-wrap,
     .login-card {
       direction: rtl;
-      /* keep Persian text RTL */
     }
 
     .brand {
@@ -129,17 +132,9 @@
       background: linear-gradient(180deg, #34d399, var(--green-dark));
     }
 
-    .brand-mark span:nth-child(1) {
-      height: 10px;
-    }
-
-    .brand-mark span:nth-child(2) {
-      height: 16px;
-    }
-
-    .brand-mark span:nth-child(3) {
-      height: 22px;
-    }
+    .brand-mark span:nth-child(1) { height: 10px; }
+    .brand-mark span:nth-child(2) { height: 16px; }
+    .brand-mark span:nth-child(3) { height: 22px; }
 
     .brand-name {
       font-family: 'Oswald', sans-serif;
@@ -197,9 +192,7 @@
       background: #d1fae5;
     }
 
-    .dash-top i:nth-child(1) {
-      background: #34d399;
-    }
+    .dash-top i:nth-child(1) { background: #34d399; }
 
     .dash-grid {
       display: grid;
@@ -230,25 +223,11 @@
       opacity: 0.85;
     }
 
-    .bars span:nth-child(1) {
-      height: 42%;
-    }
-
-    .bars span:nth-child(2) {
-      height: 68%;
-    }
-
-    .bars span:nth-child(3) {
-      height: 55%;
-    }
-
-    .bars span:nth-child(4) {
-      height: 88%;
-    }
-
-    .bars span:nth-child(5) {
-      height: 62%;
-    }
+    .bars span:nth-child(1) { height: 42%; }
+    .bars span:nth-child(2) { height: 68%; }
+    .bars span:nth-child(3) { height: 55%; }
+    .bars span:nth-child(4) { height: 88%; }
+    .bars span:nth-child(5) { height: 62%; }
 
     .line-chart {
       height: 86px;
@@ -270,15 +249,8 @@
       font-weight: 600;
     }
 
-    .float-badge.a {
-      top: 18px;
-      left: -12px;
-    }
-
-    .float-badge.b {
-      bottom: 24px;
-      right: -8px;
-    }
+    .float-badge.a { top: 18px; left: -12px; }
+    .float-badge.b { bottom: 24px; right: -8px; }
 
     .features {
       display: grid;
@@ -322,7 +294,7 @@
     }
 
     .login-card {
-      width: min(420px, 100%);
+      width: min(440px, 100%);
       position: relative;
       overflow: hidden;
       background: var(--card);
@@ -392,7 +364,7 @@
       color: var(--muted);
       font-size: 0.9rem;
       line-height: 1.8;
-      margin-bottom: 22px;
+      margin-bottom: 20px;
     }
 
     .field {
@@ -403,7 +375,7 @@
       display: block;
       font-size: 0.85rem;
       font-weight: 600;
-      margin-bottom: 8px;
+      margin-bottom: 7px;
       color: #204236;
     }
 
@@ -435,10 +407,10 @@
       border: 0;
       outline: 0;
       background: transparent;
-      padding: 13px 0;
+      padding: 12px 0;
       font: inherit;
       color: var(--ink);
-      font-size: 0.95rem;
+      font-size: 0.92rem;
     }
 
     .toggle-pass {
@@ -485,68 +457,41 @@
       text-decoration: underline;
     }
 
-    .captcha-box {
+    /* Turnstile Captcha Widget Container */
+    .turnstile-wrap {
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 65px;
+      background: rgba(5, 150, 105, 0.03);
+      border-radius: 12px;
+      border: 1px dashed rgba(5, 150, 105, 0.2);
+      padding: 6px;
+    }
+
+    .turnstile-fallback-box {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
-      padding: 12px 14px;
-      border-radius: 14px;
-      border: 1px solid rgba(5, 150, 105, 0.18);
-      background: rgba(255, 255, 255, 0.85);
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .captcha-box input {
-      position: absolute;
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .captcha-tick {
-      width: 22px;
-      height: 22px;
-      border-radius: 6px;
-      border: 2px solid rgba(5, 150, 105, 0.45);
+      gap: 10px;
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 10px;
       background: #fff;
-      position: relative;
-      flex-shrink: 0;
+      cursor: pointer;
     }
 
-    .captcha-box input:checked+.captcha-tick {
-      background: var(--green);
-      border-color: var(--green);
+    .turnstile-fallback-box input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--green);
     }
 
-    .captcha-box input:checked+.captcha-tick::after {
-      content: "";
-      position: absolute;
-      left: 6px;
-      top: 2px;
-      width: 6px;
-      height: 11px;
-      border: solid #fff;
-      border-width: 0 2.5px 2.5px 0;
-      transform: rotate(45deg);
-    }
-
-    .captcha-text {
-      flex: 1;
+    .turnstile-fallback-box span {
+      font-size: 0.88rem;
       font-weight: 600;
-      font-size: 0.92rem;
-    }
-
-    .captcha-badge {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      color: var(--green-dark);
-      background: rgba(5, 150, 105, 0.1);
-      border: 1px solid rgba(5, 150, 105, 0.16);
-      border-radius: 999px;
-      padding: 4px 8px;
+      color: #204236;
     }
 
     .btn-primary {
@@ -577,6 +522,24 @@
       cursor: wait;
     }
 
+    .register-cta {
+      margin-top: 14px;
+      text-align: center;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .register-cta a {
+      color: var(--green-dark);
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .register-cta a:hover {
+      text-decoration: underline;
+    }
+
     .divider {
       display: flex;
       align-items: center;
@@ -594,25 +557,36 @@
       background: rgba(5, 150, 105, 0.14);
     }
 
-    .btn-outline {
+    /* Google Button */
+    .btn-google {
       width: 100%;
       border-radius: 14px;
-      padding: 12px 16px;
-      background: #fff;
-      color: var(--green-dark);
-      border: 1.5px solid rgba(5, 150, 105, 0.35);
+      padding: 11px 16px;
+      background: #ffffff;
+      color: #374151;
+      border: 1.5px solid #e5e7eb;
       font: inherit;
-      font-weight: 700;
+      font-weight: 600;
+      font-size: 0.92rem;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      transition: background .15s;
+      gap: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+      transition: background .15s, border-color .15s, box-shadow .15s;
     }
 
-    .btn-outline:hover {
-      background: var(--green-soft);
+    .btn-google:hover {
+      background: #f9fafb;
+      border-color: #d1d5db;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    .btn-google svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
     }
 
     .login-error {
@@ -623,6 +597,116 @@
       border: 1px solid rgba(161, 61, 47, 0.2);
       color: #a13d2f;
       font-size: 0.88rem;
+    }
+
+    .login-success {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(5, 150, 105, 0.1);
+      border: 1px solid rgba(5, 150, 105, 0.25);
+      color: #047857;
+      font-size: 0.88rem;
+    }
+
+    /* ========================================================= */
+    /* Dedicated Registration Modal */
+    /* ========================================================= */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 42, 31, 0.48);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+      direction: rtl;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .reg-modal {
+      width: min(520px, 100%);
+      background: #ffffff;
+      border-radius: 24px;
+      box-shadow: 0 32px 70px rgba(15, 42, 31, 0.2);
+      border: 1px solid rgba(5, 150, 105, 0.16);
+      padding: 28px 26px;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: modalPop .22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modalPop {
+      from { transform: scale(0.94); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .reg-modal-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .reg-modal-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .reg-modal-subtitle {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .reg-close-btn {
+      border: 0;
+      background: #f1f5f3;
+      color: #5a7a6d;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 16px;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: background .15s, color .15s;
+    }
+
+    .reg-close-btn:hover {
+      background: #e2ede8;
+      color: #1a3c30;
+    }
+
+    .reg-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .reg-grid .full {
+      grid-column: 1 / -1;
+    }
+
+    .tier-perk-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 10px;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      color: #065f46;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+      width: 100%;
     }
 
     .footer {
@@ -672,6 +756,10 @@
       .float-badge.b {
         display: none;
       }
+
+      .reg-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -689,7 +777,7 @@
         </a>
 
         <h2 class="hero-title">به سامانه هوشمند <em>رایامیت</em> خوش آمدید</h2>
-        <p class="hero-sub">دسترسی سریع و امن به ابزارهای تحلیل داده، گزارش‌گیری و داشبوردهای هوشمند</p>
+        <p class="hero-sub">دسترسی سریع و امن به ابزارهای تحلیل داده، گزارش‌گیری و داشبوردهای هوشمند بانکی و پرداخت</p>
 
         <div class="hero-art">
           <div class="float-badge a">▲ رشد دقیق داده</div>
@@ -701,29 +789,29 @@
                 <div class="line-chart"></div>
               </div>
               <div class="panel">
-                <div style="font-size:12px;color:#5a7a6d;font-weight:600;">فروش</div>
+                <div style="font-size:12px;color:#5a7a6d;font-weight:600;">تراکنش‌ها</div>
                 <div class="bars"><span></span><span></span><span></span><span></span><span></span></div>
               </div>
             </div>
           </div>
-          <div class="float-badge b">تحلیل آنی</div>
+          <div class="float-badge b">تحلیل آنی مکالمه‌محور</div>
         </div>
 
         <div class="features">
           <div class="feature">
             <div class="feature-icon">🛡️</div>
             <h3>ایمن و مطمئن</h3>
-            <p>تضمین امنیت اطلاعات شما</p>
+            <p>تضمین امنیت اطلاعات و اعتبارسنجی پیشرفته</p>
           </div>
           <div class="feature">
             <div class="feature-icon">⚡</div>
             <h3>سریع و هوشمند</h3>
-            <p>دسترسی فوری به داده و گزارش</p>
+            <p>پرسش و پاسخ مکالمه‌محور بدون نیاز به کدنویسی</p>
           </div>
           <div class="feature">
-            <div class="feature-icon">📊</div>
-            <h3>تحلیل دقیق</h3>
-            <p>ابزارهای پیشرفته برای تصمیم بهتر</p>
+            <div class="feature-icon">🎁</div>
+            <h3>طرح رایگان روزانه</h3>
+            <p>۱۰ پرسش و تحلیل رایگان در هر روز برای کاربران جدید</p>
           </div>
         </div>
       </section>
@@ -738,15 +826,15 @@
           <div class="login-content">
             <div class="chip">RAYAMATE · BI</div>
             <h1>ورود به دستیار هوش تجاری</h1>
-            <p class="desc">لطفاً نام کاربری و رمز عبور خود را وارد کنید تا به داشبورد دسترسی پیدا کنید.</p>
+            <p class="desc">نام کاربری یا ایمیل و رمز عبور خود را وارد کنید.</p>
 
             <form id="login-form" novalidate>
               <div class="field">
-                <label for="username-input">نام کاربری</label>
+                <label for="username-input">نام کاربری یا ایمیل</label>
                 <div class="input-wrap">
                   <span class="icon" aria-hidden="true">👤</span>
                   <input id="username-input" type="text" name="username" autocomplete="username" required
-                    placeholder="نام کاربری خود را وارد کنید" />
+                    placeholder="نام کاربری یا ایمیل" />
                 </div>
               </div>
 
@@ -755,7 +843,7 @@
                 <div class="input-wrap">
                   <span class="icon" aria-hidden="true">🔒</span>
                   <input id="password-input" type="password" name="password" autocomplete="current-password" required
-                    placeholder="رمز عبور خود را وارد کنید" />
+                    placeholder="رمز عبور" />
                   <button type="button" class="toggle-pass" id="toggle-pass" aria-label="نمایش رمز">نمایش</button>
                 </div>
               </div>
@@ -765,36 +853,142 @@
                   <input type="checkbox" id="remember-me" />
                   <span>مرا به خاطر بسپار</span>
                 </label>
-                <a class="forgot" href="#" id="forgot-link">رمز عبور را فراموش کرده‌اید؟</a>
+                <a class="forgot" href="#" id="forgot-link">فراموشی رمز عبور؟</a>
               </div>
 
-              <label class="captcha-box" for="captcha-input">
-                <input id="captcha-input" type="checkbox" name="captcha" />
-                <span class="captcha-tick" aria-hidden="true"></span>
-                <span class="captcha-text">من ربات نیستم</span>
-                <span class="captcha-badge">CAPTCHA</span>
-              </label>
+              <!-- Real Cloudflare Turnstile Bot-Detection Captcha -->
+              <div class="turnstile-wrap" id="login-turnstile-wrap">
+                <div id="login-turnstile"></div>
+                <!-- Fallback in case Turnstile script doesn't load -->
+                <label class="turnstile-fallback-box" id="login-turnstile-fallback" style="display:none;">
+                  <input type="checkbox" id="login-fallback-checkbox" />
+                  <span>من ربات نیستم (تایید امنیتی)</span>
+                </label>
+              </div>
 
-              <button type="submit" class="btn-primary" id="login-btn">ورود</button>
+              <button type="submit" class="btn-primary" id="login-btn">ورود به سامانه</button>
+
+              <div class="register-cta">
+                <span>حساب کاربری ندارید؟</span>
+                <a id="open-register-modal-btn">ثبت‌نام و دریافت ۱۰ سوال رایگان</a>
+              </div>
             </form>
 
-            <div class="divider">یا با یک کلیک وارد شوید</div>
-            <button type="button" class="btn-outline" id="company-login-btn">🛡️ ورود با شرکت</button>
+            <div class="divider">یا ورود با حساب کاربری دیگر</div>
+
+            <!-- Google Sign-In Button -->
+            <button type="button" class="btn-google" id="btn-google-login">
+              <svg viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.25 21.36 7.33 24 12 24z"/>
+                <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.97 0 12s.46 3.84 1.26 5.42l4.02-3.15z"/>
+                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.25 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+              </svg>
+              <span>ورود / ثبت‌نام سریع با گوگل</span>
+            </button>
+            <div id="g_id_signin_holder" style="display:none;margin-top:10px;"></div>
 
             <div id="login-error" class="login-error" hidden></div>
+            <div id="login-success" class="login-success" hidden></div>
           </div>
         </div>
       </section>
     </main>
 
     <footer class="footer">
-      <div>© تمامی حقوق برای Rayamate محفوظ است. ۲۰۲۴</div>
+      <div>© تمامی حقوق برای سامانه هوش تجاری Rayamate محفوظ است.</div>
       <div class="footer-links">
-        <a href="#">شرایط استفاده</a>
-        <a href="#">پشتیبانی</a>
-        <a href="#">حریم خصوصی</a>
+        <a href="/help">راهنمای سیستم</a>
+        <a href="/manual">مستندات</a>
+        <a href="#">پشتیبانی و ارتقای پلن</a>
       </div>
     </footer>
+  </div>
+
+  <!-- Dedicated Separate Registration Modal Window -->
+  <div class="modal-backdrop" id="reg-modal-backdrop">
+    <div class="reg-modal">
+      <div class="reg-modal-top">
+        <div>
+          <h2 class="reg-modal-title">ثبت‌نام در سامانه رایامیت</h2>
+          <div class="reg-modal-subtitle">لطفاً مشخصات خود را وارد کنید (کاربر سطح ۱)</div>
+        </div>
+        <button type="button" class="reg-close-btn" id="reg-close-btn" aria-label="بستن">✕</button>
+      </div>
+
+      <div class="tier-perk-badge">
+        <span>🎁</span>
+        <span>طرح رایگان شما شامل <strong>۱۰ پرسش و تحلیل در هر روز</strong> فعال خواهد شد.</span>
+      </div>
+
+      <form id="reg-form" novalidate>
+        <div class="reg-grid">
+          <div class="field">
+            <label for="reg-name">نام و نام خانوادگی *</label>
+            <div class="input-wrap">
+              <span class="icon">👤</span>
+              <input id="reg-name" type="text" required placeholder="مثلاً: علی محمدی" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="reg-mobile">شماره موبایل *</label>
+            <div class="input-wrap">
+              <span class="icon">📱</span>
+              <input id="reg-mobile" type="tel" required placeholder="09123456789" dir="ltr" />
+            </div>
+          </div>
+
+          <div class="field full">
+            <label for="reg-email">آدرس ایمیل *</label>
+            <div class="input-wrap">
+              <span class="icon">✉️</span>
+              <input id="reg-email" type="email" required placeholder="example@domain.com" dir="ltr" />
+            </div>
+          </div>
+
+          <div class="field full">
+            <label for="reg-username">نام کاربری دلخواه *</label>
+            <div class="input-wrap">
+              <span class="icon">🆔</span>
+              <input id="reg-username" type="text" required placeholder="username (حروف انگلیسی یا اعداد)" dir="ltr" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="reg-password">رمز عبور *</label>
+            <div class="input-wrap">
+              <span class="icon">🔒</span>
+              <input id="reg-password" type="password" required placeholder="حداقل ۶ کاراکتر" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="reg-password-confirm">تکرار رمز عبور *</label>
+            <div class="input-wrap">
+              <span class="icon">🔐</span>
+              <input id="reg-password-confirm" type="password" required placeholder="تکرار رمز عبور" />
+            </div>
+          </div>
+
+          <!-- Registration Turnstile Captcha -->
+          <div class="field full">
+            <div class="turnstile-wrap" id="reg-turnstile-wrap">
+              <div id="reg-turnstile"></div>
+              <label class="turnstile-fallback-box" id="reg-turnstile-fallback" style="display:none;">
+                <input type="checkbox" id="reg-fallback-checkbox" />
+                <span>من ربات نیستم (تایید امنیتی)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" id="reg-submit-btn" style="margin-top:6px;">تکمیل ثبت‌نام و ورود به برنامه</button>
+
+        <div id="reg-error" class="login-error" hidden></div>
+        <div id="reg-success" class="login-success" hidden></div>
+      </form>
+    </div>
   </div>
 
   <script src="/static/login.js"></script>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>مدیریت کاربران — Rayamate</title>
+<title>مدیریت کاربران و سطوح دسترسی — Rayamate</title>
 <link rel="icon" type="image/png" sizes="512x512" href="/static/favicon-512.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="/static/favicon-192.png" />
 <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png" />
@@ -19,7 +19,7 @@
     min-height: 100vh;
   }
   .users-shell {
-    max-width: 1100px;
+    max-width: 1180px;
     margin: 0 auto;
     padding: 24px 18px 40px;
   }
@@ -47,7 +47,7 @@
   .users-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.92rem;
+    font-size: 0.9rem;
   }
   .users-table th, .users-table td {
     text-align: right;
@@ -58,18 +58,31 @@
     color: #047857;
     font-size: 0.82rem;
     font-weight: 700;
+    white-space: nowrap;
   }
   .badge {
     display: inline-flex;
-    padding: 3px 10px;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
     border-radius: 999px;
-    font-size: 0.75rem;
+    font-size: 0.76rem;
     font-weight: 700;
   }
-  .badge-admin { background: rgba(5,150,105,0.12); color: #047857; }
+  .badge-admin { background: rgba(5,150,105,0.14); color: #047857; }
   .badge-user { background: rgba(15,42,31,0.06); color: #4a6b5e; }
+  .badge-tier1 { background: rgba(37,99,235,0.1); color: #1d4ed8; }
+  .badge-premium { background: rgba(217,119,6,0.14); color: #b45309; }
   .badge-off { background: rgba(161,61,47,0.1); color: #a13d2f; }
   .badge-on { background: rgba(5,150,105,0.12); color: #047857; }
+  .usage-pill {
+    font-family: monospace;
+    font-size: 0.82rem;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: #f1f5f3;
+    color: #2c5545;
+  }
   .row-btns { display: flex; gap: 6px; flex-wrap: wrap; }
   .ghost-btn.tiny, .primary-btn.tiny {
     width: auto;
@@ -77,11 +90,12 @@
     font-size: 0.8rem;
     border-radius: 10px;
   }
-  .primary-btn.tiny { background: #059669; color: #fff; border: none; }
+  .primary-btn.tiny { background: #059669; color: #fff; border: none; cursor: pointer; }
   .ghost-btn.tiny.danger { color: #a13d2f; border-color: rgba(161,61,47,0.3); }
   .modal-back {
     position: fixed; inset: 0;
-    background: rgba(15,42,31,0.35);
+    background: rgba(15,42,31,0.38);
+    backdrop-filter: blur(4px);
     display: none;
     align-items: center;
     justify-content: center;
@@ -90,19 +104,20 @@
   }
   .modal-back.open { display: flex; }
   .modal {
-    width: min(480px, 100%);
+    width: min(520px, 100%);
     background: #fff;
-    border-radius: 18px;
-    padding: 22px;
+    border-radius: 20px;
+    padding: 24px;
     border: 1px solid rgba(5,150,105,0.14);
+    box-shadow: 0 24px 50px rgba(0,0,0,0.12);
   }
-  .modal h2 { margin: 0 0 14px; font-size: 1.15rem; color: #0f2a1f; }
+  .modal h2 { margin: 0 0 14px; font-size: 1.18rem; color: #0f2a1f; }
   .modal label {
     display: block;
-    font-size: 0.85rem;
+    font-size: 0.84rem;
     font-weight: 600;
     color: #315749;
-    margin: 10px 0 6px;
+    margin: 10px 0 5px;
   }
   .modal input, .modal select {
     width: 100%;
@@ -111,12 +126,19 @@
     border: 1px solid rgba(5,150,105,0.2);
     background: #f8fbf9;
     font: inherit;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+  }
+  .modal input:focus, .modal select:focus {
+    outline: none;
+    border-color: #059669;
+    background: #fff;
   }
   .modal-actions {
     display: flex;
     gap: 8px;
     justify-content: flex-start;
-    margin-top: 16px;
+    margin-top: 18px;
   }
   .msg {
     margin-top: 12px;
@@ -135,8 +157,8 @@
   <div class="users-shell">
     <div class="users-top">
       <div>
-        <h1>مدیریت کاربران</h1>
-        <div style="color:#5a7a6d;font-size:0.9rem;margin-top:4px;">فقط مدیر سیستم به این بخش دسترسی دارد</div>
+        <h1>مدیریت کاربران و سطح‌بندی</h1>
+        <div style="color:#5a7a6d;font-size:0.9rem;margin-top:4px;">تعیین سطوح دسترسی (سطح ۱ رایگان، کاربر برتر، مدیر) و نظارت بر مصرف روزانه</div>
       </div>
       <div class="users-actions">
         <a class="ghost-btn tiny" href="/app">بازگشت به برنامه</a>
@@ -154,8 +176,11 @@
             <tr>
               <th>نام نمایشی</th>
               <th>نام کاربری</th>
+              <th>ایمیل</th>
               <th>موبایل</th>
-              <th>نقش</th>
+              <th>نقش سیستم</th>
+              <th>سطح کاربری</th>
+              <th>مصرف امروز</th>
               <th>وضعیت</th>
               <th>عملیات</th>
             </tr>
@@ -171,26 +196,35 @@
       <h2 id="modal-title">افزودن کاربر</h2>
       <form id="user-form">
         <input type="hidden" id="user-id" />
-        <label for="f-display">نام نمایشی</label>
+        <label for="f-display">نام و نام خانوادگی</label>
         <input id="f-display" type="text" required placeholder="مثلاً علی رضایی" />
 
         <label for="f-username">نام کاربری</label>
         <input id="f-username" type="text" required placeholder="username" autocomplete="off" />
 
-        <label for="f-mobile">موبایل</label>
+        <label for="f-email">آدرس ایمیل</label>
+        <input id="f-email" type="email" placeholder="user@example.com" />
+
+        <label for="f-mobile">شماره موبایل</label>
         <input id="f-mobile" type="text" placeholder="0912xxxxxxx" />
 
         <label for="f-password">رمز عبور <span id="pwd-hint" style="font-weight:400;color:#7a9e90;">(الزامی)</span></label>
         <input id="f-password" type="password" placeholder="رمز عبور" autocomplete="new-password" />
 
-        <label for="f-role">نقش</label>
+        <label for="f-tier">سطح کاربری</label>
+        <select id="f-tier">
+          <option value="tier1">کاربر سطح ۱ (رایگان — محدود به ۱۰ سوال در روز)</option>
+          <option value="premium">کاربر برتر (نامحدود)</option>
+        </select>
+
+        <label for="f-role">نقش سیستمی</label>
         <select id="f-role">
-          <option value="user">کاربر</option>
-          <option value="admin">مدیر</option>
+          <option value="user">کاربر عادی</option>
+          <option value="admin">مدیر سیستم (دسترسی کامل و مدیریت کاربران)</option>
         </select>
 
         <label for="f-active" id="active-wrap" hidden>
-          وضعیت
+          وضعیت حساب
           <select id="f-active">
             <option value="true">فعال</option>
             <option value="false">غیرفعال</option>
@@ -198,7 +232,7 @@
         </label>
 
         <div class="modal-actions">
-          <button type="submit" class="primary-btn tiny" id="btn-save">ذخیره</button>
+          <button type="submit" class="primary-btn tiny" id="btn-save">ذخیره اطلاعات</button>
           <button type="button" class="ghost-btn tiny" id="btn-cancel">انصراف</button>
         </div>
       </form>

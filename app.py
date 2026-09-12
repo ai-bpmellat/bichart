@@ -30,7 +30,8 @@ PUBLIC_PATHS = frozenset({
     "/", "/login", "/help", "/manual", "/manual/pdf",
     "/pitch", "/pitch/pdf", "/pitch/pptx",
     "/robots.txt", "/sitemap.xml",
-    "/api/login", "/favicon.ico"
+    "/api/login", "/api/register", "/api/auth/google", "/api/auth/config",
+    "/favicon.ico"
 })
 PUBLIC_PREFIXES = ("/static/",)
 

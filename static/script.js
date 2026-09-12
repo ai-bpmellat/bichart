@@ -361,23 +361,68 @@ async function apiFetch(url, options) {
 
 async function checkUserRole() {
   const usersBtn = document.getElementById('users-mgmt-btn');
-  if (!usersBtn) return;
+  const tierBadge = document.getElementById('user-tier-badge');
   
   try {
     const res = await apiFetch('/api/me');
     if (!res.ok) {
-      usersBtn.hidden = true;
+      if (usersBtn) usersBtn.hidden = true;
+      if (tierBadge) tierBadge.style.display = 'none';
       return;
     }
     const userData = await res.json();
-    if (userData.role === 'admin') {
-      usersBtn.hidden = false;
-    } else {
-      usersBtn.hidden = true;
+    state.currentUser = userData;
+
+    if (usersBtn) {
+      usersBtn.hidden = userData.role !== 'admin';
+    }
+
+    if (tierBadge) {
+      renderUserTierBadge(tierBadge, userData);
     }
   } catch (_) {
-    usersBtn.hidden = true;
+    if (usersBtn) usersBtn.hidden = true;
+    if (tierBadge) tierBadge.style.display = 'none';
   }
+}
+
+function renderUserTierBadge(container, user) {
+  if (!container || !user) return;
+  const isAdm = user.role === 'admin';
+  const isPrem = user.tier === 'premium';
+  let tierLabel = '';
+  let badgeColor = '';
+  let badgeBg = '';
+  let usageDetails = '';
+
+  if (isAdm) {
+    tierLabel = '👑 مدیر سیستم';
+    badgeBg = 'rgba(5,150,105,0.14)';
+    badgeColor = '#047857';
+    usageDetails = 'پرسش نامحدود';
+  } else if (isPrem) {
+    tierLabel = '🌟 کاربر برتر';
+    badgeBg = 'rgba(217,119,6,0.14)';
+    badgeColor = '#b45309';
+    usageDetails = 'پرسش نامحدود';
+  } else {
+    tierLabel = 'کاربر سطح ۱';
+    badgeBg = 'rgba(37,99,235,0.1)';
+    badgeColor = '#1d4ed8';
+    const used = user.queries_today ?? 0;
+    const limit = user.daily_limit ?? 10;
+    usageDetails = `${used} از ${limit} سوال امروز`;
+  }
+
+  container.innerHTML = `
+    <div style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.82rem; background: rgba(5,150,105,0.06); padding: 4px 12px; border-radius: 999px; border: 1px solid rgba(5,150,105,0.16);">
+      <span style="font-weight: 700; color: #0f2a1f;">${escapeHtml(user.display_name || user.username)}</span>
+      <span style="color: #9ca3af;">•</span>
+      <span style="padding: 2px 8px; border-radius: 999px; background: ${badgeBg}; color: ${badgeColor}; font-weight: 700; font-size: 0.74rem;">${tierLabel}</span>
+      <span style="font-size: 0.76rem; color: #4b5563; font-family: monospace;">(${usageDetails})</span>
+    </div>
+  `;
+  container.style.display = 'inline-flex';
 }
 
 function setProvider(provider, persist) {
@@ -742,6 +787,7 @@ async function sendMessage() {
   } finally {
     sendBtn.disabled = false;
     chatArea.scrollTop = chatArea.scrollHeight;
+    checkUserRole().catch(() => {});
   }
 }
 
@@ -759,6 +805,32 @@ function renderClarification(container, json) {
 }
 
 function renderError(container, json, originalQuestion) {
+  if (json.quota_exceeded) {
+    container.innerHTML = `
+      <div class="strip" style="border: 2px solid #f59e0b; background: #fffbeb; border-radius: 18px; padding: 22px; margin: 14px 0; box-shadow: 0 8px 24px rgba(245,158,11,0.12);">
+        <div style="display: flex; align-items: flex-start; gap: 14px;">
+          <span style="font-size: 32px; line-height: 1;">⏳</span>
+          <div style="flex: 1;">
+            <div style="font-weight: 800; font-size: 1.06rem; color: #b45309; margin-bottom: 8px;">محدودیت سقف روزانه کاربر سطح ۱</div>
+            <div style="font-size: 0.98rem; color: #92400e; line-height: 1.9; font-weight: 600;">
+              ${escapeHtml(json.error || 'مهلت استفاده رایگان شما تمام شده است و فردا مراجعه کنید یا سطح کاربری خود را با پیغام به ما ارتقا دهید')}
+            </div>
+            <div style="margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap;">
+              <a href="mailto:support@rayamate.ir?subject=درخواست ارتقای حساب کاربری به کاربر برتر" class="primary-btn tiny" style="background: #d97706; color: #fff; text-decoration: none; padding: 8px 16px; border-radius: 12px; font-weight: 700; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 6px;">
+                <span>✨</span><span>ارسال پیام جهت ارتقا به کاربر برتر</span>
+              </a>
+              <button type="button" class="ghost-btn tiny" onclick="checkUserRole();" style="border-radius: 12px; padding: 8px 14px; font-size: 0.88rem;">
+                🔄 بررسی مجدد سهمیه
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    checkUserRole().catch(() => {});
+    return;
+  }
+
   const sql = json.sql || '';
   container.innerHTML = `
     <div class="strip">

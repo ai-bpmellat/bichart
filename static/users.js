@@ -37,19 +37,22 @@ function openModal(editUser) {
   clearMsg();
   form.reset();
   if (editUser) {
-    modalTitle.textContent = 'ویرایش کاربر';
+    modalTitle.textContent = 'ویرایش اطلاعات و سطح کاربر';
     document.getElementById('user-id').value = editUser.id;
     document.getElementById('f-display').value = editUser.display_name || '';
     document.getElementById('f-username').value = editUser.username || '';
+    document.getElementById('f-email').value = editUser.email || '';
     document.getElementById('f-mobile').value = editUser.mobile || '';
     document.getElementById('f-password').value = '';
+    document.getElementById('f-tier').value = editUser.tier || 'tier1';
     document.getElementById('f-role').value = editUser.role || 'user';
     document.getElementById('f-active').value = editUser.is_active ? 'true' : 'false';
-    pwdHint.textContent = '(اختیاری — برای تغییر رمز)';
+    pwdHint.textContent = '(اختیاری — فقط در صورت تغییر رمز)';
     activeWrap.hidden = false;
   } else {
-    modalTitle.textContent = 'افزودن کاربر';
+    modalTitle.textContent = 'افزودن کاربر جدید';
     document.getElementById('user-id').value = '';
+    document.getElementById('f-tier').value = 'tier1';
     document.getElementById('f-role').value = 'user';
     pwdHint.textContent = '(الزامی)';
     activeWrap.hidden = true;
@@ -72,15 +75,31 @@ function renderUsers(users) {
   table.hidden = false;
   users.forEach((u) => {
     const tr = document.createElement('tr');
+
+    const roleBadge = u.role === 'admin'
+      ? `<span class="badge badge-admin">👑 مدیر سیستم</span>`
+      : `<span class="badge badge-user">کاربر عادی</span>`;
+
+    const tierBadge = u.tier === 'premium'
+      ? `<span class="badge badge-premium">🌟 کاربر برتر</span>`
+      : `<span class="badge badge-tier1">کاربر سطح ۱</span>`;
+
+    const usageText = u.role === 'admin' || u.tier === 'premium'
+      ? `<span class="usage-pill" title="بدون سقف روزانه">${u.queries_today ?? 0} (نامحدود)</span>`
+      : `<span class="usage-pill" title="سقف ۱۰ پرسش در روز">${u.queries_today ?? 0} از ${u.daily_limit ?? 10}</span>`;
+
     tr.innerHTML = `
-      <td>${escapeHtml(u.display_name || '')}</td>
-      <td>${escapeHtml(u.username || '')}</td>
+      <td><strong>${escapeHtml(u.display_name || '')}</strong></td>
+      <td><code>${escapeHtml(u.username || '')}</code></td>
+      <td>${escapeHtml(u.email || '-')}</td>
       <td>${escapeHtml(u.mobile || '-')}</td>
-      <td><span class="badge ${u.role === 'admin' ? 'badge-admin' : 'badge-user'}">${u.role === 'admin' ? 'مدیر' : 'کاربر'}</span></td>
+      <td>${roleBadge}</td>
+      <td>${tierBadge}</td>
+      <td>${usageText}</td>
       <td><span class="badge ${u.is_active ? 'badge-on' : 'badge-off'}">${u.is_active ? 'فعال' : 'غیرفعال'}</span></td>
       <td>
         <div class="row-btns">
-          <button type="button" class="ghost-btn tiny btn-edit">ویرایش</button>
+          <button type="button" class="ghost-btn tiny btn-edit">ویرایش / ارتقا</button>
           <button type="button" class="ghost-btn tiny danger btn-del">حذف</button>
         </div>
       </td>
@@ -108,7 +127,7 @@ async function removeUser(u) {
   if (!confirm(`کاربر «${u.username}» حذف شود؟`)) return;
   try {
     await api(`/api/users/${u.id}`, { method: 'DELETE' });
-    showMsg('کاربر حذف شد.', true);
+    showMsg('کاربر با موفقیت حذف شد.', true);
     await loadUsers();
   } catch (e) {
     showMsg(e.message, false);
@@ -121,7 +140,9 @@ form.addEventListener('submit', async (e) => {
   const payload = {
     display_name: document.getElementById('f-display').value.trim(),
     username: document.getElementById('f-username').value.trim(),
+    email: document.getElementById('f-email').value.trim(),
     mobile: document.getElementById('f-mobile').value.trim(),
+    tier: document.getElementById('f-tier').value,
     role: document.getElementById('f-role').value,
   };
   const password = document.getElementById('f-password').value;
@@ -139,14 +160,14 @@ form.addEventListener('submit', async (e) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      showMsg('کاربر ویرایش شد.', true);
+      showMsg('اطلاعات و سطح کاربر با موفقیت به‌روزرسانی شد.', true);
     } else {
       await api('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      showMsg('کاربر ایجاد شد.', true);
+      showMsg('کاربر جدید با موفقیت ایجاد شد.', true);
     }
     closeModal();
     await loadUsers();

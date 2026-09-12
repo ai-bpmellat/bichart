@@ -17,6 +17,7 @@ SESSION_SECRET = os.environ.get("SESSION_SECRET", "bichart-change-this-secret-in
 SESSION_USER_KEY = "user"
 SESSION_USER_ID_KEY = "user_id"
 SESSION_ROLE_KEY = "role"
+SESSION_TIER_KEY = "tier"
 SESSION_DISPLAY_KEY = "display_name"
 
 # Kept for backward-compatible env bootstrap naming
@@ -34,6 +35,7 @@ def set_session_user(session: dict, user: dict) -> None:
     session[SESSION_USER_KEY] = user["username"]
     session[SESSION_USER_ID_KEY] = user["id"]
     session[SESSION_ROLE_KEY] = user.get("role", "user")
+    session[SESSION_TIER_KEY] = user.get("tier", "tier1")
     session[SESSION_DISPLAY_KEY] = user.get("display_name") or user["username"]
 
 
@@ -52,5 +54,6 @@ def current_user(session: dict) -> Optional[dict]:
         "id": session.get(SESSION_USER_ID_KEY),
         "username": session.get(SESSION_USER_KEY),
         "role": session.get(SESSION_ROLE_KEY, "user"),
+        "tier": session.get(SESSION_TIER_KEY, "tier1"),
         "display_name": session.get(SESSION_DISPLAY_KEY) or session.get(SESSION_USER_KEY),
     }

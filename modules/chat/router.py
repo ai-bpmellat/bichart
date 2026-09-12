@@ -11,6 +11,7 @@ from sqlalchemy import text
 
 from modules.bi_data.database import SessionLocal
 from modules.chat import service as chat_service
+from modules.identity import users as users_mod
 from modules.identity.session import current_user
 from modules.llm import avalai as avalai_client
 from modules.llm import ollama as ollama_client
@@ -93,6 +94,19 @@ def chat(req: ChatRequest, request: Request):
         return JSONResponse(status_code=400, content={"error": "Empty message."})
 
     session_user = current_user(request.session)
+    if session_user and session_user.get("id"):
+        allowed, msg, used, limit = users_mod.check_and_consume_query_quota(session_user["id"])
+        if not allowed:
+            return JSONResponse(
+                status_code=429,
+                content={
+                    "error": msg,
+                    "quota_exceeded": True,
+                    "queries_today": used,
+                    "daily_limit": limit,
+                },
+            )
+
     username = session_user.get("username") if session_user else "anonymous"
     language, provider = chat_service.resolve_language_provider(
         username, language=req.language, provider=req.provider
@@ -154,6 +168,19 @@ def discuss(req: DiscussRequest, request: Request):
         return JSONResponse(status_code=400, content={"error": "Empty discussion message."})
 
     session_user = current_user(request.session)
+    if session_user and session_user.get("id"):
+        allowed, msg, used, limit = users_mod.check_and_consume_query_quota(session_user["id"])
+        if not allowed:
+            return JSONResponse(
+                status_code=429,
+                content={
+                    "error": msg,
+                    "quota_exceeded": True,
+                    "queries_today": used,
+                    "daily_limit": limit,
+                },
+            )
+
     username = session_user.get("username") if session_user else "anonymous"
     language, provider = chat_service.resolve_language_provider(
         username, language=req.language, provider=req.provider
