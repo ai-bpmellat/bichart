@@ -45,10 +45,26 @@ for p in [venv_lib64, venv_lib]:
         sys.path.insert(0, p)
         log_debug(f"Added matching site-packages: {p}")
 
-# ── 3. Default environment variables ───────────────────────────────────
+# ── 3. Load environment variables (.env file + defaults) ───────────────
+_env_file = os.path.join(PROJECT_ROOT, ".env")
+if os.path.isfile(_env_file):
+    try:
+        with open(_env_file, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    k, v = k.strip(), v.strip().strip("'\"")
+                    if k and v:
+                        os.environ[k] = v
+    except Exception as exc:
+        log_debug(f"Notice loading .env: {exc}")
+
 os.environ.setdefault("AVALAI_API_KEY", "aa-PqX6XTobrcQv8r4zFGaIIhl4lur7e1kNswrKsIh2sAKjcczu")
 os.environ.setdefault("SESSION_SECRET", "bichart-super-secret-key-change-in-production")
 os.environ.setdefault("GOOGLE_CLIENT_ID", "287844662924-oq9gpis6urq8g7g35pmpnejq1vvk1ofv.apps.googleusercontent.com")
+os.environ.setdefault("TURNSTILE_SITE_KEY", os.environ.get("TURNSTILE_SITE_KEY", ""))
+os.environ.setdefault("TURNSTILE_SECRET_KEY", os.environ.get("TURNSTILE_SECRET_KEY", ""))
 
 # ── 4. Import and wrap the FastAPI application ─────────────────────────
 _startup_error = None
