@@ -357,14 +357,7 @@
     .login-card h1 {
       font-size: 1.35rem;
       font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .login-card .desc {
-      color: var(--muted);
-      font-size: 0.9rem;
-      line-height: 1.8;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
 
     .field {
@@ -523,21 +516,31 @@
     }
 
     .register-cta {
-      margin-top: 14px;
+      margin-top: 16px;
       text-align: center;
-      font-size: 0.88rem;
-      color: var(--muted);
     }
 
     .register-cta a {
       color: var(--green-dark);
       font-weight: 700;
+      font-size: 0.92rem;
       text-decoration: none;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 18px;
+      border-radius: 999px;
+      background: rgba(5, 150, 105, 0.08);
+      border: 1px solid rgba(5, 150, 105, 0.18);
+      transition: all .15s ease;
     }
 
     .register-cta a:hover {
-      text-decoration: underline;
+      background: rgba(5, 150, 105, 0.15);
+      border-color: rgba(5, 150, 105, 0.35);
+      color: var(--green-dark);
+      transform: translateY(-1px);
     }
 
     .divider {
@@ -557,36 +560,96 @@
       background: rgba(5, 150, 105, 0.14);
     }
 
-    /* Google Button */
+    .divider:empty {
+      height: 1px;
+      background: rgba(5, 150, 105, 0.14);
+      margin: 18px 0;
+      border: 0;
+      gap: 0;
+    }
+
+    .divider:empty::before,
+    .divider:empty::after {
+      display: none;
+    }
+
+    /* Google Button with Vibrant Glossy Style */
     .btn-google {
       width: 100%;
-      border-radius: 14px;
-      padding: 11px 16px;
-      background: #ffffff;
-      color: #374151;
-      border: 1.5px solid #e5e7eb;
+      position: relative;
+      overflow: hidden;
+      border-radius: 16px;
+      padding: 13px 20px;
+      min-height: 52px;
+      background: linear-gradient(#ffffff, #ffffff) padding-box,
+                  linear-gradient(135deg, #4285F4 0%, #EA4335 33%, #FBBC05 66%, #34A853 100%) border-box;
+      border: 2.2px solid transparent;
+      color: #1e293b;
       font: inherit;
-      font-weight: 600;
-      font-size: 0.92rem;
+      font-weight: 700;
+      font-size: 1.02rem;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-      transition: background .15s, border-color .15s, box-shadow .15s;
+      gap: 12px;
+      box-shadow: 0 4px 18px rgba(66, 133, 244, 0.16), 0 8px 24px rgba(234, 67, 53, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+      transition: transform .22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow .22s ease, background .22s ease;
+      letter-spacing: -0.01em;
+    }
+
+    .btn-google::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -130%;
+      width: 80%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+      transform: skewX(-22deg);
+      transition: none;
+      pointer-events: none;
+    }
+
+    .btn-google:hover::before {
+      left: 140%;
+      transition: left 0.75s ease-in-out;
     }
 
     .btn-google:hover {
-      background: #f9fafb;
-      border-color: #d1d5db;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      background: linear-gradient(#f8faff, #fdf8f8) padding-box,
+                  linear-gradient(135deg, #4285F4 0%, #EA4335 33%, #FBBC05 66%, #34A853 100%) border-box;
+      box-shadow: 0 8px 28px rgba(66, 133, 244, 0.28), 0 12px 34px rgba(234, 67, 53, 0.16), 0 6px 14px rgba(52, 168, 83, 0.16);
+      transform: translateY(-2px);
+    }
+
+    .btn-google:active {
+      transform: translateY(0) scale(0.99);
+      box-shadow: 0 3px 10px rgba(66, 133, 244, 0.2);
+    }
+
+    .btn-google .google-icon-box {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: #ffffff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
+      flex-shrink: 0;
+      transition: transform .22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-google:hover .google-icon-box {
+      transform: scale(1.1) rotate(-4deg);
     }
 
     .btn-google svg {
-      width: 18px;
-      height: 18px;
+      width: 21px;
+      height: 21px;
       flex-shrink: 0;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.08));
     }
 
     .login-error {
@@ -954,7 +1017,22 @@
               </button>
             </div>
             <h1 id="t-login-title">ورود به دستیار هوش تجاری</h1>
-            <p class="desc" id="t-login-desc">نام کاربری یا ایمیل و رمز عبور خود را وارد کنید.</p>
+
+            <!-- Google Sign-In Button (Prominent at Top) -->
+            <button type="button" class="btn-google" id="btn-google-login">
+              <span class="google-icon-box">
+                <svg viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+                  <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.25 21.36 7.33 24 12 24z"/>
+                  <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.97 0 12s.46 3.84 1.26 5.42l4.02-3.15z"/>
+                  <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.25 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                </svg>
+              </span>
+              <span id="t-btn-google">ورود / ثبت‌نام سریع با گوگل</span>
+            </button>
+            <div id="g_id_signin_holder" style="display:none;margin-top:10px;"></div>
+
+            <div class="divider" id="t-divider"></div>
 
             <form id="login-form" novalidate>
               <div class="field">
@@ -997,24 +1075,9 @@
               <button type="submit" class="btn-primary" id="login-btn">ورود به سامانه</button>
 
               <div class="register-cta">
-                <span id="t-no-acc">حساب کاربری ندارید؟</span>
-                <a id="open-register-modal-btn">ثبت‌نام و دریافت ۵ سوال آزمایشی</a>
+                <a id="open-register-modal-btn">ثبت‌نام رایگان</a>
               </div>
             </form>
-
-            <div class="divider" id="t-divider">یا ورود با حساب کاربری دیگر</div>
-
-            <!-- Google Sign-In Button -->
-            <button type="button" class="btn-google" id="btn-google-login">
-              <svg viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
-                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.25 21.36 7.33 24 12 24z"/>
-                <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.97 0 12s.46 3.84 1.26 5.42l4.02-3.15z"/>
-                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.25 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-              </svg>
-              <span id="t-btn-google">ورود / ثبت‌نام سریع با گوگل</span>
-            </button>
-            <div id="g_id_signin_holder" style="display:none;margin-top:10px;"></div>
 
             <div id="login-error" class="login-error" hidden></div>
             <div id="login-success" class="login-success" hidden></div>
